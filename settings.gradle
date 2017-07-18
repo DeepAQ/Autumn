@@ -1,3 +1,5 @@
 rootProject.name = 'autumn'
 include 'autumn-rpc'
+include 'autumn-rpc:autumn-rpc-server'
+include 'autumn-rpc:autumn-rpc-client'
 
