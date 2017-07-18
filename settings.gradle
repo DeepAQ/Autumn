@@ -1,0 +1,3 @@
+rootProject.name = 'autumn'
+include 'autumn-rpc'
+
