@@ -8,4 +8,14 @@ public class TestServiceImpl implements TestService {
     public String echo(String input) {
         return "Echo: " + input;
     }
+
+    @Override
+    public String echo(int input) {
+        return "Echo int: " + input;
+    }
+
+    @Override
+    public String echo(Integer input) {
+        return "Echo Integer: " + input;
+    }
 }

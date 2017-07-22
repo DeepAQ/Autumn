@@ -50,8 +50,4 @@ public class AutumnRPCServer {
             }
         }
     }
-
-    public static void main(String[] args) {
-        start();
-    }
 }
