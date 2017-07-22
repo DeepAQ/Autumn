@@ -1,9 +1,11 @@
 package cn.imaq.autumn.rpc.server;
 
+import cn.imaq.autumn.rpc.server.annotation.AutumnRPCExpose;
 import cn.imaq.autumn.rpc.server.net.AutumnHttpServer;
 import cn.imaq.autumn.rpc.server.util.AutumnRPCBanner;
 import cn.imaq.autumn.rpc.server.util.ConfigUtil;
 import cn.imaq.autumn.rpc.server.util.LogUtil;
+import io.github.lukehutch.fastclasspathscanner.FastClasspathScanner;
 import org.rapidoid.net.Server;
 
 public class AutumnRPCServer {
@@ -15,10 +17,20 @@ public class AutumnRPCServer {
     }
 
     public static void start(String configFile) {
-        AutumnRPCBanner.printBanner();
-        ConfigUtil.loadConfig(configFile);
         synchronized (httpServer) {
+            // Stop existing server
             stop();
+            // Load config
+            AutumnRPCBanner.printBanner();
+            ConfigUtil.loadConfig(configFile);
+            // Scan classes with annotation
+            LogUtil.W("Scanning services to expose ...");
+            new FastClasspathScanner()
+                    .matchClassesWithAnnotation(AutumnRPCExpose.class, clz -> {
+                        LogUtil.I("Exposing: " + clz.getName());
+                        // TODO
+                    }).scan();
+            // Start HTTP server
             String host = ConfigUtil.get("http.host");
             Integer port = Integer.valueOf(ConfigUtil.get("http.port"));
             LogUtil.I("Starting HTTP server on " + host + ":" + port);

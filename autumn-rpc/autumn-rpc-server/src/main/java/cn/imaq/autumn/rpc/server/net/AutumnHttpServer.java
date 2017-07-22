@@ -22,7 +22,7 @@ public class AutumnHttpServer extends AbstractHttpServer {
     protected HttpStatus handle(Channel ctx, Buf buf, RapidoidHelper req) {
         String method = req.verb.str(buf);
         String path = req.path.str(buf);
-        LogUtil.I("Received HTTP Request:\n" + method + " " + path);
+        LogUtil.D("Received HTTP Request:\n" + method + " " + path);
         if (req.isGet.value) {
             if (matches(buf, req.path, ROOT_PATH)) {
                 // TODO
