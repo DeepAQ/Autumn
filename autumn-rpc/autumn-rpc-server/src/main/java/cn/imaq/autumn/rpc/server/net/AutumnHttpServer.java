@@ -1,5 +1,6 @@
 package cn.imaq.autumn.rpc.server.net;
 
+import cn.imaq.autumn.rpc.server.util.ClassMap;
 import cn.imaq.autumn.rpc.server.util.LogUtil;
 import org.rapidoid.buffer.Buf;
 import org.rapidoid.http.AbstractHttpServer;
@@ -14,8 +15,15 @@ public class AutumnHttpServer extends AbstractHttpServer {
     private final byte[] METHOD_POST = "POST".getBytes();
     private final byte[] INFO_403 = "<html><head><title>403 Forbidden</title></head><body><center><h1>403 Forbidden</h1></center><hr><center>AutumnRPC</center></body></html>".getBytes();
 
+    private ClassMap classMap;
+
     public AutumnHttpServer() {
         super("AutumnRPC", "Not Found", "Internal Server Error", true);
+        classMap = new ClassMap();
+    }
+
+    public ClassMap getClassMap() {
+        return classMap;
     }
 
     @Override

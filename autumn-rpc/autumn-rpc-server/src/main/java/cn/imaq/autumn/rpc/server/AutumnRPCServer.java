@@ -25,15 +25,19 @@ public class AutumnRPCServer {
             ConfigUtil.loadConfig(configFile);
             // Scan classes with annotation
             LogUtil.W("Scanning services to expose ...");
+            httpServer.getClassMap().clear();
             new FastClasspathScanner()
                     .matchClassesWithAnnotation(AutumnRPCExpose.class, clz -> {
                         LogUtil.I("Exposing: " + clz.getName());
-                        // TODO
+                        httpServer.getClassMap().putClass(clz);
+                        for (Class intf : clz.getInterfaces()) {
+                            httpServer.getClassMap().putClass(intf.getName(), clz);
+                        }
                     }).scan();
             // Start HTTP server
             String host = ConfigUtil.get("http.host");
             Integer port = Integer.valueOf(ConfigUtil.get("http.port"));
-            LogUtil.I("Starting HTTP server on " + host + ":" + port);
+            LogUtil.W("Starting HTTP server on " + host + ":" + port);
             listeningServer = httpServer.listen(host, port);
         }
     }
