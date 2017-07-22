@@ -11,6 +11,7 @@ public class ClassMap {
     }
 
     public void putClass(String className, Class clz) {
+        LogUtil.D("Adding service {" + className + " => " + clz.getName() + "}");
         if (map.put(className, clz) != null) {
             LogUtil.E(className + " has multiple implements, replacing with " + clz.getName());
         }

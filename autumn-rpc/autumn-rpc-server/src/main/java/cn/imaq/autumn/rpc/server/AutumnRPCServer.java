@@ -39,6 +39,7 @@ public class AutumnRPCServer {
             Integer port = Integer.valueOf(ConfigUtil.get("http.port"));
             LogUtil.W("Starting HTTP server on " + host + ":" + port);
             listeningServer = httpServer.listen(host, port);
+            LogUtil.W("Bootstrap success");
         }
     }
 
