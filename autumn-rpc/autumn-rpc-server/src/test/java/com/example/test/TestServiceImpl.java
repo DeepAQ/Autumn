@@ -25,6 +25,11 @@ public class TestServiceImpl implements TestService {
     }
 
     @Override
+    public String testObject(String str, MyObject object) {
+        return str + " " + object.toString();
+    }
+
+    @Override
     public void testVoid() {
     }
 

@@ -54,7 +54,11 @@ public class AutumnRPCHttpServer extends AbstractHttpServer {
                     if (request.getParamTypes().length == request.getParams().length) {
                         try {
                             Method method = instance.getClass().getMethod(request.getMethodName(), request.getParamTypes());
-                            Object result = method.invoke(instance, request.getParams());
+                            Object[] realParams = new Object[request.getParams().length];
+                            for (int i = 0; i < request.getParams().length; i++) {
+                                realParams[i] = mapper.treeToValue(request.getParams()[i], request.getParamTypes()[i]);
+                            }
+                            Object result = method.invoke(instance, realParams);
                             return ok(ctx, true, mapper.writeValueAsBytes(new AutumnRPCResponse(0, result)), MediaType.JSON);
                         } catch (NoSuchMethodException e) {
                             LogUtil.E("Method not found: " + serviceName + "#" + request.getMethodName());
@@ -67,7 +71,7 @@ public class AutumnRPCHttpServer extends AbstractHttpServer {
                         }
                     }
                 } catch (IOException e) {
-                    LogUtil.E("Error parsing request");
+                    LogUtil.E("Error parsing request: " + e.getClass().getSimpleName());
                 }
             }
         }

@@ -3,6 +3,9 @@ package com.example.test;
 public class MyObject {
     private MyEnum myEnum;
 
+    public MyObject() {
+    }
+
     public MyObject(MyEnum myEnum) {
         this.myEnum = myEnum;
     }

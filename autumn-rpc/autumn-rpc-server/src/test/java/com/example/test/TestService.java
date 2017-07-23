@@ -9,6 +9,8 @@ public interface TestService {
 
     MyObject testEnum(int num);
 
+    String testObject(String str, MyObject object);
+
     void testVoid();
 
     void testException() throws Exception;
