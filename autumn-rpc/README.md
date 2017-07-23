@@ -4,8 +4,20 @@
 ## 设计
 ### HTTP 服务器
 - [x] rapidoid-http-fast
-- [ ] com.sun.net.httpserver
+- [ ] AutumnHTTP
 
 ### JSON 序列化 / 反序列化
 - [x] Jackson
 - [ ] FastJson
+
+### 反射调用方式
+- [x] Java reflection
+- [ ] javassist
+- [ ] CGLib
+
+### 框架支持
+- [ ] Spring
+
+### 跨语言支持
+- [ ] PHP (Consumer)
+- [ ] Python (Consumer)

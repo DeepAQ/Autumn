@@ -8,6 +8,7 @@
 | 子项目 | 状态 | 简介 |
 | --- | --- | --- |
 | AutumnCore | 计划中 | IoC 容器与依赖注入 |
+| AutumnHTTP | 计划中 | HTTP 服务器 / Servlet 容器 |
 | AutumnREST | 计划中 | REST 服务框架 |
 | [AutumnRPC](autumn-rpc/) | 开发中 | 跨语言(将来)的 HTTP/JSON RPC 框架 |
 | AutumnCache | 计划中 | 统一封装多种 KV 存储 |
