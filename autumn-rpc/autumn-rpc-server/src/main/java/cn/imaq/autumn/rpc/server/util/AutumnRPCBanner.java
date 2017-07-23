@@ -1,8 +1,5 @@
 package cn.imaq.autumn.rpc.server.util;
 
-/**
- * Created by adn55 on 2017/7/18.
- */
 public class AutumnRPCBanner {
     private static final String banner = "\n" +
             "                _                         _____  _____   _____ \n" +

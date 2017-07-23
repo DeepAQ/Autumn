@@ -4,7 +4,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class ClassMap {
-    private Map<String, Class> map = new ConcurrentHashMap<>();
+    private final Map<String, Class> map = new ConcurrentHashMap<>();
 
     public Class getClass(String className) {
         return map.get(className);

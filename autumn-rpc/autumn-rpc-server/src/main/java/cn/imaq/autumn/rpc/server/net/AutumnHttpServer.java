@@ -20,11 +20,10 @@ public class AutumnHttpServer extends AbstractHttpServer {
     private final byte[] METHOD_POST = "POST".getBytes();
     private final byte[] INFO_400 = "<html><head><title>400 Bad Request</title></head><body><center><h1>400 Bad Request</h1></center><hr><center>AutumnRPC</center></body></html>".getBytes();
 
-    private ClassMap classMap;
+    private final ClassMap classMap = new ClassMap();
 
     public AutumnHttpServer() {
         super("AutumnRPC", "Not Found", "Internal Server Error", true);
-        classMap = new ClassMap();
     }
 
     public ClassMap getClassMap() {

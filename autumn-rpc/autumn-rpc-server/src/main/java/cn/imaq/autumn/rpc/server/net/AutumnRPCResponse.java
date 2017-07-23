@@ -5,7 +5,7 @@ import lombok.Data;
 
 @Data
 @AllArgsConstructor
-public class AutumnRPCResponse {
+class AutumnRPCResponse {
     private int status;
 
     private Object result;

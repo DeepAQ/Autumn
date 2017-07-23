@@ -3,7 +3,7 @@ package cn.imaq.autumn.rpc.server.net;
 import lombok.Data;
 
 @Data
-public class AutumnRPCRequest {
+class AutumnRPCRequest {
     private String methodName;
 
     private Class[] paramTypes;
