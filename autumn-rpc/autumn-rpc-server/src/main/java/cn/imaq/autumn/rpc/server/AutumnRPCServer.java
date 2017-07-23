@@ -1,7 +1,7 @@
 package cn.imaq.autumn.rpc.server;
 
-import cn.imaq.autumn.rpc.server.annotation.AutumnRPCExpose;
-import cn.imaq.autumn.rpc.server.net.AutumnHttpServer;
+import cn.imaq.autumn.rpc.server.net.AutumnRPCHttpServer;
+import cn.imaq.autumn.rpc.server.scanner.AutumnRPCScanner;
 import cn.imaq.autumn.rpc.server.util.AutumnRPCBanner;
 import cn.imaq.autumn.rpc.server.util.ConfigUtil;
 import cn.imaq.autumn.rpc.server.util.LogUtil;
@@ -9,7 +9,7 @@ import io.github.lukehutch.fastclasspathscanner.FastClasspathScanner;
 import org.rapidoid.net.Server;
 
 public class AutumnRPCServer {
-    private static final AutumnHttpServer httpServer = new AutumnHttpServer();
+    private static final AutumnRPCHttpServer httpServer = new AutumnRPCHttpServer();
     private static Server listeningServer;
 
     public static void start() {
@@ -23,17 +23,19 @@ public class AutumnRPCServer {
             // Load config
             AutumnRPCBanner.printBanner();
             ConfigUtil.loadConfig(configFile);
-            // Scan classes with annotation
+            // Scan services with scanners
             LogUtil.W("Scanning services to expose ...");
-            httpServer.getClassMap().clear();
-            new FastClasspathScanner()
-                    .matchClassesWithAnnotation(AutumnRPCExpose.class, clz -> {
-                        LogUtil.I("Exposing: " + clz.getName());
-                        httpServer.getClassMap().putClass(clz);
-                        for (Class intf : clz.getInterfaces()) {
-                            httpServer.getClassMap().putClass(intf.getName(), clz);
-                        }
-                    }).scan();
+            httpServer.getInstanceMap().clear();
+            FastClasspathScanner classpathScanner = new FastClasspathScanner();
+            new FastClasspathScanner().matchClassesImplementing(AutumnRPCScanner.class, scanner -> {
+                LogUtil.W("Scanning with scanner " + scanner.getSimpleName());
+                try {
+                    scanner.newInstance().process(classpathScanner, httpServer.getInstanceMap());
+                } catch (InstantiationException | IllegalAccessException e) {
+                    LogUtil.E("Error instantiating scanner " + scanner.getSimpleName());
+                }
+            }).scan();
+            classpathScanner.scan();
             // Start HTTP server
             String host = ConfigUtil.get("http.host");
             Integer port = Integer.valueOf(ConfigUtil.get("http.port"));

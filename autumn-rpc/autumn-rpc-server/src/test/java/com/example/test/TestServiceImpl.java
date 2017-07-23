@@ -18,4 +18,18 @@ public class TestServiceImpl implements TestService {
     public String echo(Integer input) {
         return "Echo Integer: " + input;
     }
+
+    @Override
+    public MyObject testEnum(int num) {
+        return new MyObject(MyEnum.values()[num % MyEnum.values().length]);
+    }
+
+    @Override
+    public void testVoid() {
+    }
+
+    @Override
+    public void testException() throws Exception {
+        throw new Exception("test exception");
+    }
 }
