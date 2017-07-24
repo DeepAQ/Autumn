@@ -40,7 +40,7 @@ public class AutumnRPCServer {
             String host = ConfigUtil.get("http.host");
             Integer port = Integer.valueOf(ConfigUtil.get("http.port"));
             LogUtil.W("Starting HTTP server on " + host + ":" + port);
-            listeningServer = httpServer.listen(host, port);
+            listeningServer = httpServer.start(host, port);
             LogUtil.W("Bootstrap success");
         }
     }

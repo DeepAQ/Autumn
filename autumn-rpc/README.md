@@ -12,8 +12,9 @@
 
 ### 反射调用方式
 - [x] Java reflection
-- [ ] javassist
+- [x] ReflectASM **[Default]**
 - [ ] CGLib
+- ~~javassist~~
 
 ### 框架支持
 - [ ] Spring
