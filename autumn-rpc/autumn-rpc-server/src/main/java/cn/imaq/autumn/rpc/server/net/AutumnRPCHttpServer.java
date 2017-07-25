@@ -1,5 +1,7 @@
 package cn.imaq.autumn.rpc.server.net;
 
+import cn.imaq.autumn.rpc.net.AutumnRPCRequest;
+import cn.imaq.autumn.rpc.net.AutumnRPCResponse;
 import cn.imaq.autumn.rpc.server.exception.AutumnInvokeException;
 import cn.imaq.autumn.rpc.server.invoker.AutumnInvoker;
 import cn.imaq.autumn.rpc.server.invoker.AutumnInvokerFactory;
@@ -69,13 +71,13 @@ public class AutumnRPCHttpServer extends AbstractHttpServer {
                                 realParams[i] = mapper.treeToValue(request.getParams()[i], request.getParamTypes()[i]);
                             }
                             Object result = invoker.invoke(instance, new AutumnMethod(instance.getClass(), request.getMethodName(), request.getParamTypes()), realParams);
-                            return ok(ctx, true, mapper.writeValueAsBytes(new AutumnRPCResponse(0, result)), MediaType.JSON);
+                            return ok(ctx, true, mapper.writeValueAsBytes(new AutumnRPCResponse(0, result, mapper)), MediaType.JSON);
                         } catch (AutumnInvokeException e) {
                             LogUtil.E("Error invoking " + serviceName + "#" + request.getMethodName() + ": " + e.getCause());
                             return error(ctx);
                         } catch (InvocationTargetException e) {
                             LogUtil.E(serviceName + "#" + request.getMethodName() + " threw an exception: " + e.getCause());
-                            return ok(ctx, true, mapper.writeValueAsBytes(new AutumnRPCResponse(-1, e.getCause())), MediaType.JSON);
+                            return ok(ctx, true, mapper.writeValueAsBytes(new AutumnRPCResponse(-1, e.getCause(), mapper)), MediaType.JSON);
                         }
                     }
                 } catch (IOException e) {

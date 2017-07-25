@@ -1,10 +1,10 @@
-package cn.imaq.autumn.rpc.server.net;
+package cn.imaq.autumn.rpc.net;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.Data;
 
 @Data
-class AutumnRPCRequest {
+public class AutumnRPCRequest {
     private String methodName;
 
     private Class[] paramTypes;
