@@ -8,7 +8,7 @@
 
 ### JSON 序列化 / 反序列化
 - [x] Jackson
-- [ ] FastJson
+- ~~FastJson~~
 
 ### 反射调用方式
 - [x] Java reflection
@@ -18,6 +18,7 @@
 
 ### 框架支持
 - [ ] Spring
+- [ ] Autumn
 
 ### 跨语言支持
 - [ ] PHP (Consumer)

@@ -3,6 +3,7 @@ package cn.imaq.autumn.rpc.server.net;
 import cn.imaq.autumn.rpc.server.exception.AutumnInvokeException;
 import cn.imaq.autumn.rpc.server.invoker.AutumnInvoker;
 import cn.imaq.autumn.rpc.server.invoker.AutumnInvokerFactory;
+import cn.imaq.autumn.rpc.server.invoker.AutumnMethod;
 import cn.imaq.autumn.rpc.server.util.InstanceMap;
 import cn.imaq.autumn.rpc.server.util.LogUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -67,7 +68,7 @@ public class AutumnRPCHttpServer extends AbstractHttpServer {
                             for (int i = 0; i < request.getParams().length; i++) {
                                 realParams[i] = mapper.treeToValue(request.getParams()[i], request.getParamTypes()[i]);
                             }
-                            Object result = invoker.invoke(instance, request.getMethodName(), request.getParamTypes(), realParams);
+                            Object result = invoker.invoke(instance, new AutumnMethod(instance.getClass(), request.getMethodName(), request.getParamTypes()), realParams);
                             return ok(ctx, true, mapper.writeValueAsBytes(new AutumnRPCResponse(0, result)), MediaType.JSON);
                         } catch (AutumnInvokeException e) {
                             LogUtil.E("Error invoking " + serviceName + "#" + request.getMethodName() + ": " + e.getCause());
