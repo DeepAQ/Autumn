@@ -10,7 +10,7 @@ public class AutumnRPCResponse {
 
     private JsonNode result;
 
-    private Class resultType;
+    private String resultType;
 
     public AutumnRPCResponse() {
     }
@@ -18,6 +18,8 @@ public class AutumnRPCResponse {
     public AutumnRPCResponse(int status, Object result, ObjectMapper mapper) {
         this.status = status;
         this.result = mapper.valueToTree(result);
-        this.resultType = result.getClass();
+        if (status < 0) {
+            this.resultType = result.getClass().getName();
+        }
     }
 }

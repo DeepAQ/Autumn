@@ -4,8 +4,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Data;
 
-import java.util.Arrays;
-
 @Data
 public class AutumnRPCRequest {
     private String methodName;
@@ -20,6 +18,9 @@ public class AutumnRPCRequest {
     public AutumnRPCRequest(String methodName, Class[] paramTypes, Object[] params, ObjectMapper mapper) {
         this.methodName = methodName;
         this.paramTypes = paramTypes;
-        this.params = (JsonNode[]) Arrays.stream(params).map(mapper::valueToTree).toArray();
+        this.params = new JsonNode[params.length];
+        for (int i = 0; i < params.length; i++) {
+            this.params[i] = mapper.valueToTree(params[i]);
+        }
     }
 }

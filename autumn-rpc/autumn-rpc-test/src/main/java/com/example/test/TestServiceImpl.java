@@ -2,8 +2,14 @@ package com.example.test;
 
 import cn.imaq.autumn.rpc.server.annotation.AutumnRPCExpose;
 
+import java.rmi.RemoteException;
+import java.rmi.server.UnicastRemoteObject;
+
 @AutumnRPCExpose
-public class TestServiceImpl implements TestService {
+public class TestServiceImpl extends UnicastRemoteObject implements TestService {
+    public TestServiceImpl() throws RemoteException {
+    }
+
     @Override
     public String echo(String input) {
         return "Echo: " + input;

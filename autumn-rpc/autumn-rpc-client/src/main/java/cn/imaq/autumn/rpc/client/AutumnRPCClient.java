@@ -25,7 +25,7 @@ public class AutumnRPCClient {
     @SuppressWarnings("unchecked")
     public <T> T getService(Class<T> interfaze, int timeout) {
         return proxy.create(interfaze, (proxy, method, args) -> {
-            String url = "http://" + host + ":" + port + "/" + interfaze.getClass().getName();
+            String url = "http://" + host + ":" + port + "/" + interfaze.getName();
             ObjectMapper mapper = new ObjectMapper();
             AutumnRPCRequest request = new AutumnRPCRequest(
                     method.getName(), method.getParameterTypes(), args, mapper
@@ -33,7 +33,11 @@ public class AutumnRPCClient {
             byte[] payload = mapper.writeValueAsBytes(request);
             byte[] response = httpClient.post(url, payload, "application/json", timeout);
             AutumnRPCResponse rpcResponse = mapper.readValue(response, AutumnRPCResponse.class);
-            return mapper.treeToValue(rpcResponse.getResult(), rpcResponse.getResultType());
+            if (rpcResponse.getStatus() >= 0) {
+                return mapper.treeToValue(rpcResponse.getResult(), method.getReturnType());
+            } else {
+                return mapper.treeToValue(rpcResponse.getResult(), Class.forName(rpcResponse.getResultType()));
+            }
         });
     }
 }
