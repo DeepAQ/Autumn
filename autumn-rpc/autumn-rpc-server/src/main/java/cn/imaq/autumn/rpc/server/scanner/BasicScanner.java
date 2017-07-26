@@ -1,8 +1,8 @@
 package cn.imaq.autumn.rpc.server.scanner;
 
 import cn.imaq.autumn.rpc.server.annotation.AutumnRPCExpose;
-import cn.imaq.autumn.rpc.server.util.InstanceMap;
-import cn.imaq.autumn.rpc.server.util.LogUtil;
+import cn.imaq.autumn.rpc.server.net.InstanceMap;
+import cn.imaq.autumn.rpc.util.LogUtil;
 import io.github.lukehutch.fastclasspathscanner.FastClasspathScanner;
 
 public class BasicScanner implements AutumnRPCScanner {

@@ -2,9 +2,9 @@ package cn.imaq.autumn.rpc.server;
 
 import cn.imaq.autumn.rpc.server.net.AutumnRPCHttpServer;
 import cn.imaq.autumn.rpc.server.scanner.AutumnRPCScanner;
-import cn.imaq.autumn.rpc.server.util.AutumnRPCBanner;
+import cn.imaq.autumn.rpc.util.AutumnRPCBanner;
 import cn.imaq.autumn.rpc.server.util.ConfigUtil;
-import cn.imaq.autumn.rpc.server.util.LogUtil;
+import cn.imaq.autumn.rpc.util.LogUtil;
 import io.github.lukehutch.fastclasspathscanner.FastClasspathScanner;
 import org.rapidoid.net.Server;
 
@@ -26,16 +26,16 @@ public class AutumnRPCServer {
             // Scan services with scanners
             LogUtil.W("Scanning services to expose ...");
             httpServer.getInstanceMap().clear();
-            FastClasspathScanner classpathScanner = new FastClasspathScanner();
             new FastClasspathScanner().matchClassesImplementing(AutumnRPCScanner.class, scanner -> {
                 LogUtil.W("Scanning with scanner " + scanner.getSimpleName());
+                FastClasspathScanner classpathScanner = new FastClasspathScanner();
                 try {
                     scanner.newInstance().process(classpathScanner, httpServer.getInstanceMap());
+                    classpathScanner.scan();
                 } catch (InstantiationException | IllegalAccessException e) {
                     LogUtil.E("Error instantiating scanner " + scanner.getSimpleName());
                 }
             }).scan();
-            classpathScanner.scan();
             // Start HTTP server
             String host = ConfigUtil.get("http.host");
             Integer port = Integer.valueOf(ConfigUtil.get("http.port"));

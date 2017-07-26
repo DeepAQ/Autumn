@@ -1,4 +1,6 @@
-package cn.imaq.autumn.rpc.server.util;
+package cn.imaq.autumn.rpc.util;
+
+import cn.imaq.autumn.rpc.util.LogUtil;
 
 public class AutumnRPCBanner {
     private static final String banner = "\n" +

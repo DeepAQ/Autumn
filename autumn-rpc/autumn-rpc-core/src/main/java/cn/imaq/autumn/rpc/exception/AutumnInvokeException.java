@@ -1,4 +1,4 @@
-package cn.imaq.autumn.rpc.server.exception;
+package cn.imaq.autumn.rpc.exception;
 
 public class AutumnInvokeException extends Exception {
     public AutumnInvokeException(String message) {

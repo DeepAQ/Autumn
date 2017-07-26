@@ -1,6 +1,6 @@
 package cn.imaq.autumn.rpc.server.invoker;
 
-import cn.imaq.autumn.rpc.server.exception.AutumnInvokeException;
+import cn.imaq.autumn.rpc.exception.AutumnInvokeException;
 
 import java.lang.reflect.InvocationTargetException;
 

@@ -1,6 +1,6 @@
 package cn.imaq.autumn.rpc.server.scanner;
 
-import cn.imaq.autumn.rpc.server.util.InstanceMap;
+import cn.imaq.autumn.rpc.server.net.InstanceMap;
 import io.github.lukehutch.fastclasspathscanner.FastClasspathScanner;
 
 public interface AutumnRPCScanner {
