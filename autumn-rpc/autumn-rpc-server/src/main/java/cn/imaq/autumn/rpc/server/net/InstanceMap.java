@@ -1,10 +1,11 @@
 package cn.imaq.autumn.rpc.server.net;
 
-import cn.imaq.autumn.rpc.util.LogUtil;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+@Slf4j
 public class InstanceMap {
     private final Map<String, Object> map = new ConcurrentHashMap<>();
 
@@ -13,9 +14,9 @@ public class InstanceMap {
     }
 
     public void putInstance(String serviceName, Object instance) {
-        LogUtil.I("Adding service {" + serviceName + " => " + instance.getClass().getName() + "}");
+        log.info("Adding service {" + serviceName + " => " + instance.getClass().getName() + "}");
         if (map.put(serviceName, instance) != null) {
-            LogUtil.E(serviceName + " has multiple implements, replacing with " + instance.getClass().getName());
+            log.warn(serviceName + " has multiple implements, replacing with " + instance.getClass().getName());
         }
     }
 

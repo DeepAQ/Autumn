@@ -1,30 +1,51 @@
 package cn.imaq.autumn.rpc.client;
 
 import cn.imaq.autumn.rpc.client.net.AutumnHttpClient;
-import cn.imaq.autumn.rpc.client.net.BasicHttpClient;
+import cn.imaq.autumn.rpc.client.net.AutumnHttpClientFactory;
 import cn.imaq.autumn.rpc.client.proxy.AutumnProxy;
-import cn.imaq.autumn.rpc.client.proxy.JavaProxy;
+import cn.imaq.autumn.rpc.client.proxy.AutumnProxyFactory;
 import cn.imaq.autumn.rpc.net.AutumnRPCRequest;
 import cn.imaq.autumn.rpc.net.AutumnRPCResponse;
 import cn.imaq.autumn.rpc.serialization.AutumnSerialization;
-import cn.imaq.autumn.rpc.serialization.JsonSerialization;
+import cn.imaq.autumn.rpc.serialization.AutumnSerializationFactory;
+import cn.imaq.autumn.rpc.util.PropertiesUtils;
+import lombok.extern.slf4j.Slf4j;
+
+import java.io.IOException;
+import java.util.Properties;
 
 import static cn.imaq.autumn.rpc.net.AutumnRPCResponse.STATUS_OK;
 
+@Slf4j
 public class AutumnRPCClient {
+    private static final String DEFAULT_CONFIG = "autumn-rpc-client-default.properties";
+
     private String host;
     private int port;
+    private Properties config = new Properties();
 
     private AutumnHttpClient httpClient;
     private AutumnProxy proxy;
     private AutumnSerialization serialization;
 
     public AutumnRPCClient(String host, int port) {
+        this(host, port, null);
+    }
+
+    public AutumnRPCClient(String host, int port, String configFile) {
         this.host = host;
         this.port = port;
-        this.httpClient = new BasicHttpClient(); // TODO config
-        this.proxy = new JavaProxy(); // TODO config
-        this.serialization = new JsonSerialization(); // TODO config
+        try {
+            PropertiesUtils.load(config, DEFAULT_CONFIG, configFile);
+        } catch (IOException e) {
+            log.error("Error loading config: " + e.toString());
+        }
+        this.httpClient = AutumnHttpClientFactory.getHttpClient(config.getProperty("autumn.httpclient"));
+        log.info("Using http client: " + httpClient.getClass().getSimpleName());
+        this.proxy = AutumnProxyFactory.getProxy(config.getProperty("autumn.proxy"));
+        log.info("Using proxy: " + proxy.getClass().getSimpleName());
+        this.serialization = AutumnSerializationFactory.getSerialization(config.getProperty("autumn.serialization"));
+        log.info("Using serialization: " + serialization.getClass().getSimpleName());
     }
 
     public <T> T getService(Class<T> interfaze, int timeout) {

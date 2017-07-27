@@ -1,18 +1,15 @@
 package cn.imaq.autumn.rpc.server.invoker;
 
-import cn.imaq.autumn.rpc.server.util.ConfigUtil;
-
 public class AutumnInvokerFactory {
     private static AutumnInvoker defaultInvoker() {
         return new ReflectAsmInvoker();
     }
 
-    public static AutumnInvoker getInvoker() {
-        String config = ConfigUtil.get("autumn.invoker");
-        if (config == null) {
+    public static AutumnInvoker getInvoker(String type) {
+        if (type == null) {
             return defaultInvoker();
         }
-        switch (config) {
+        switch (type) {
             case "reflection":
                 return new ReflectionInvoker();
             case "reflectasm":

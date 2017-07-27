@@ -5,11 +5,11 @@ import cn.imaq.autumn.rpc.exception.AutumnSerializationException;
 import cn.imaq.autumn.rpc.net.AutumnRPCRequest;
 import cn.imaq.autumn.rpc.net.AutumnRPCResponse;
 import cn.imaq.autumn.rpc.serialization.AutumnSerialization;
-import cn.imaq.autumn.rpc.serialization.JsonSerialization;
+import cn.imaq.autumn.rpc.serialization.AutumnSerializationFactory;
 import cn.imaq.autumn.rpc.server.invoker.AutumnInvoker;
 import cn.imaq.autumn.rpc.server.invoker.AutumnInvokerFactory;
 import cn.imaq.autumn.rpc.server.invoker.AutumnMethod;
-import cn.imaq.autumn.rpc.util.LogUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.rapidoid.buffer.Buf;
 import org.rapidoid.http.AbstractHttpServer;
 import org.rapidoid.http.HttpResponseCodes;
@@ -20,16 +20,19 @@ import org.rapidoid.net.abstracts.Channel;
 import org.rapidoid.net.impl.RapidoidHelper;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.Properties;
 
 import static cn.imaq.autumn.rpc.net.AutumnRPCResponse.STATUS_EXCEPTION;
 import static cn.imaq.autumn.rpc.net.AutumnRPCResponse.STATUS_OK;
 
+@Slf4j
 public class AutumnRPCHttpServer extends AbstractHttpServer {
     private final byte[] ROOT_PATH = new byte[]{'/'};
     private final byte[] METHOD_POST = "POST".getBytes();
     private final byte[] INFO_400 = "<html><head><title>400 Bad Request</title></head><body><center><h1>400 Bad Request</h1></center><hr><center>AutumnRPC</center></body></html>".getBytes();
     private final byte[] INFO_500 = "<html><head><title>500 Internal Server Error</title></head><body><center><h1>500 Internal Server Error</h1></center><hr><center>AutumnRPC</center></body></html>".getBytes();
 
+    private final Properties config = new Properties();
     private final InstanceMap instanceMap = new InstanceMap();
     private AutumnInvoker invoker;
     private AutumnSerialization serialization;
@@ -38,14 +41,23 @@ public class AutumnRPCHttpServer extends AbstractHttpServer {
         super("AutumnRPC", "Not Found", "Internal Server Error", true);
     }
 
+    public Properties getConfig() {
+        return config;
+    }
+
     public InstanceMap getInstanceMap() {
         return instanceMap;
     }
 
+    public Server start() {
+        return start(config.getProperty("http.host"), Integer.valueOf(config.getProperty("http.port")));
+    }
+
     public Server start(String host, int port) {
-        this.invoker = AutumnInvokerFactory.getInvoker();
-        this.serialization = new JsonSerialization(); // TODO config
-        LogUtil.W("Using invoker: " + this.invoker.getClass().getSimpleName());
+        this.invoker = AutumnInvokerFactory.getInvoker(config.getProperty("autumn.invoker"));
+        log.info("Using invoker: " + this.invoker.getClass().getSimpleName());
+        this.serialization = AutumnSerializationFactory.getSerialization(config.getProperty("autumn.serialization"));
+        log.info("Using serialization: " + this.serialization.getClass().getSimpleName());
         return this.listen(host, port);
     }
 
@@ -53,10 +65,10 @@ public class AutumnRPCHttpServer extends AbstractHttpServer {
     protected HttpStatus handle(Channel ctx, Buf buf, RapidoidHelper req) {
         String verb = req.verb.str(buf);
         String path = req.path.str(buf);
-        LogUtil.D("Received HTTP request: " + verb + " " + path);
+        log.debug("Received HTTP request: " + verb + " " + path);
         if (req.isGet.value) {
             if (matches(buf, req.path, ROOT_PATH)) {
-                // TODO
+                // TODO index page
             }
         }
         String[] paths = path.split("/");
@@ -74,16 +86,16 @@ public class AutumnRPCHttpServer extends AbstractHttpServer {
                                 AutumnRPCResponse.builder().status(STATUS_OK).result(result).resultType(result.getClass()).build()
                         ), MediaType.JSON);
                     } catch (AutumnInvokeException e) {
-                        LogUtil.E("Error invoking " + serviceName + "#" + request.getMethodName() + ": " + e.getCause());
+                        log.error("Error invoking " + serviceName + "#" + request.getMethodName() + ": " + e.getCause());
                         return error(ctx);
                     } catch (InvocationTargetException e) {
-                        LogUtil.E(serviceName + "#" + request.getMethodName() + " threw an exception: " + e.getCause());
+                        log.error(serviceName + "#" + request.getMethodName() + " threw an exception: " + e.getCause());
                         return ok(ctx, true, serialization.serializeResponse(
                                 AutumnRPCResponse.builder().status(STATUS_EXCEPTION).result(e.getCause()).resultType(e.getCause().getClass()).build()
                         ), MediaType.JSON);
                     }
                 } catch (AutumnSerializationException e) {
-                    LogUtil.E("Error parsing request: " + e.getClass().getSimpleName());
+                    log.error("Error parsing request: " + e.getClass().getSimpleName());
                 }
             }
         }

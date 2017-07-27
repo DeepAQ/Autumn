@@ -1,7 +1,8 @@
 package cn.imaq.autumn.rpc.util;
 
-import cn.imaq.autumn.rpc.util.LogUtil;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class AutumnRPCBanner {
     private static final String banner = "\n" +
             "                _                         _____  _____   _____ \n" +
@@ -13,6 +14,6 @@ public class AutumnRPCBanner {
             "  :: AutumnRPC Server ::\n";
 
     public static void printBanner() {
-        LogUtil.I(banner);
+        log.info(banner);
     }
 }
