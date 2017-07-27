@@ -6,7 +6,10 @@ import cn.imaq.autumn.rpc.client.proxy.AutumnProxy;
 import cn.imaq.autumn.rpc.client.proxy.JavaProxy;
 import cn.imaq.autumn.rpc.net.AutumnRPCRequest;
 import cn.imaq.autumn.rpc.net.AutumnRPCResponse;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import cn.imaq.autumn.rpc.serialization.AutumnSerialization;
+import cn.imaq.autumn.rpc.serialization.JsonSerialization;
+
+import static cn.imaq.autumn.rpc.net.AutumnRPCResponse.STATUS_OK;
 
 public class AutumnRPCClient {
     private String host;
@@ -14,29 +17,31 @@ public class AutumnRPCClient {
 
     private AutumnHttpClient httpClient;
     private AutumnProxy proxy;
+    private AutumnSerialization serialization;
 
     public AutumnRPCClient(String host, int port) {
         this.host = host;
         this.port = port;
         this.httpClient = new BasicHttpClient(); // TODO config
         this.proxy = new JavaProxy(); // TODO config
+        this.serialization = new JsonSerialization(); // TODO config
     }
 
-    @SuppressWarnings("unchecked")
     public <T> T getService(Class<T> interfaze, int timeout) {
         return proxy.create(interfaze, (proxy, method, args) -> {
             String url = "http://" + host + ":" + port + "/" + interfaze.getName();
-            ObjectMapper mapper = new ObjectMapper();
-            AutumnRPCRequest request = new AutumnRPCRequest(
-                    method.getName(), method.getParameterTypes(), args, mapper
-            );
-            byte[] payload = mapper.writeValueAsBytes(request);
+            AutumnRPCRequest request = AutumnRPCRequest.builder()
+                    .methodName(method.getName())
+                    .paramTypes(method.getParameterTypes())
+                    .params(args)
+                    .build();
+            byte[] payload = serialization.serializeRequest(request);
             byte[] response = httpClient.post(url, payload, "application/json", timeout);
-            AutumnRPCResponse rpcResponse = mapper.readValue(response, AutumnRPCResponse.class);
-            if (rpcResponse.getStatus() >= 0) {
-                return mapper.treeToValue(rpcResponse.getResult(), method.getReturnType());
+            AutumnRPCResponse rpcResponse = serialization.deserializeResponse(response, method.getReturnType());
+            if (rpcResponse.getStatus() == STATUS_OK) {
+                return rpcResponse.getResult();
             } else {
-                return mapper.treeToValue(rpcResponse.getResult(), Class.forName(rpcResponse.getResultType()));
+                throw (Throwable) rpcResponse.getResult();
             }
         });
     }

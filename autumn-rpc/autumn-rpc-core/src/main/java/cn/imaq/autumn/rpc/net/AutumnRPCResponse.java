@@ -1,25 +1,17 @@
 package cn.imaq.autumn.rpc.net;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.Builder;
 import lombok.Data;
 
 @Data
+@Builder
 public class AutumnRPCResponse {
+    public static final int STATUS_OK = 0;
+    public static final int STATUS_EXCEPTION = -1;
+
     private int status;
 
-    private JsonNode result;
+    private Object result;
 
-    private String resultType;
-
-    public AutumnRPCResponse() {
-    }
-
-    public AutumnRPCResponse(int status, Object result, ObjectMapper mapper) {
-        this.status = status;
-        this.result = mapper.valueToTree(result);
-        if (status < 0) {
-            this.resultType = result.getClass().getName();
-        }
-    }
+    private Class resultType;
 }
