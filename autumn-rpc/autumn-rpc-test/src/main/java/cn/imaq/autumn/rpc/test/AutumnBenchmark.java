@@ -43,7 +43,7 @@ public class AutumnBenchmark {
 
         @Override
         public void run() {
-            AutumnRPCClient client = new AutumnRPCClient("127.0.0.1", 8801);
+            AutumnRPCClient client = new AutumnRPCClient("127.0.0.1", 8801, "autumn-rpc-test-client.properties");
             TestService testService = client.getService(TestService.class, 3000);
             while (true) {
                 try {

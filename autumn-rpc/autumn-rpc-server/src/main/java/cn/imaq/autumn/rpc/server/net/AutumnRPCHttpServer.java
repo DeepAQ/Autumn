@@ -95,7 +95,7 @@ public class AutumnRPCHttpServer extends AbstractHttpServer {
                         ), MediaType.JSON);
                     }
                 } catch (AutumnSerializationException e) {
-                    log.error("Error parsing request: " + e.getClass().getSimpleName());
+                    log.error("Error parsing request: " + e.toString());
                 }
             }
         }

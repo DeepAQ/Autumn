@@ -1,13 +1,13 @@
 package cn.imaq.autumn.rpc.net;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Builder;
 import lombok.Data;
 
+import java.io.Serializable;
+
 @Data
 @Builder
-public class AutumnRPCRequest {
+public class AutumnRPCRequest implements Serializable {
     private String methodName;
 
     private Class[] paramTypes;

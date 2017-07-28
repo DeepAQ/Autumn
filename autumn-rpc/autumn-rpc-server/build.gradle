@@ -1,5 +1,5 @@
 group 'cn.imaq'
-version '0.2'
+version '0.3-SNAPSHOT'
 
 apply plugin: 'java'
 
@@ -53,10 +53,10 @@ uploadArchives {
             }
 
             pom.project {
-                name 'AutumnRPC'
+                name 'AutumnRPC-Server'
                 packaging 'jar'
                 // optionally artifactId can be defined here
-                description 'Lightweight HTTP/JSON RPC framework'
+                description 'Lightweight HTTP-RPC framework'
                 url 'https://github.com/DeepAQ/Autumn'
 
                 scm {

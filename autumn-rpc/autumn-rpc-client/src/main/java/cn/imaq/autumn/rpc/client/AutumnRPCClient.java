@@ -48,6 +48,10 @@ public class AutumnRPCClient {
         log.info("Using serialization: " + serialization.getClass().getSimpleName());
     }
 
+    public <T> T getService(Class<T> interfaze) {
+        return getService(interfaze, 3000);
+    }
+
     public <T> T getService(Class<T> interfaze, int timeout) {
         return proxy.create(interfaze, (proxy, method, args) -> {
             String url = "http://" + host + ":" + port + "/" + interfaze.getName();

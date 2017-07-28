@@ -12,6 +12,8 @@ public class AutumnSerializationFactory {
         switch (type) {
             case "jackson":
                 return new JsonSerialization();
+            case "hessian":
+                return new HessianSerialization();
             default:
                 return defaultSerialization();
         }
