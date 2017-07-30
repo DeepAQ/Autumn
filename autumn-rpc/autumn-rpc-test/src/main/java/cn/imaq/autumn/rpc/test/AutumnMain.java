@@ -9,7 +9,7 @@ import java.rmi.RemoteException;
 public class AutumnMain {
     public static void main(String[] args) throws RemoteException {
         AutumnRPCServer.start("autumn-rpc-test.properties");
-        AutumnRPCClient client = new AutumnRPCClient("127.0.0.1", 8801, "autumn-rpc-test-client.properties");
+        AutumnRPCClient client = new AutumnRPCClient("127.0.0.1", 8801, "autumn-rpc-test-client.properties", true);
         System.out.println(client.getService(TestService.class).echo("Hello World!"));
     }
 }

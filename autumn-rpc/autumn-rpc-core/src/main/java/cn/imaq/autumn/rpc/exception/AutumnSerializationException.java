@@ -6,4 +6,8 @@ public class AutumnSerializationException extends IOException {
     public AutumnSerializationException(Throwable cause) {
         super(cause);
     }
+
+    public AutumnSerializationException(String message) {
+        super(message);
+    }
 }

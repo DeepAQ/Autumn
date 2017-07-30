@@ -40,7 +40,7 @@ public class JsonSerialization implements AutumnSerialization {
     public AutumnRPCRequest deserializeRequest(byte[] buf) throws AutumnSerializationException {
         try {
             JsonNode root = mapper.readTree(buf);
-            if (root.isArray() && root.size() == 3) {
+            if (root.isArray() && root.size() >= 3) {
                 Class[] paramTypes = new Class[root.get(1).size()];
                 Object[] params = new Object[root.get(2).size()];
                 for (int i = 0; i < root.get(1).size(); i++) {
@@ -56,7 +56,7 @@ public class JsonSerialization implements AutumnSerialization {
         } catch (IOException | ClassNotFoundException e) {
             throw new AutumnSerializationException(e);
         }
-        return null;
+        throw new AutumnSerializationException("JSON format error");
     }
 
     @Override
@@ -79,9 +79,9 @@ public class JsonSerialization implements AutumnSerialization {
     public AutumnRPCResponse deserializeResponse(byte[] buf, Class defaultReturnType) throws AutumnSerializationException {
         try {
             JsonNode root = mapper.readTree(buf);
-            if (root.isArray()) {
+            if (root.isArray() && root.size() >= 2) {
                 Class returnType = defaultReturnType;
-                if (root.size() > 2) {
+                if (root.size() >= 3) {
                     try {
                         returnType = Class.forName(root.get(2).textValue());
                     } catch (ClassNotFoundException ignored) {
@@ -96,6 +96,6 @@ public class JsonSerialization implements AutumnSerialization {
         } catch (IOException e) {
             throw new AutumnSerializationException(e);
         }
-        return null;
+        throw new AutumnSerializationException("JSON format error");
     }
 }

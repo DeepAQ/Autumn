@@ -9,6 +9,8 @@ import cn.imaq.autumn.rpc.serialization.AutumnSerializationFactory;
 import cn.imaq.autumn.rpc.server.invoker.AutumnInvoker;
 import cn.imaq.autumn.rpc.server.invoker.AutumnInvokerFactory;
 import cn.imaq.autumn.rpc.server.invoker.AutumnMethod;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.rapidoid.buffer.Buf;
 import org.rapidoid.http.AbstractHttpServer;
@@ -28,7 +30,6 @@ import static cn.imaq.autumn.rpc.net.AutumnRPCResponse.STATUS_OK;
 @Slf4j
 public class AutumnRPCHttpServer extends AbstractHttpServer {
     private final byte[] ROOT_PATH = new byte[]{'/'};
-    private final byte[] METHOD_POST = "POST".getBytes();
     private final byte[] INFO_400 = "<html><head><title>400 Bad Request</title></head><body><center><h1>400 Bad Request</h1></center><hr><center>AutumnRPC</center></body></html>".getBytes();
     private final byte[] INFO_500 = "<html><head><title>500 Internal Server Error</title></head><body><center><h1>500 Internal Server Error</h1></center><hr><center>AutumnRPC</center></body></html>".getBytes();
 
@@ -66,9 +67,13 @@ public class AutumnRPCHttpServer extends AbstractHttpServer {
         String verb = req.verb.str(buf);
         String path = req.path.str(buf);
         log.debug("Received HTTP request: " + verb + " " + path);
-        if (req.isGet.value) {
-            if (matches(buf, req.path, ROOT_PATH)) {
-                // TODO index page
+        if (matches(buf, req.path, ROOT_PATH)) {
+            // for config auto negotiation
+            try {
+                return ok(ctx, false, new ObjectMapper().writeValueAsBytes(config), MediaType.JSON);
+            } catch (JsonProcessingException e) {
+                log.error("Error exporting config");
+                return error(ctx);
             }
         }
         String[] paths = path.split("/");
