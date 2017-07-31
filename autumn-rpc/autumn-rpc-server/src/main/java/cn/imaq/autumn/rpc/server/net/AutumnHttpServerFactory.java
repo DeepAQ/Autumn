@@ -12,6 +12,8 @@ public class AutumnHttpServerFactory {
         switch (type) {
             case "rapidoid":
                 return new RapidoidHttpServer(host, port, handler);
+            case "sun":
+                return new SunHttpServer(host, port, handler);
             default:
                 return defaultServer(host, port, handler);
         }

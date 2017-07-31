@@ -55,6 +55,7 @@ public class AutumnRPCServer {
             String host = config.getProperty("http.host", "0.0.0.0");
             int port = Integer.valueOf(config.getProperty("http.port", "8801"));
             httpServer = AutumnHttpServerFactory.create(config.getProperty("http.server"), host, port, handler);
+            log.info("Using HTTP server: " + httpServer.getClass().getSimpleName());
             log.warn("Starting HTTP server ...");
             try {
                 httpServer.start();

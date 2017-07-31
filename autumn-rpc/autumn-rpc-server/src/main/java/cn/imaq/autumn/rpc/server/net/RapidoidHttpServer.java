@@ -17,13 +17,13 @@ public class RapidoidHttpServer extends AbstractAutumnHttpServer {
     }
 
     @Override
-    public void start() throws AutumnHttpException {
+    public synchronized void start() throws AutumnHttpException {
         stop();
         listeningServer = rapidoid.listen(host, port);
     }
 
     @Override
-    public void stop() {
+    public synchronized void stop() {
         if (listeningServer != null && listeningServer.isActive()) {
             listeningServer.shutdown();
         }
