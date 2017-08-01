@@ -11,8 +11,6 @@ import java.util.Map;
 public class AutumnHttpResponse {
     private int code;
 
-    private boolean keepAlive;
-
     private Map<String, String> headers;
 
     private String contentType;
@@ -30,13 +28,8 @@ public class AutumnHttpResponse {
     public String getFullHeader() {
         StringBuilder sb = new StringBuilder();
         sb.append("HTTP/1.1 ").append(code).append(' ').append(ResponseCodes.get(code)).append("\r\n");
-        if (!keepAlive) {
-            sb.append("Connection: close\r\n");
-        }
-        if (headers != null && !headers.isEmpty()) {
-            for (Map.Entry<String, String> entry : headers.entrySet()) {
-                sb.append(entry.getKey()).append(": ").append(entry.getValue());
-            }
+        for (Map.Entry<String, String> entry : headers.entrySet()) {
+            sb.append(entry.getKey()).append(": ").append(entry.getValue()).append("\r\n");
         }
         sb.append("Content-Type: ").append(contentType).append("\r\n");
         sb.append("Content-Length: ").append(body.length).append("\r\n\r\n");
@@ -89,14 +82,18 @@ public class AutumnHttpResponse {
                 "Unsupported Media Type",
                 "Requested Range Not Satisfiable",
                 "Expectation Failed",
-                "I'm a teapot", null, null,
+                "I'm a teapot",
+                null, null,
                 "Misdirected Request",
                 "Unprocessable Entity",
                 "Locked",
-                "Failed Dependency", null,
-                "Upgrade Required", null,
+                "Failed Dependency",
+                null,
+                "Upgrade Required",
+                null,
                 "Precondition Required",
-                "Too Many Requests", null,
+                "Too Many Requests",
+                null,
                 "Request Header Fields Too Large",
                 null, null, null, null, null, null, null, null, null, null, null, null,
                 "Connection Closed Without Response",
@@ -112,7 +109,8 @@ public class AutumnHttpResponse {
                 "HTTP Version Not Supported",
                 "Variant Also Negotiates",
                 "Insufficient Storage",
-                "Loop Detected", null,
+                "Loop Detected",
+                null,
                 "Not Extended",
                 "Network Authentication Required"
         };

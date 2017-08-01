@@ -87,7 +87,6 @@ public class AutumnRPCHandler implements AutumnHttpHandler {
     private AutumnHttpResponse ok(boolean keepAlive, byte[] body) {
         return AutumnHttpResponse.builder()
                 .code(200)
-                .keepAlive(keepAlive)
                 .contentType("application/octet-stream")
                 .body(body)
                 .build();
@@ -96,7 +95,6 @@ public class AutumnRPCHandler implements AutumnHttpHandler {
     private AutumnHttpResponse badRequest() {
         return AutumnHttpResponse.builder()
                 .code(400)
-                .keepAlive(false)
                 .contentType("text/html")
                 .body(INFO_400)
                 .build();
@@ -105,7 +103,6 @@ public class AutumnRPCHandler implements AutumnHttpHandler {
     private AutumnHttpResponse error() {
         return AutumnHttpResponse.builder()
                 .code(400)
-                .keepAlive(false)
                 .contentType("text/html")
                 .body(INFO_500)
                 .build();
