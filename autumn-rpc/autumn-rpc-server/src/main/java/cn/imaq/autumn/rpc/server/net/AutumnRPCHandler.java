@@ -47,7 +47,7 @@ public class AutumnRPCHandler implements AutumnHttpHandler {
         log.debug("Received HTTP request: " + request.getMethod() + " " + request.getPath());
         if (request.getPath().equals("/")) {
             try {
-                return ok(false, new ObjectMapper().writeValueAsBytes(config));
+                return ok(new ObjectMapper().writeValueAsBytes(config));
             } catch (JsonProcessingException e) {
                 log.error("Error exporting config");
                 return error();
@@ -64,7 +64,7 @@ public class AutumnRPCHandler implements AutumnHttpHandler {
                     AutumnRPCRequest rpcRequest = serialization.deserializeRequest(body);
                     try {
                         Object result = invoker.invoke(instance, new AutumnMethod(instance.getClass(), rpcRequest.getMethodName(), rpcRequest.getParamTypes()), rpcRequest.getParams());
-                        return ok(true, serialization.serializeResponse(
+                        return ok(serialization.serializeResponse(
                                 AutumnRPCResponse.builder().status(STATUS_OK).result(result).resultType(result.getClass()).build()
                         ));
                     } catch (AutumnInvokeException e) {
@@ -72,7 +72,7 @@ public class AutumnRPCHandler implements AutumnHttpHandler {
                         return error();
                     } catch (InvocationTargetException e) {
                         log.error(serviceName + "#" + rpcRequest.getMethodName() + " threw an exception: " + e.getCause());
-                        return ok(true, serialization.serializeResponse(
+                        return ok(serialization.serializeResponse(
                                 AutumnRPCResponse.builder().status(STATUS_EXCEPTION).result(e.getCause()).resultType(e.getCause().getClass()).build()
                         ));
                     }
@@ -84,7 +84,7 @@ public class AutumnRPCHandler implements AutumnHttpHandler {
         return badRequest();
     }
 
-    private AutumnHttpResponse ok(boolean keepAlive, byte[] body) {
+    private AutumnHttpResponse ok(byte[] body) {
         return AutumnHttpResponse.builder()
                 .code(200)
                 .contentType("application/octet-stream")

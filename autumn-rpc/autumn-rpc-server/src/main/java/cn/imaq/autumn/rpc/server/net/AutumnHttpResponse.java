@@ -28,8 +28,10 @@ public class AutumnHttpResponse {
     public String getFullHeader() {
         StringBuilder sb = new StringBuilder();
         sb.append("HTTP/1.1 ").append(code).append(' ').append(ResponseCodes.get(code)).append("\r\n");
-        for (Map.Entry<String, String> entry : headers.entrySet()) {
-            sb.append(entry.getKey()).append(": ").append(entry.getValue()).append("\r\n");
+        if (headers != null) {
+            for (Map.Entry<String, String> entry : headers.entrySet()) {
+                sb.append(entry.getKey()).append(": ").append(entry.getValue()).append("\r\n");
+            }
         }
         sb.append("Content-Type: ").append(contentType).append("\r\n");
         sb.append("Content-Length: ").append(body.length).append("\r\n\r\n");
