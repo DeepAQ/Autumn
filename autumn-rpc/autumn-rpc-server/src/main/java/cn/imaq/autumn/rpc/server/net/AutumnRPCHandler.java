@@ -43,7 +43,7 @@ public class AutumnRPCHandler implements AutumnHttpHandler {
     }
 
     @Override
-    public AutumnHttpResponse handle(AutumnHttpRequest request) {
+    public RPCHttpResponse handle(RPCHttpRequest request) {
         log.debug("Received HTTP request: " + request.getMethod() + " " + request.getPath());
         if (request.getPath().equals("/")) {
             try {
@@ -84,24 +84,24 @@ public class AutumnRPCHandler implements AutumnHttpHandler {
         return badRequest();
     }
 
-    private AutumnHttpResponse ok(byte[] body) {
-        return AutumnHttpResponse.builder()
+    private RPCHttpResponse ok(byte[] body) {
+        return RPCHttpResponse.builder()
                 .code(200)
                 .contentType("application/octet-stream")
                 .body(body)
                 .build();
     }
 
-    private AutumnHttpResponse badRequest() {
-        return AutumnHttpResponse.builder()
+    private RPCHttpResponse badRequest() {
+        return RPCHttpResponse.builder()
                 .code(400)
                 .contentType("text/html")
                 .body(INFO_400)
                 .build();
     }
 
-    private AutumnHttpResponse error() {
-        return AutumnHttpResponse.builder()
+    private RPCHttpResponse error() {
+        return RPCHttpResponse.builder()
                 .code(400)
                 .contentType("text/html")
                 .body(INFO_500)

@@ -10,7 +10,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
-import java.util.Map;
 import java.util.concurrent.Executors;
 
 @Slf4j
@@ -29,17 +28,12 @@ public class SunHttpServer extends AbstractAutumnHttpServer {
                     byte[] buf = new byte[is.available()];
                     is.read(buf);
                     is.close();
-                    AutumnHttpResponse response = handler.handle(AutumnHttpRequest.builder()
+                    RPCHttpResponse response = handler.handle(RPCHttpRequest.builder()
                             .method(req.getRequestMethod())
                             .path(req.getRequestURI().getPath())
                             .body(buf)
                             .build()
                     );
-                    if (response.getHeaders() != null && !response.getHeaders().isEmpty()) {
-                        for (Map.Entry<String, String> entry : response.getHeaders().entrySet()) {
-                            req.getResponseHeaders().set(entry.getKey(), entry.getValue());
-                        }
-                    }
                     req.getResponseHeaders().set("Content-Type", response.getContentType());
                     req.sendResponseHeaders(response.getCode(), response.getBody().length);
                     OutputStream os = req.getResponseBody();

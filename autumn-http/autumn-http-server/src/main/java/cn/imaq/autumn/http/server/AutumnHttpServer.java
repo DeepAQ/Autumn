@@ -6,6 +6,4 @@ public class AutumnHttpServer {
     public AutumnHttpServer(int port) {
         this.port = port;
     }
-
-    public sta
 }
