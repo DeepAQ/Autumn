@@ -1,5 +1,7 @@
 package cn.imaq.autumn.http.server;
 
+import cn.imaq.autumn.http.server.protocol.AutumnHttpHandler;
+import cn.imaq.autumn.http.server.protocol.HttpSession;
 import cn.imaq.autumn.http.server.util.AutumnHTTPBanner;
 import lombok.extern.slf4j.Slf4j;
 
@@ -16,14 +18,16 @@ import java.util.concurrent.locks.ReentrantLock;
 @Slf4j
 public class AutumnHttpServer {
     private int port;
+    private AutumnHttpHandler handler;
 
     private final int NUM_WORKERS = Runtime.getRuntime().availableProcessors();
     private final Worker[] workers = new Worker[NUM_WORKERS];
     private final AtomicInteger currentWorker = new AtomicInteger(0);
     private volatile boolean running = false;
 
-    public AutumnHttpServer(int port) {
+    public AutumnHttpServer(int port, AutumnHttpHandler handler) {
         this.port = port;
+        this.handler = handler;
     }
 
     public void start() throws IOException {
@@ -108,9 +112,8 @@ public class AutumnHttpServer {
                 try {
                     SocketChannel cChannel = sChannel.accept();
                     cChannel.configureBlocking(false);
-                    ByteBuffer buf = ByteBuffer.allocate(1024);
                     int workerIndex = currentWorker.getAndIncrement() % NUM_WORKERS;
-                    workers[workerIndex].register(cChannel, SelectionKey.OP_READ, buf);
+                    workers[workerIndex].register(cChannel, SelectionKey.OP_READ, new HttpSession(handler, cChannel));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -119,6 +122,8 @@ public class AutumnHttpServer {
     }
 
     class Worker extends EventLoop {
+        private ByteBuffer buf = ByteBuffer.allocateDirect(1024);
+
         Worker(int index) throws IOException {
             super("Worker-" + index);
         }
@@ -127,20 +132,18 @@ public class AutumnHttpServer {
         void process(SelectionKey key) {
             if (key.isReadable()) {
                 SocketChannel cChannel = (SocketChannel) key.channel();
-                ByteBuffer buf = (ByteBuffer) key.attachment();
+                HttpSession session = (HttpSession) key.attachment();
                 try {
+                    buf.clear();
                     int readBytes = cChannel.read(buf);
                     if (readBytes < 0) {
                         cChannel.close();
                     } else if (readBytes > 0) {
                         buf.flip();
-                        byte[] tmpBuf = new byte[buf.limit()];
-                        buf.get(tmpBuf);
-                        //log.info(new String(tmpBuf));
-                        buf.compact();
-                        cChannel.write(ByteBuffer.wrap("HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: 12\r\n\r\nHello World!".getBytes()));
+                        session.processByteBuffer(buf);
                     }
                 } catch (IOException e) {
+                    log.error("Got exception while processing request", e);
                     try {
                         cChannel.close();
                     } catch (IOException e1) {
