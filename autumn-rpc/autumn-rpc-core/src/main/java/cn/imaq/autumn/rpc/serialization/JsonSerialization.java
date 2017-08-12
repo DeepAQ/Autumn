@@ -10,9 +10,12 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class JsonSerialization implements AutumnSerialization {
     private ObjectMapper mapper = new ObjectMapper();
+    private Map<String, Class> classMap = new ConcurrentHashMap<>();
 
     @Override
     public byte[] serializeRequest(AutumnRPCRequest request) throws AutumnSerializationException {
@@ -44,7 +47,7 @@ public class JsonSerialization implements AutumnSerialization {
                 Class[] paramTypes = new Class[root.get(1).size()];
                 Object[] params = new Object[root.get(2).size()];
                 for (int i = 0; i < root.get(1).size(); i++) {
-                    paramTypes[i] = Class.forName(root.get(1).get(i).textValue());
+                    paramTypes[i] = getClass(root.get(1).get(i).textValue());
                     params[i] = mapper.treeToValue(root.get(2).get(i), paramTypes[i]);
                 }
                 return AutumnRPCRequest.builder()
@@ -83,7 +86,7 @@ public class JsonSerialization implements AutumnSerialization {
                 Class returnType = defaultReturnType;
                 if (root.size() >= 3) {
                     try {
-                        returnType = Class.forName(root.get(2).textValue());
+                        returnType = getClass(root.get(2).textValue());
                     } catch (ClassNotFoundException ignored) {
                     }
                 }
@@ -97,5 +100,14 @@ public class JsonSerialization implements AutumnSerialization {
             throw new AutumnSerializationException(e);
         }
         throw new AutumnSerializationException("JSON format error");
+    }
+
+    private Class getClass(String className) throws ClassNotFoundException {
+        Class clazz = classMap.get(className);
+        if (clazz == null) {
+            clazz = Class.forName(className);
+            classMap.put(className, clazz);
+        }
+        return clazz;
     }
 }
