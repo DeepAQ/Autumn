@@ -4,6 +4,7 @@ import cn.imaq.autumn.rpc.server.annotation.AutumnRPCExpose;
 
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
+import java.util.List;
 
 @AutumnRPCExpose
 public class TestServiceImpl extends UnicastRemoteObject implements TestService {
@@ -11,36 +12,37 @@ public class TestServiceImpl extends UnicastRemoteObject implements TestService 
     }
 
     @Override
-    public String echo(String input) {
+    public String echo(String input) throws RemoteException {
         return "Echo: " + input;
     }
 
     @Override
-    public String echo(int input) {
-        return "Echo int: " + input;
-    }
-
-    @Override
-    public String echo(Integer input) {
-        return "Echo Integer: " + input;
-    }
-
-    @Override
-    public MyObject testEnum(int num) {
+    public MyObject testEnum(Integer num) throws RemoteException {
         return new MyObject(MyEnum.values()[num % MyEnum.values().length]);
     }
 
     @Override
-    public String testObject(String str, MyObject object) {
-        return str + " " + object.toString();
+    public String testObject(String str, MyObject object) throws RemoteException {
+        return str + " " + object;
     }
 
     @Override
-    public void testVoid() {
+    public String testArray(Object[] arr) throws RemoteException {
+        return "Test array: Object[" + arr.length + "]";
     }
 
     @Override
-    public void testException() throws Exception {
-        throw new Exception("test exception");
+    public String testList(List list) throws RemoteException {
+        return "Test list: List[" + list.size() + "]";
+    }
+
+    @Override
+    public void testThrowException(String msg) throws Exception {
+        throw new Exception(msg);
+    }
+
+    @Override
+    public Exception testReturnException(String msg) throws RemoteException {
+        return new Exception(msg);
     }
 }

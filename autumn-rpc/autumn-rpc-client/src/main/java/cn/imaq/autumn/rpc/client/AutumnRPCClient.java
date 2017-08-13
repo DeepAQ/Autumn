@@ -66,7 +66,7 @@ public class AutumnRPCClient {
     }
 
     public AutumnRPCClient(String host, int port) {
-        this(host, port, null, false);
+        this(host, port, null, true);
     }
 
     public AutumnRPCClient(String host, int port, String configFile) {

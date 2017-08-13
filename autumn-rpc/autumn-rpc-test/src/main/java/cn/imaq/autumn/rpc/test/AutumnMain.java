@@ -2,14 +2,29 @@ package cn.imaq.autumn.rpc.test;
 
 import cn.imaq.autumn.rpc.client.AutumnRPCClient;
 import cn.imaq.autumn.rpc.server.AutumnRPCServer;
+import com.example.test.MyEnum;
+import com.example.test.MyObject;
 import com.example.test.TestService;
 
 import java.rmi.RemoteException;
+import java.util.Arrays;
 
 public class AutumnMain {
     public static void main(String[] args) throws RemoteException {
         AutumnRPCServer.start("autumn-rpc-test.properties");
         AutumnRPCClient client = new AutumnRPCClient("127.0.0.1", 8801, "autumn-rpc-test-client.properties", true);
-        System.out.println(client.getService(TestService.class).echo("Hello World!"));
+        TestService testService = client.getService(TestService.class);
+        // TESTS
+        System.out.println(testService.echo("Hello World!"));
+        System.out.println(testService.testEnum(1));
+        System.out.println(testService.testObject("Hello", new MyObject(MyEnum.D)));
+        System.out.println(testService.testArray(new Object[]{null, null, null}));
+        System.out.println(testService.testList(Arrays.asList(null, null, null)));
+        try {
+            testService.testThrowException("Throw exception test");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        testService.testReturnException("Return exception test").printStackTrace();
     }
 }

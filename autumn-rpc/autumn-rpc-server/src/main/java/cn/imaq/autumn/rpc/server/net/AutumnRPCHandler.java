@@ -71,7 +71,7 @@ public class AutumnRPCHandler implements AutumnHttpHandler {
                         log.error("Error invoking " + serviceName + "#" + rpcRequest.getMethodName() + ": " + e.getCause());
                         return error();
                     } catch (InvocationTargetException e) {
-                        log.error(serviceName + "#" + rpcRequest.getMethodName() + " threw an exception: " + e.getCause());
+                        log.info(serviceName + "#" + rpcRequest.getMethodName() + " threw an exception: " + e.getCause());
                         return ok(serialization.serializeResponse(
                                 AutumnRPCResponse.builder().status(STATUS_EXCEPTION).result(e.getCause()).resultType(e.getCause().getClass()).build()
                         ));
