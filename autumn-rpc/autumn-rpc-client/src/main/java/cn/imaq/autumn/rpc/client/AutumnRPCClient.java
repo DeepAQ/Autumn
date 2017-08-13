@@ -8,7 +8,7 @@ import cn.imaq.autumn.rpc.net.AutumnRPCRequest;
 import cn.imaq.autumn.rpc.net.AutumnRPCResponse;
 import cn.imaq.autumn.rpc.serialization.AutumnSerialization;
 import cn.imaq.autumn.rpc.serialization.AutumnSerializationFactory;
-import cn.imaq.autumn.rpc.util.PropertiesUtils;
+import cn.imaq.autumn.rpc.util.PropertiesUtil;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
@@ -38,7 +38,7 @@ public class AutumnRPCClient {
         this.port = port;
         // load config from file
         try {
-            PropertiesUtils.load(this.config, DEFAULT_CONFIG, configFile);
+            PropertiesUtil.load(this.config, DEFAULT_CONFIG, configFile);
         } catch (IOException e) {
             log.error("Error loading config: " + e);
         }

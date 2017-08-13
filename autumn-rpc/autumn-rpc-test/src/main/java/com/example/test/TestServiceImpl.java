@@ -17,7 +17,7 @@ public class TestServiceImpl extends UnicastRemoteObject implements TestService 
     }
 
     @Override
-    public MyObject testEnum(Integer num) throws RemoteException {
+    public MyObject testEnum(int num) throws RemoteException {
         return new MyObject(MyEnum.values()[num % MyEnum.values().length]);
     }
 
@@ -32,8 +32,10 @@ public class TestServiceImpl extends UnicastRemoteObject implements TestService 
     }
 
     @Override
-    public String testList(List list) throws RemoteException {
-        return "Test list: List[" + list.size() + "]";
+    public String testList(List<MyObject> list) throws RemoteException {
+        StringBuilder sb = new StringBuilder("Test list: ");
+        list.forEach(o -> sb.append(o.getMyEnum()));
+        return sb.toString();
     }
 
     @Override

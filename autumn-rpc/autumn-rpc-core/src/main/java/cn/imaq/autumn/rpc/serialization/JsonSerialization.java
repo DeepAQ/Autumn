@@ -3,6 +3,7 @@ package cn.imaq.autumn.rpc.serialization;
 import cn.imaq.autumn.rpc.exception.AutumnSerializationException;
 import cn.imaq.autumn.rpc.net.AutumnRPCRequest;
 import cn.imaq.autumn.rpc.net.AutumnRPCResponse;
+import cn.imaq.autumn.rpc.util.PrimitiveClassUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -105,7 +106,10 @@ public class JsonSerialization implements AutumnSerialization {
     private Class getClass(String className) throws ClassNotFoundException {
         Class clazz = classMap.get(className);
         if (clazz == null) {
-            clazz = Class.forName(className);
+            clazz = PrimitiveClassUtil.get(className);
+            if (clazz == null) {
+                clazz = Class.forName(className);
+            }
             classMap.put(className, clazz);
         }
         return clazz;

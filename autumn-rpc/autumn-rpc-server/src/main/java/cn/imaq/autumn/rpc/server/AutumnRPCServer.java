@@ -6,7 +6,7 @@ import cn.imaq.autumn.rpc.server.net.AutumnHttpServerFactory;
 import cn.imaq.autumn.rpc.server.net.AutumnRPCHandler;
 import cn.imaq.autumn.rpc.server.scanner.AutumnRPCScanner;
 import cn.imaq.autumn.rpc.util.AutumnRPCBanner;
-import cn.imaq.autumn.rpc.util.PropertiesUtils;
+import cn.imaq.autumn.rpc.util.PropertiesUtil;
 import io.github.lukehutch.fastclasspathscanner.FastClasspathScanner;
 import lombok.extern.slf4j.Slf4j;
 
@@ -33,7 +33,7 @@ public class AutumnRPCServer {
             // Load config
             Properties config = new Properties();
             try {
-                PropertiesUtils.load(config, DEFAULT_CONFIG, configFile);
+                PropertiesUtil.load(config, DEFAULT_CONFIG, configFile);
             } catch (IOException e) {
                 log.error("Error loading config: " + e.toString());
             }
