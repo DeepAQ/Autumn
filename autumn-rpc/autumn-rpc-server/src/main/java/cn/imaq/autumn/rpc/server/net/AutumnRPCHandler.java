@@ -47,7 +47,7 @@ public class AutumnRPCHandler implements AutumnHttpHandler {
         log.debug("Received HTTP request: " + request.getMethod() + " " + request.getPath());
         if (request.getPath().equals("/")) {
             try {
-                return ok(new ObjectMapper().writeValueAsBytes(config));
+                return ok("application/json", new ObjectMapper().writeValueAsBytes(config));
             } catch (JsonProcessingException e) {
                 log.error("Error exporting config");
                 return error();
@@ -66,7 +66,7 @@ public class AutumnRPCHandler implements AutumnHttpHandler {
                                 new AutumnMethod(instance.getClass(), rpcRequest.getMethodName(), rpcRequest.getParams().length, rpcRequest.getParamTypes()),
                                 rpcRequest.getParams(), serialization
                         );
-                        return ok(serialization.serializeResponse(
+                        return ok(serialization.contentType(), serialization.serializeResponse(
                                 AutumnRPCResponse.builder().status(STATUS_OK).result(result).resultType(result.getClass()).build()
                         ));
                     } catch (AutumnInvokeException e) {
@@ -74,7 +74,7 @@ public class AutumnRPCHandler implements AutumnHttpHandler {
                         return error();
                     } catch (InvocationTargetException e) {
                         log.info(serviceName + "#" + rpcRequest.getMethodName() + " threw an exception: " + e.getCause());
-                        return ok(serialization.serializeResponse(
+                        return ok(serialization.contentType(), serialization.serializeResponse(
                                 AutumnRPCResponse.builder().status(STATUS_EXCEPTION).result(e.getCause()).resultType(e.getCause().getClass()).build()
                         ));
                     }
@@ -86,10 +86,10 @@ public class AutumnRPCHandler implements AutumnHttpHandler {
         return badRequest();
     }
 
-    private RPCHttpResponse ok(byte[] body) {
+    private RPCHttpResponse ok(String contentType, byte[] body) {
         return RPCHttpResponse.builder()
                 .code(200)
-                .contentType("application/octet-stream")
+                .contentType(contentType)
                 .body(body)
                 .build();
     }
