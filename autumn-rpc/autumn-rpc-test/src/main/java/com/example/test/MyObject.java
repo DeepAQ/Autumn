@@ -1,6 +1,8 @@
 package com.example.test;
 
-public class MyObject {
+import java.io.Serializable;
+
+public class MyObject implements Serializable {
     private MyEnum myEnum;
 
     public MyObject() {

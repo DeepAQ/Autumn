@@ -2,7 +2,7 @@ package cn.imaq.autumn.rpc.server.invoker;
 
 public class AutumnInvokerFactory {
     private static AutumnInvoker defaultInvoker() {
-        return new ReflectAsmInvoker();
+        return new ReflectionInvoker();
     }
 
     public static AutumnInvoker getInvoker(String type) {
@@ -12,8 +12,6 @@ public class AutumnInvokerFactory {
         switch (type) {
             case "reflection":
                 return new ReflectionInvoker();
-            case "reflectasm":
-                return new ReflectAsmInvoker();
             default:
                 return defaultInvoker();
         }

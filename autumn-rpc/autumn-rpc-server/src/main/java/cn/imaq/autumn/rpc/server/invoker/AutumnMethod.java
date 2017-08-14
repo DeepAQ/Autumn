@@ -10,5 +10,7 @@ public class AutumnMethod {
 
     private String name;
 
+    private Integer paramCount;
+
     private Class[] paramTypes;
 }

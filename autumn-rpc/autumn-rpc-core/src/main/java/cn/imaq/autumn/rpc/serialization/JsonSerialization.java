@@ -10,6 +10,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 
 import java.io.IOException;
+import java.lang.reflect.Type;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -17,6 +18,11 @@ import java.util.concurrent.ConcurrentHashMap;
 public class JsonSerialization implements AutumnSerialization {
     private ObjectMapper mapper = new ObjectMapper();
     private Map<String, Class> classMap = new ConcurrentHashMap<>();
+
+    @Override
+    public String contentType() {
+        return "application/json";
+    }
 
     @Override
     public byte[] serializeRequest(AutumnRPCRequest request) throws AutumnSerializationException {
@@ -45,11 +51,16 @@ public class JsonSerialization implements AutumnSerialization {
         try {
             JsonNode root = mapper.readTree(buf);
             if (root.isArray() && root.size() >= 3) {
-                Class[] paramTypes = new Class[root.get(1).size()];
+                Class[] paramTypes = null;
+                if (root.get(1).isArray()) {
+                    paramTypes = new Class[root.get(1).size()];
+                }
                 Object[] params = new Object[root.get(2).size()];
-                for (int i = 0; i < root.get(1).size(); i++) {
-                    paramTypes[i] = getClass(root.get(1).get(i).textValue());
-                    params[i] = mapper.treeToValue(root.get(2).get(i), paramTypes[i]);
+                for (int i = 0; i < root.get(2).size(); i++) {
+                    if (paramTypes != null && paramTypes.length > i) {
+                        paramTypes[i] = getClass(root.get(1).get(i).textValue());
+                    }
+                    params[i] = root.get(2).get(i);
                 }
                 return AutumnRPCRequest.builder()
                         .methodName(root.get(0).textValue())
@@ -101,6 +112,19 @@ public class JsonSerialization implements AutumnSerialization {
             throw new AutumnSerializationException(e);
         }
         throw new AutumnSerializationException("JSON format error");
+    }
+
+    @Override
+    public Object[] convertTypes(Object[] src, Type[] types) throws AutumnSerializationException {
+        try {
+            Object[] result = new Object[src.length];
+            for (int i = 0; i < src.length; i++) {
+                result[i] = mapper.convertValue(src[i], mapper.constructType(types[i]));
+            }
+            return result;
+        } catch (Exception e) {
+            throw new AutumnSerializationException(e);
+        }
     }
 
     private Class getClass(String className) throws ClassNotFoundException {

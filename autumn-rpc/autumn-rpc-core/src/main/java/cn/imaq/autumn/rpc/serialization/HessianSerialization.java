@@ -9,6 +9,7 @@ import com.alibaba.com.caucho.hessian.io.Hessian2Output;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.lang.reflect.Type;
 
 public class HessianSerialization implements AutumnSerialization {
     private byte[] serializeObject(Object object) throws IOException {
@@ -28,6 +29,11 @@ public class HessianSerialization implements AutumnSerialization {
         hin.close();
         is.close();
         return object;
+    }
+
+    @Override
+    public String contentType() {
+        return "application/octet-stream";
     }
 
     @Override
@@ -64,5 +70,10 @@ public class HessianSerialization implements AutumnSerialization {
         } catch (IOException | ClassCastException e) {
             throw new AutumnSerializationException(e);
         }
+    }
+
+    @Override
+    public Object[] convertTypes(Object[] src, Type[] types) throws AutumnSerializationException {
+        return src;
     }
 }

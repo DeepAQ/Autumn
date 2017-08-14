@@ -58,12 +58,14 @@ public class AutumnRPCHandler implements AutumnHttpHandler {
             String serviceName = paths[1];
             Object instance = instanceMap.getInstance(serviceName);
             if (instance != null) {
-                // parse request
                 byte[] body = request.getBody();
                 try {
                     AutumnRPCRequest rpcRequest = serialization.deserializeRequest(body);
                     try {
-                        Object result = invoker.invoke(instance, new AutumnMethod(instance.getClass(), rpcRequest.getMethodName(), rpcRequest.getParamTypes()), rpcRequest.getParams());
+                        Object result = invoker.invoke(instance,
+                                new AutumnMethod(instance.getClass(), rpcRequest.getMethodName(), rpcRequest.getParams().length, rpcRequest.getParamTypes()),
+                                rpcRequest.getParams(), serialization
+                        );
                         return ok(serialization.serializeResponse(
                                 AutumnRPCResponse.builder().status(STATUS_OK).result(result).resultType(result.getClass()).build()
                         ));
