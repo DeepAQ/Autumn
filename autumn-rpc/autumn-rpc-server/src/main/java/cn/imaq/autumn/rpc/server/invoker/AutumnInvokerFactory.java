@@ -12,6 +12,8 @@ public class AutumnInvokerFactory {
         switch (type) {
             case "reflection":
                 return new ReflectionInvoker();
+            case "reflectasm":
+                return new ReflectAsmInvoker();
             default:
                 return defaultInvoker();
         }
