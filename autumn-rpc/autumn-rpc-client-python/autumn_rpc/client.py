@@ -1,6 +1,8 @@
 # coding=utf-8
 import requests
 
+from .exception import InvocationTargetException, AutumnInvokeException
+
 
 class AutumnRPCClient(object):
     def __init__(self, server='localhost', port=8801):
@@ -9,15 +11,20 @@ class AutumnRPCClient(object):
 
     def get_service(self, service):
         class Proxy(object):
-            def __getattribute__(s_self, item):
+            def __init__(_self):
+                _self.__url = 'http://%s:%d/%s' % (self.server, self.port, service)
+
+            def __getattr__(_self, item):
                 def invoke(*args):
-                    url = 'http://%s:%d/%s' % (self.server, self.port, service)
                     request = (item, None, args)
-                    response = requests.post(url, json=request).json()
+                    try:
+                        response = requests.post(_self.__url, json=request).json()
+                    except Exception as e:
+                        raise AutumnInvokeException(e.message)
                     if response[0] == 0:
                         return response[1]
                     else:
-                        raise Exception(response[1]['message'])
+                        raise InvocationTargetException(response[1]['message'])
 
                 return invoke
 

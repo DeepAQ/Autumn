@@ -1,5 +1,5 @@
 # coding=utf-8
-from autumn_rpc import AutumnRPCClient
+from autumn_rpc import AutumnRPCClient, InvocationTargetException
 
 if __name__ == '__main__':
     client = AutumnRPCClient('127.0.0.1', 8801)
@@ -11,7 +11,8 @@ if __name__ == '__main__':
     print(service.testList([{'myEnum': 'A'}, {'myEnum': 'B'}, {'myEnum': 'C'}, {'myEnum': 'D'}]))
     try:
         print(service.testThrowException("test throw Exception"))
-    except Exception, e:
+    except InvocationTargetException as e:
         print(e)
     print(service.testReturnException("test return Exception"))
+    print(service.testNotExistMethod())
     pass
