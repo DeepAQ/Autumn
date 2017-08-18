@@ -32,3 +32,9 @@ hs_err_pid*
 __pycache__/
 *.py[cod]
 *$py.class
+
+### Visual Studio
+# NuGet
+*.cache
+*.nuget.*
+project.*.json
