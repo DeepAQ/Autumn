@@ -90,7 +90,7 @@ public class AutumnRPCClient {
                     .params(args)
                     .build();
             byte[] payload = serialization.serializeRequest(request);
-            byte[] response = httpClient.post(url, payload, "application/json", timeout);
+            byte[] response = httpClient.post(url, payload, serialization.contentType(), timeout);
             AutumnRPCResponse rpcResponse = serialization.deserializeResponse(response, method.getReturnType());
             if (rpcResponse.getStatus() == STATUS_OK) {
                 return rpcResponse.getResult();

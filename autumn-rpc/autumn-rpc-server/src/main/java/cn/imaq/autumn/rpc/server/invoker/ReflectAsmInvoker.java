@@ -19,7 +19,11 @@ public class ReflectAsmInvoker implements AutumnInvoker {
             Integer methodIndex = methodIndexCache.get(method);
             //noinspection Java8MapApi
             if (methodIndex == null) {
-                methodIndex = ma.getIndex(method.getName(), method.getParamTypes());
+                if (method.getParamTypes() != null) {
+                    methodIndex = ma.getIndex(method.getName(), method.getParamTypes());
+                } else {
+                    methodIndex = ma.getIndex(method.getName(), method.getParamCount());
+                }
                 methodIndexCache.put(method, methodIndex);
             }
             params = serialization.convertTypes(params, ma.getGenericTypes()[methodIndex]);

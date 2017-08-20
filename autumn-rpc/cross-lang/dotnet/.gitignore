@@ -1,0 +1,9 @@
+### Visual Studio
+bin/
+obj/
+*.user
+
+# NuGet
+*.cache
+*.nuget.*
+project.*.json
