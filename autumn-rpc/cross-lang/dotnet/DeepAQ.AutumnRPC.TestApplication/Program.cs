@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using DeepAQ.AutumnRPC.Client;
 using DeepAQ.AutumnRPC.TestApplication.TestNamespace;
 
@@ -27,7 +26,7 @@ namespace DeepAQ.AutumnRPC.TestApplication
             {
                 Console.WriteLine(e);
             }
-            Console.WriteLine(testService.testReturnException("Test message"));
+            // Console.WriteLine(testService.testReturnException("Test message"));
         }
     }
 }

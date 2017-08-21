@@ -2,6 +2,7 @@
 bin/
 obj/
 *.user
+.vs/
 
 # NuGet
 *.cache

@@ -2,21 +2,25 @@
 using System.Net.Http;
 using System.Reflection;
 using Castle.DynamicProxy;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace DeepAQ.AutumnRPC.Client
 {
     public class AutumnRPCClient
     {
-        private static readonly HttpClient HttpClient = new HttpClient();
         private static readonly ProxyGenerator ProxyGenerator = new ProxyGenerator();
 
+        private readonly HttpClient _httpClient;
         private readonly string _baseUrl;
 
-        public AutumnRPCClient(string host, int port)
+        public AutumnRPCClient(string host, int port) : this(host, port, 3000)
+        {
+        }
+
+        public AutumnRPCClient(string host, int port, int timeout)
         {
             this._baseUrl = $"http://{host}:{port}";
+            this._httpClient = new HttpClient {Timeout = TimeSpan.FromMilliseconds(timeout)};
         }
 
         public T GetService<T>() where T : class
@@ -26,23 +30,17 @@ namespace DeepAQ.AutumnRPC.Client
 
         public T GetService<T>(string remoteServiceName) where T : class
         {
-            return GetService<T>(remoteServiceName, 3000);
-        }
-
-        public T GetService<T>(string remoteServiceName, int timeout) where T : class
-        {
             return ProxyGenerator.CreateInterfaceProxyWithoutTarget<T>(
-                new Interceptor(remoteServiceName, timeout, this.Invoke)
+                new Interceptor(remoteServiceName, this.InvokeInternal)
             );
         }
 
-        public T Invoke<T>(string serviceName, string methodName, int timeout, params object[] paramArray)
+        public T Invoke<T>(string serviceName, string methodName, params object[] paramArray)
         {
-            return (T) Invoke(new HttpClient {Timeout = TimeSpan.FromMilliseconds(timeout)},
-                serviceName, methodName, typeof(T), paramArray);
+            return (T) InvokeInternal(serviceName, methodName, typeof(T), paramArray);
         }
 
-        private object Invoke(HttpClient httpClient, string serviceName, string methodName, Type returnType,
+        private object InvokeInternal(string serviceName, string methodName, Type returnType,
             params object[] paramArray)
         {
             var request = new AutumnRPCRequest
@@ -50,7 +48,7 @@ namespace DeepAQ.AutumnRPC.Client
                 MethodName = methodName,
                 Params = paramArray
             };
-            var httpResponse = httpClient.PostAsync($"{_baseUrl}/{serviceName}", new StringContent(request.ToJson()))
+            var httpResponse = _httpClient.PostAsync($"{_baseUrl}/{serviceName}", new StringContent(request.ToJson()))
                 .Result.Content.ReadAsStringAsync().Result;
             var respArray = JArray.Parse(httpResponse);
             if (respArray[0].Value<int>() == 0)
@@ -65,17 +63,15 @@ namespace DeepAQ.AutumnRPC.Client
 
         private class Interceptor : IInterceptor
         {
-            internal delegate object InvokeDelegate(HttpClient httpClient, string serviceName, string methodName,
-                Type returnType, params object[] paramArray);
+            internal delegate object InvokeDelegate(string serviceName, string methodName, Type returnType,
+                params object[] paramArray);
 
             private readonly string _serviceName;
-            private readonly HttpClient _httpClient;
             private readonly InvokeDelegate _delegate;
 
-            public Interceptor(string serviceName, int timeout, InvokeDelegate invokeDelegate)
+            public Interceptor(string serviceName, InvokeDelegate invokeDelegate)
             {
                 _serviceName = serviceName;
-                _httpClient = new HttpClient {Timeout = TimeSpan.FromMilliseconds(timeout)};
                 _delegate = invokeDelegate;
             }
 
@@ -83,16 +79,16 @@ namespace DeepAQ.AutumnRPC.Client
             {
                 try
                 {
-                    invocation.ReturnValue = _delegate(_httpClient, _serviceName, invocation.Method.Name,
+                    invocation.ReturnValue = _delegate(_serviceName, invocation.Method.Name,
                         invocation.Method.ReturnType, invocation.Arguments);
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine(e);
                     if (e is TargetInvocationException)
                     {
                         throw e.InnerException;
                     }
+                    throw;
                 }
             }
         }
