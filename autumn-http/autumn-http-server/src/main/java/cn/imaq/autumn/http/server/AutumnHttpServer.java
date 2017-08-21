@@ -6,23 +6,30 @@ import cn.imaq.autumn.http.server.util.AutumnHTTPBanner;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
+import java.lang.ref.WeakReference;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.*;
 import java.nio.channels.spi.AbstractSelectableChannel;
+import java.util.Collections;
 import java.util.Iterator;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 @Slf4j
 public class AutumnHttpServer {
+    private final int NUM_WORKERS = Runtime.getRuntime().availableProcessors();
+    private final int IDLE_TIMEOUT = 60;
+
     private int port;
     private AutumnHttpHandler handler;
-
-    private final int NUM_WORKERS = Runtime.getRuntime().availableProcessors();
     private final Worker[] workers = new Worker[NUM_WORKERS];
     private final AtomicInteger currentWorker = new AtomicInteger(0);
+    private final Set<WeakReference<HttpSession>> sessions = Collections.newSetFromMap(new ConcurrentHashMap<>());
+
     private volatile boolean running = false;
 
     public AutumnHttpServer(int port, AutumnHttpHandler handler) {
@@ -44,6 +51,7 @@ public class AutumnHttpServer {
                 workers[i].start();
             }
             new Boss(sChannel).start();
+            new IdleCleaner().start();
             log.info("Started HTTP server on port " + port + " with " + NUM_WORKERS + " workers");
         }
     }
@@ -102,6 +110,7 @@ public class AutumnHttpServer {
     class Boss extends EventLoop {
         Boss(ServerSocketChannel sChannel) throws IOException {
             super("Boss");
+            setPriority(MAX_PRIORITY);
             register(sChannel, SelectionKey.OP_ACCEPT, null);
         }
 
@@ -113,7 +122,9 @@ public class AutumnHttpServer {
                     SocketChannel cChannel = sChannel.accept();
                     cChannel.configureBlocking(false);
                     int workerIndex = currentWorker.getAndIncrement() % NUM_WORKERS;
-                    workers[workerIndex].register(cChannel, SelectionKey.OP_READ, new HttpSession(handler, cChannel));
+                    HttpSession session = new HttpSession(handler, cChannel);
+                    workers[workerIndex].register(cChannel, SelectionKey.OP_READ, session);
+                    sessions.add(new WeakReference<>(session));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -143,12 +154,42 @@ public class AutumnHttpServer {
                         session.processByteBuffer(buf);
                     }
                 } catch (IOException e) {
-                    log.error("Got exception while processing request", e);
+                    log.error("Got exception while processing request: " +  e.getClass().getName());
                     try {
                         cChannel.close();
                     } catch (IOException e1) {
                         log.warn("Failed to close channel", e1);
                     }
+                }
+            }
+        }
+    }
+
+    class IdleCleaner extends Thread {
+        public IdleCleaner() {
+            super("IdleCleaner");
+        }
+
+        @Override
+        public void run() {
+            while (true) {
+                Iterator<WeakReference<HttpSession>> it = sessions.iterator();
+                while (it.hasNext()) {
+                    HttpSession session = it.next().get();
+                    if (session == null) {
+                        it.remove();
+                    } else {
+                        try {
+                            session.checkIdle(IDLE_TIMEOUT);
+                        } catch (IOException e) {
+                            log.error("Error checking idle", e);
+                        }
+                    }
+                }
+                try {
+                    Thread.sleep(IDLE_TIMEOUT * 500);
+                } catch (InterruptedException e) {
+                    break;
                 }
             }
         }

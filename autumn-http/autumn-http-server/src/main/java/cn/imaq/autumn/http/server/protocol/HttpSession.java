@@ -8,23 +8,22 @@ import java.util.*;
 public class HttpSession {
     private static final Set<String> VALID_METHODS = new HashSet<>();
     private static final int MAX_BODY_LENGTH = 1024 * 1024 * 10;
-
     static {
         Collections.addAll(VALID_METHODS, "GET", "POST", "PUT", "DELETE");
     }
 
+    private AutumnHttpHandler handler;
+    private SocketChannel cChannel;
     private State state = State.START;
     private byte[] buf = new byte[2048];
     private int bufLimit = 0;
+    private long lastActive = System.currentTimeMillis();
 
     private String method, path, protocol;
     private Map<String, List<String>> headersMap = new HashMap<>();
     private int contentLength = -1;
     private byte[] body;
     private int bodyLimit = 0;
-
-    private AutumnHttpHandler handler;
-    private SocketChannel cChannel;
 
     public HttpSession(AutumnHttpHandler handler, SocketChannel cChannel) {
         this.handler = handler;
@@ -38,6 +37,12 @@ public class HttpSession {
         byteBuf.get(buf, bufLimit, byteBuf.limit());
         bufLimit += byteBuf.limit();
         processBuf();
+    }
+
+    public void checkIdle(int timeoutSec) throws IOException {
+        if (System.currentTimeMillis() - lastActive > timeoutSec * 1000) {
+            cChannel.close();
+        }
     }
 
     private void processBuf() throws IOException {
@@ -54,6 +59,7 @@ public class HttpSession {
                     // expect: "GET /path/to/something HTTP/1.1"
                     String[] words = line.split(" ", 3);
                     if (words.length == 3 && VALID_METHODS.contains(words[0])) {
+                        lastActive = System.currentTimeMillis();
                         method = words[0];
                         path = words[1];
                         protocol = words[2];
@@ -63,6 +69,7 @@ public class HttpSession {
                 } else if (state == State.HEADERS) {
                     if (line.isEmpty()) {
                         if (contentLength < 0) {
+                            lastActive = System.currentTimeMillis();
                             processRequest();
                             state = State.START;
                         } else {
@@ -73,6 +80,7 @@ public class HttpSession {
                         // expect: "Header-Key: Header-Value"
                         String[] kv = line.split(":", 2);
                         if (kv.length == 2) {
+                            lastActive = System.currentTimeMillis();
                             String key = kv[0].trim().toLowerCase();
                             String value = kv[1].trim();
                             headersMap.computeIfAbsent(key, k -> new ArrayList<>()).add(value);
@@ -93,6 +101,7 @@ public class HttpSession {
             }
         }
         if (state == State.BODY) {
+            lastActive = System.currentTimeMillis();
             int canRead = bufLimit - readBytes;
             if (canRead >= contentLength - bodyLimit) {
                 canRead = contentLength - bodyLimit;
