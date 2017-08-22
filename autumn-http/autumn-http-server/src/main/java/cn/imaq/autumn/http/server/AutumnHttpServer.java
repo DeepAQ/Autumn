@@ -1,7 +1,7 @@
 package cn.imaq.autumn.http.server;
 
 import cn.imaq.autumn.http.server.protocol.AutumnHttpHandler;
-import cn.imaq.autumn.http.server.protocol.HttpSession;
+import cn.imaq.autumn.http.server.protocol.HttpServerSession;
 import cn.imaq.autumn.http.server.util.AutumnHTTPBanner;
 import lombok.extern.slf4j.Slf4j;
 
@@ -28,7 +28,7 @@ public class AutumnHttpServer {
     private AutumnHttpHandler handler;
     private final Worker[] workers = new Worker[NUM_WORKERS];
     private final AtomicInteger currentWorker = new AtomicInteger(0);
-    private final Set<WeakReference<HttpSession>> sessions = Collections.newSetFromMap(new ConcurrentHashMap<>());
+    private final Set<WeakReference<HttpServerSession>> sessions = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
     private volatile boolean running = false;
 
@@ -122,7 +122,7 @@ public class AutumnHttpServer {
                     SocketChannel cChannel = sChannel.accept();
                     cChannel.configureBlocking(false);
                     int workerIndex = currentWorker.getAndIncrement() % NUM_WORKERS;
-                    HttpSession session = new HttpSession(handler, cChannel);
+                    HttpServerSession session = new HttpServerSession(handler, cChannel);
                     workers[workerIndex].register(cChannel, SelectionKey.OP_READ, session);
                     sessions.add(new WeakReference<>(session));
                 } catch (Exception e) {
@@ -143,7 +143,7 @@ public class AutumnHttpServer {
         void process(SelectionKey key) {
             if (key.isReadable()) {
                 SocketChannel cChannel = (SocketChannel) key.channel();
-                HttpSession session = (HttpSession) key.attachment();
+                HttpServerSession session = (HttpServerSession) key.attachment();
                 try {
                     buf.clear();
                     int readBytes = cChannel.read(buf);
@@ -173,9 +173,9 @@ public class AutumnHttpServer {
         @Override
         public void run() {
             while (true) {
-                Iterator<WeakReference<HttpSession>> it = sessions.iterator();
+                Iterator<WeakReference<HttpServerSession>> it = sessions.iterator();
                 while (it.hasNext()) {
-                    HttpSession session = it.next().get();
+                    HttpServerSession session = it.next().get();
                     if (session == null) {
                         it.remove();
                     } else {

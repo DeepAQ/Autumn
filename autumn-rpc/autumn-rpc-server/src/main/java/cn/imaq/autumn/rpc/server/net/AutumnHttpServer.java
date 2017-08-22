@@ -1,6 +1,6 @@
 package cn.imaq.autumn.rpc.server.net;
 
-import cn.imaq.autumn.http.server.protocol.AutumnHttpResponse;
+import cn.imaq.autumn.http.protocol.AutumnHttpResponse;
 import cn.imaq.autumn.rpc.server.exception.AutumnHttpException;
 
 import java.io.IOException;

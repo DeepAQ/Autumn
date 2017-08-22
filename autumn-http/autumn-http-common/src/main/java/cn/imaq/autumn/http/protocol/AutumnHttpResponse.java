@@ -1,4 +1,4 @@
-package cn.imaq.autumn.http.server.protocol;
+package cn.imaq.autumn.http.protocol;
 
 import lombok.Builder;
 import lombok.Data;
@@ -17,7 +17,7 @@ public class AutumnHttpResponse {
 
     private byte[] body;
 
-    static class ResponseCodes {
+    public static class ResponseCodes {
         static final String[] RESPONSE_CODES = {
                 "Continue",
                 "Switching Protocols",
@@ -96,7 +96,7 @@ public class AutumnHttpResponse {
                 "Network Authentication Required"
         };
 
-        static String get(int code) {
+        public static String get(int code) {
             return RESPONSE_CODES[code - 100];
         }
     }

@@ -1,34 +1,24 @@
-package cn.imaq.autumn.http.server.protocol;
+package cn.imaq.autumn.http.protocol;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.channels.SocketChannel;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-public class HttpSession {
-    private static final Set<String> VALID_METHODS = new HashSet<>();
+public abstract class AbstractHttpSession {
     private static final int MAX_BODY_LENGTH = 1024 * 1024 * 10;
-    static {
-        Collections.addAll(VALID_METHODS, "GET", "POST", "PUT", "DELETE");
-    }
 
-    private AutumnHttpHandler handler;
-    private SocketChannel cChannel;
     private State state = State.START;
+    private long lastActive = System.currentTimeMillis();
+    protected Map<String, List<String>> headersMap = new HashMap<>();
+    private int contentLength = -1;
+
     private byte[] buf = new byte[2048];
     private int bufLimit = 0;
-    private long lastActive = System.currentTimeMillis();
-
-    private String method, path, protocol;
-    private Map<String, List<String>> headersMap = new HashMap<>();
-    private int contentLength = -1;
-    private byte[] body;
+    protected byte[] body;
     private int bodyLimit = 0;
-
-    public HttpSession(AutumnHttpHandler handler, SocketChannel cChannel) {
-        this.handler = handler;
-        this.cChannel = cChannel;
-    }
 
     public void processByteBuffer(ByteBuffer byteBuf) throws IOException {
         if (bufLimit + byteBuf.limit() > buf.length) {
@@ -41,9 +31,17 @@ public class HttpSession {
 
     public void checkIdle(int timeoutSec) throws IOException {
         if (System.currentTimeMillis() - lastActive > timeoutSec * 1000) {
-            cChannel.close();
+            timeout();
         }
     }
+
+    protected abstract boolean checkStart(String line);
+
+    protected abstract void finish() throws IOException;
+
+    protected abstract void error() throws IOException;
+
+    protected abstract void timeout() throws IOException;
 
     private void processBuf() throws IOException {
         int readBytes = 0;
@@ -56,13 +54,8 @@ public class HttpSession {
                 String line = lines[i];
                 readBytes += line.length() + 2;
                 if (state == State.START) {
-                    // expect: "GET /path/to/something HTTP/1.1"
-                    String[] words = line.split(" ", 3);
-                    if (words.length == 3 && VALID_METHODS.contains(words[0])) {
+                    if (checkStart(line)) {
                         lastActive = System.currentTimeMillis();
-                        method = words[0];
-                        path = words[1];
-                        protocol = words[2];
                         state = State.HEADERS;
                         headersMap.clear();
                     }
@@ -70,7 +63,7 @@ public class HttpSession {
                     if (line.isEmpty()) {
                         if (contentLength < 0) {
                             lastActive = System.currentTimeMillis();
-                            processRequest();
+                            finish();
                             state = State.START;
                         } else {
                             state = State.BODY;
@@ -87,14 +80,16 @@ public class HttpSession {
                             if (key.equals("content-length")) {
                                 contentLength = Integer.valueOf(value);
                                 if (contentLength > MAX_BODY_LENGTH) {
-                                    badRequest();
+                                    error();
+                                    state = State.START;
                                 } else {
                                     body = new byte[contentLength];
                                     bodyLimit = 0;
                                 }
                             }
                         } else {
-                            badRequest();
+                            error();
+                            state = State.START;
                         }
                     }
                 }
@@ -111,7 +106,7 @@ public class HttpSession {
             bodyLimit += canRead;
             if (bodyLimit >= contentLength) {
                 readBytes = bufLimit;
-                processRequest();
+                finish();
                 state = State.START;
             }
         }
@@ -121,51 +116,7 @@ public class HttpSession {
         bufLimit -= readBytes;
     }
 
-    private void processRequest() throws IOException {
-        AutumnHttpRequest request = AutumnHttpRequest.builder()
-                .method(method)
-                .path(path)
-                .protocol(protocol)
-                .headers(headersMap)
-                .body(body)
-                .build();
-        AutumnHttpResponse response = handler.handle(request);
-        writeResponse(response);
-    }
-
-    private void writeResponse(AutumnHttpResponse response) throws IOException {
-        StringBuilder sb = new StringBuilder();
-        sb.append("HTTP/1.1 ").append(response.getStatus()).append(' ')
-                .append(AutumnHttpResponse.ResponseCodes.get(response.getStatus())).append("\r\n");
-        if (response.getHeaders() != null) {
-            for (Map.Entry<String, List<String>> header : response.getHeaders().entrySet()) {
-                String key = header.getKey();
-                for (String value : header.getValue()) {
-                    sb.append(key).append(": ").append(value).append("\r\n");
-                }
-            }
-        }
-        if (response.getContentType() != null) {
-            sb.append("Content-Type: ").append(response.getContentType()).append("\r\n");
-        }
-        if (response.getBody() != null) {
-            sb.append("Content-Length: ").append(response.getBody().length).append("\r\n\r\n");
-        }
-        cChannel.write(ByteBuffer.wrap(sb.toString().getBytes()));
-        if (response.getBody() != null) {
-            cChannel.write(ByteBuffer.wrap(response.getBody()));
-        }
-    }
-
-    private void badRequest() throws IOException {
-        writeResponse(AutumnHttpResponse.builder()
-                .status(400)
-                .build()
-        );
-        state = State.START;
-    }
-
-    enum State {
+    protected enum State {
         START,
         HEADERS,
         BODY,

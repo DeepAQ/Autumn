@@ -1,4 +1,4 @@
-package cn.imaq.autumn.http.server.protocol;
+package cn.imaq.autumn.http.protocol;
 
 import lombok.Builder;
 import lombok.Data;

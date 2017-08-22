@@ -1,8 +1,8 @@
 package cn.imaq.autumn.http.server.handler;
 
 import cn.imaq.autumn.http.server.protocol.AutumnHttpHandler;
-import cn.imaq.autumn.http.server.protocol.AutumnHttpRequest;
-import cn.imaq.autumn.http.server.protocol.AutumnHttpResponse;
+import cn.imaq.autumn.http.protocol.AutumnHttpRequest;
+import cn.imaq.autumn.http.protocol.AutumnHttpResponse;
 
 public class TeapotEchoHandler implements AutumnHttpHandler {
     @Override
