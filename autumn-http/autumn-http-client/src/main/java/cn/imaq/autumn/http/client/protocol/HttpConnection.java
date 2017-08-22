@@ -1,5 +1,6 @@
 package cn.imaq.autumn.http.client.protocol;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
@@ -40,10 +41,21 @@ public class HttpConnection {
             }
             if (key.isReadable() && key.channel() instanceof SocketChannel) {
                 ByteBuffer buf = ByteBuffer.allocate(1024);
-                int readBytes = ((SocketChannel) key.channel()).read(buf);
-                if (readBytes > 0) {
-                    return buf.array();
+                ByteArrayOutputStream os = new ByteArrayOutputStream(1024);
+                while (true) {
+                    int readBytes = ((SocketChannel) key.channel()).read(buf);
+                    if (readBytes > 0) {
+                        byte[] bytes = new byte[readBytes];
+                        buf.flip();
+                        buf.get(bytes);
+                        os.write(bytes);
+                    }
+                    if (readBytes < buf.capacity()) {
+                        break;
+                    }
+                    buf.clear();
                 }
+                return os.toByteArray();
             }
         }
         throw new IOException("Cannot read response from server: " + channel.getRemoteAddress());
