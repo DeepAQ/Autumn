@@ -1,11 +1,11 @@
 package cn.imaq.autumn.rpc.server.net;
 
-public class AutumnHttpServerFactory {
-    private static AbstractAutumnHttpServer defaultServer(String host, int port, AutumnHttpHandler handler) {
+public class RPCHttpServerFactory {
+    private static AbstractRPCHttpServer defaultServer(String host, int port, RPCHttpHandler handler) {
         return new AutumnHttpServer(host, port, handler);
     }
 
-    public static AbstractAutumnHttpServer create(String type, String host, int port, AutumnHttpHandler handler) {
+    public static AbstractRPCHttpServer create(String type, String host, int port, RPCHttpHandler handler) {
         if (type == null) {
             return defaultServer(host, port, handler);
         }

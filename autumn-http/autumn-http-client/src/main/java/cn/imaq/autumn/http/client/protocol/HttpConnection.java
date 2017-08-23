@@ -1,6 +1,7 @@
 package cn.imaq.autumn.http.client.protocol;
 
-import java.io.ByteArrayOutputStream;
+import cn.imaq.autumn.http.protocol.AutumnHttpResponse;
+
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
@@ -12,52 +13,49 @@ import java.util.Iterator;
 public class HttpConnection {
     private Selector selector;
     private SocketChannel channel;
+    private ByteBuffer buf;
 
     public HttpConnection(InetSocketAddress remote) throws IOException {
         selector = Selector.open();
         channel = SocketChannel.open(remote);
         channel.configureBlocking(false);
         channel.register(selector, SelectionKey.OP_READ);
+        buf = ByteBuffer.allocateDirect(1024);
     }
 
     public boolean isAvailable() {
         return channel.isConnected();
     }
 
-    public byte[] writeThenRead(byte[] data, int timeoutMillis) throws IOException {
+    public AutumnHttpResponse writeThenRead(byte[] data, int timeoutMillis) throws IOException {
         // write data
         channel.write(ByteBuffer.wrap(data));
         // read response
-        int count = selector.select(timeoutMillis);
-        if (count <= 0) {
-            throw new IOException("Read timed out: " + channel.getRemoteAddress());
-        }
-        Iterator<SelectionKey> keyIter = selector.selectedKeys().iterator();
-        while (keyIter.hasNext()) {
-            SelectionKey key = keyIter.next();
-            keyIter.remove();
-            if (!key.isValid()) {
-                continue;
+        HttpClientSession session = new HttpClientSession();
+        while (true) {
+            int count = selector.select(timeoutMillis);
+            if (count <= 0) {
+                throw new IOException("Read timed out: " + channel.getRemoteAddress());
             }
-            if (key.isReadable() && key.channel() instanceof SocketChannel) {
-                ByteBuffer buf = ByteBuffer.allocate(1024);
-                ByteArrayOutputStream os = new ByteArrayOutputStream(1024);
-                while (true) {
+            Iterator<SelectionKey> keyIter = selector.selectedKeys().iterator();
+            while (keyIter.hasNext()) {
+                SelectionKey key = keyIter.next();
+                keyIter.remove();
+                if (!key.isValid()) {
+                    continue;
+                }
+                if (key.isReadable()) {
+                    buf.clear();
                     int readBytes = ((SocketChannel) key.channel()).read(buf);
                     if (readBytes > 0) {
-                        byte[] bytes = new byte[readBytes];
                         buf.flip();
-                        buf.get(bytes);
-                        os.write(bytes);
+                        session.processByteBuffer(buf);
+                        if (session.isFinished()) {
+                            return session.getResponse();
+                        }
                     }
-                    if (readBytes < buf.capacity()) {
-                        break;
-                    }
-                    buf.clear();
                 }
-                return os.toByteArray();
             }
         }
-        throw new IOException("Cannot read response from server: " + channel.getRemoteAddress());
     }
 }

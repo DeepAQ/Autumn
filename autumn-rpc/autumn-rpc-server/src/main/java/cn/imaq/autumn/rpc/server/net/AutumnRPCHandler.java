@@ -20,7 +20,7 @@ import static cn.imaq.autumn.rpc.net.AutumnRPCResponse.STATUS_EXCEPTION;
 import static cn.imaq.autumn.rpc.net.AutumnRPCResponse.STATUS_OK;
 
 @Slf4j
-public class AutumnRPCHandler implements AutumnHttpHandler {
+public class AutumnRPCHandler implements RPCHttpHandler {
     private final byte[] INFO_400 = "<html><head><title>400 Bad Request</title></head><body><center><h1>400 Bad Request</h1></center><hr><center>AutumnRPC</center></body></html>".getBytes();
     private final byte[] INFO_500 = "<html><head><title>500 Internal Server Error</title></head><body><center><h1>500 Internal Server Error</h1></center><hr><center>AutumnRPC</center></body></html>".getBytes();
 

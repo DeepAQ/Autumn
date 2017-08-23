@@ -11,7 +11,7 @@ public abstract class AbstractHttpSession {
     private static final int MAX_BODY_LENGTH = 1024 * 1024 * 10;
 
     private State state = State.START;
-    private long lastActive = System.currentTimeMillis();
+    protected long lastActive = System.currentTimeMillis();
     protected Map<String, List<String>> headersMap = new HashMap<>();
     private int contentLength = -1;
 
@@ -29,19 +29,11 @@ public abstract class AbstractHttpSession {
         processBuf();
     }
 
-    public void checkIdle(int timeoutSec) throws IOException {
-        if (System.currentTimeMillis() - lastActive > timeoutSec * 1000) {
-            timeout();
-        }
-    }
-
     protected abstract boolean checkStart(String line);
 
     protected abstract void finish() throws IOException;
 
     protected abstract void error() throws IOException;
-
-    protected abstract void timeout() throws IOException;
 
     private void processBuf() throws IOException {
         int readBytes = 0;

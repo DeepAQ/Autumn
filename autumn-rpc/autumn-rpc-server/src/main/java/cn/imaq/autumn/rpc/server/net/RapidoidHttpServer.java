@@ -10,11 +10,11 @@ import org.rapidoid.net.Server;
 import org.rapidoid.net.abstracts.Channel;
 import org.rapidoid.net.impl.RapidoidHelper;
 
-public class RapidoidHttpServer extends AbstractAutumnHttpServer {
+public class RapidoidHttpServer extends AbstractRPCHttpServer {
     private Rapidoid rapidoid = new Rapidoid();
     private Server listeningServer;
 
-    public RapidoidHttpServer(String host, int port, AutumnHttpHandler handler) {
+    public RapidoidHttpServer(String host, int port, RPCHttpHandler handler) {
         super(host, port, handler);
     }
 

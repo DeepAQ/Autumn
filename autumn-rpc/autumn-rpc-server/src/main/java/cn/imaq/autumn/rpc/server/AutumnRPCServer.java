@@ -1,8 +1,8 @@
 package cn.imaq.autumn.rpc.server;
 
 import cn.imaq.autumn.rpc.server.exception.AutumnHttpException;
-import cn.imaq.autumn.rpc.server.net.AbstractAutumnHttpServer;
-import cn.imaq.autumn.rpc.server.net.AutumnHttpServerFactory;
+import cn.imaq.autumn.rpc.server.net.AbstractRPCHttpServer;
+import cn.imaq.autumn.rpc.server.net.RPCHttpServerFactory;
 import cn.imaq.autumn.rpc.server.net.AutumnRPCHandler;
 import cn.imaq.autumn.rpc.server.scanner.AutumnRPCScanner;
 import cn.imaq.autumn.rpc.util.AutumnRPCBanner;
@@ -17,7 +17,7 @@ import java.util.Properties;
 public class AutumnRPCServer {
     private static final String DEFAULT_CONFIG = "autumn-rpc-server-default.properties";
 
-    private static AbstractAutumnHttpServer httpServer;
+    private static AbstractRPCHttpServer httpServer;
 
     private static final Object mutex = new Object();
 
@@ -54,7 +54,7 @@ public class AutumnRPCServer {
             // Start HTTP server
             String host = config.getProperty("http.host", "0.0.0.0");
             int port = Integer.valueOf(config.getProperty("http.port", "8801"));
-            httpServer = AutumnHttpServerFactory.create(config.getProperty("http.server"), host, port, handler);
+            httpServer = RPCHttpServerFactory.create(config.getProperty("http.server"), host, port, handler);
             log.info("Using HTTP server: " + httpServer.getClass().getSimpleName());
             log.warn("Starting HTTP server ...");
             try {

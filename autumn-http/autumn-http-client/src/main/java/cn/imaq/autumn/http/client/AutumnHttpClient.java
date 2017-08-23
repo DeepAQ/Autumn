@@ -1,11 +1,15 @@
 package cn.imaq.autumn.http.client;
 
 import cn.imaq.autumn.http.client.protocol.HttpConnection;
+import cn.imaq.autumn.http.protocol.AutumnHttpRequest;
+import cn.imaq.autumn.http.protocol.AutumnHttpResponse;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.URL;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
@@ -34,20 +38,35 @@ public class AutumnHttpClient {
         return conn;
     }
 
-    public static byte[] get(String urlStr, int timeoutMillis) throws IOException {
+    public static AutumnHttpResponse request(String method, String urlStr, String contentType, byte[] body, int timeoutMillis) throws IOException {
         URL url = new URL(urlStr);
-        int port = url.getPort() > 0 ? url.getPort() : 80;
-        InetSocketAddress socketAddress = new InetSocketAddress(url.getHost(), port);
         String path = url.getPath();
         if (path.isEmpty()) {
             path = "/";
         }
-        String request = "GET " + path + " HTTP/1.1\r\nHost: " + url.getHost() + "\r\n\r\n";
+        Map<String, List<String>> headers = new HashMap<>();
+        headers.put("Host", Collections.singletonList(url.getHost()));
+        if (contentType != null) {
+            headers.put("Content-Type", Collections.singletonList(contentType));
+        }
+        AutumnHttpRequest request = AutumnHttpRequest.builder()
+                .method(method)
+                .path(path)
+                .protocol("HTTP/1.1")
+                .headers(headers)
+                .body(body)
+                .build();
+        int port = url.getPort() > 0 ? url.getPort() : 80;
+        InetSocketAddress socketAddress = new InetSocketAddress(url.getHost(), port);
         HttpConnection connection = getConnection(socketAddress);
-        return connection.writeThenRead(request.getBytes(), timeoutMillis);
+        return connection.writeThenRead(request.toRequestString().getBytes(), timeoutMillis);
     }
 
-    public static void main(String[] args) throws IOException {
-        System.out.println(new String(AutumnHttpClient.get("http://www.baidu.com", 5000)));
+    public static AutumnHttpResponse get(String urlStr, int timeoutMillis) throws IOException {
+        return request("GET", urlStr, null, null, timeoutMillis);
+    }
+
+    public static AutumnHttpResponse post(String urlStr, String contentType, byte[] body, int timeoutMillis) throws IOException {
+        return request("POST", urlStr, contentType, body, timeoutMillis);
     }
 }

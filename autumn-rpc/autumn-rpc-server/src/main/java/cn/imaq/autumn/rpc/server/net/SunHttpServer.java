@@ -11,10 +11,10 @@ import java.net.InetSocketAddress;
 import java.util.concurrent.Executors;
 
 @Slf4j
-public class SunHttpServer extends AbstractAutumnHttpServer {
+public class SunHttpServer extends AbstractRPCHttpServer {
     private HttpServer httpServer;
 
-    public SunHttpServer(String host, int port, AutumnHttpHandler handler) {
+    public SunHttpServer(String host, int port, RPCHttpHandler handler) {
         super(host, port, handler);
         try {
             httpServer = HttpServer.create(new InetSocketAddress(host, port), 0);

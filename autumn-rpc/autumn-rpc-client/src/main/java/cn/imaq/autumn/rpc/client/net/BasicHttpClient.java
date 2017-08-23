@@ -8,7 +8,7 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
-public class BasicHttpClient implements AutumnHttpClient {
+public class BasicHttpClient implements RPCHttpClient {
     @Override
     public byte[] post(String url, byte[] payload, String mime, int timeout) throws AutumnHttpException {
         int respCode = -1;

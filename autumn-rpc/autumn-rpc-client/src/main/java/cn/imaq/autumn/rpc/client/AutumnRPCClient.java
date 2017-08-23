@@ -1,7 +1,7 @@
 package cn.imaq.autumn.rpc.client;
 
-import cn.imaq.autumn.rpc.client.net.AutumnHttpClient;
-import cn.imaq.autumn.rpc.client.net.AutumnHttpClientFactory;
+import cn.imaq.autumn.rpc.client.net.RPCHttpClient;
+import cn.imaq.autumn.rpc.client.net.RPCHttpClientFactory;
 import cn.imaq.autumn.rpc.client.proxy.AutumnProxy;
 import cn.imaq.autumn.rpc.client.proxy.AutumnProxyFactory;
 import cn.imaq.autumn.rpc.net.AutumnRPCRequest;
@@ -29,7 +29,7 @@ public class AutumnRPCClient {
     private int port;
     private Properties config = new Properties();
 
-    private AutumnHttpClient httpClient;
+    private RPCHttpClient httpClient;
     private AutumnProxy proxy;
     private AutumnSerialization serialization;
 
@@ -57,8 +57,8 @@ public class AutumnRPCClient {
             }
         }
         // init fields
-        this.httpClient = AutumnHttpClientFactory.getHttpClient(config.getProperty("autumn.httpclient"));
-        log.info("Using http client: " + httpClient.getClass().getSimpleName());
+        this.httpClient = RPCHttpClientFactory.getHttpClient(config.getProperty("autumn.httpclient"));
+        log.info("Using HTTP client: " + httpClient.getClass().getSimpleName());
         this.proxy = AutumnProxyFactory.getProxy(config.getProperty("autumn.proxy"));
         log.info("Using proxy: " + proxy.getClass().getSimpleName());
         this.serialization = AutumnSerializationFactory.getSerialization(config.getProperty("autumn.serialization"));

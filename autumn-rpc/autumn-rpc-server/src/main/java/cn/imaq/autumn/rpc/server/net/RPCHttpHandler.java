@@ -1,5 +1,5 @@
 package cn.imaq.autumn.rpc.server.net;
 
-public interface AutumnHttpHandler {
+public interface RPCHttpHandler {
     RPCHttpResponse handle(RPCHttpRequest request);
 }

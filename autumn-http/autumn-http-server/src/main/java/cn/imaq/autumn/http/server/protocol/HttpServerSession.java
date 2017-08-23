@@ -24,6 +24,12 @@ public class HttpServerSession extends AbstractHttpSession {
         this.cChannel = cChannel;
     }
 
+    public void checkIdle(int timeoutSec) throws IOException {
+        if (System.currentTimeMillis() - lastActive > timeoutSec * 1000) {
+            timeout();
+        }
+    }
+
     @Override
     protected boolean checkStart(String line) {
         // expect: "GET /path/to/something HTTP/1.1"
@@ -58,8 +64,7 @@ public class HttpServerSession extends AbstractHttpSession {
         );
     }
 
-    @Override
-    protected void timeout() throws IOException {
+    private void timeout() throws IOException {
         cChannel.close();
     }
 
