@@ -1,6 +1,10 @@
 # Autumn
 > 如果 J2EE 不是水课，为什么不能自己造小轮替代 Spring？
 
+![Logo](rxj-autumn.png)
+
+(Illustration by **LS**)
+
 ## 项目目的
 抛开 Spring 巨轮，自己编写一个轻量级 J2EE 框架供课程项目使用，以达到学(zhuang)习(bi)的目的。
 
