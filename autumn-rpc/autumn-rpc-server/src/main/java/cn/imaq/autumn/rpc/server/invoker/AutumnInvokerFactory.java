@@ -14,6 +14,8 @@ public class AutumnInvokerFactory {
                 return new ReflectionInvoker();
             case "reflectasm":
                 return new ReflectAsmInvoker();
+            case "methodhandle":
+                return new MethodHandleInvoker();
             default:
                 return defaultInvoker();
         }
