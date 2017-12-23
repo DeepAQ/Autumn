@@ -44,7 +44,7 @@ public abstract class AbstractHttpSession {
             }
             for (int i = 0; i < lines.length - 1; i++) {
                 String line = lines[i];
-                readBytes += line.length() + 2;
+                readBytes += line.getBytes().length + 2;
                 if (state == State.START) {
                     if (checkStart(line)) {
                         lastActive = System.currentTimeMillis();
