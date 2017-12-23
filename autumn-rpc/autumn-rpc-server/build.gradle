@@ -2,6 +2,6 @@ dependencies {
     compile project(":autumn-rpc:autumn-rpc-core")
     compile project(":autumn-http:autumn-http-server")
     compile 'org.rapidoid:rapidoid-http-fast:5.3.5'
-    compile 'io.github.lukehutch:fast-classpath-scanner:2.4.2'
+    compile 'io.github.lukehutch:fast-classpath-scanner:2.9.3'
     compile 'org.ow2.asm:asm:5.2'
 }

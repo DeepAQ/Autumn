@@ -1,0 +1,7 @@
+version '1.0-SNAPSHOT'
+
+dependencies {
+    compile project(':autumn-http:autumn-http-server')
+    compile 'javax.servlet:javax.servlet-api:4.0.0'
+    compile 'io.github.lukehutch:fast-classpath-scanner:2.9.3'
+}
