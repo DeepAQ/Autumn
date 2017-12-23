@@ -26,7 +26,10 @@ public class AutumnHttpServer {
 
     private int port;
     private AutumnHttpHandler handler;
-    private final Worker[] workers = new Worker[NUM_WORKERS];
+
+    private EventLoop boss;
+    private final IdleCleaner cleaner = new IdleCleaner();
+    private final EventLoop[] workers = new Worker[NUM_WORKERS];
     private final AtomicInteger currentWorker = new AtomicInteger(0);
     private final Set<WeakReference<HttpServerSession>> sessions = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
@@ -38,26 +41,40 @@ public class AutumnHttpServer {
     }
 
     public void start() throws IOException {
-        if (!running) {
-            AutumnHTTPBanner.printBanner();
-            // Open channel
-            ServerSocketChannel sChannel = ServerSocketChannel.open();
-            sChannel.configureBlocking(false);
-            sChannel.bind(new InetSocketAddress(port));
-            // Start threads
-            running = true;
-            for (int i = 0; i < NUM_WORKERS; i++) {
-                workers[i] = new Worker(i);
-                workers[i].start();
+        synchronized (this) {
+            if (!running) {
+                AutumnHTTPBanner.printBanner();
+                // Open channel
+                ServerSocketChannel sChannel = ServerSocketChannel.open();
+                sChannel.configureBlocking(false);
+                sChannel.bind(new InetSocketAddress(port));
+                // Start threads
+                running = true;
+                for (int i = 0; i < NUM_WORKERS; i++) {
+                    workers[i] = new Worker(i);
+                    workers[i].start();
+                }
+                boss = new Boss(sChannel);
+                boss.start();
+                cleaner.start();
+                log.info("Started HTTP server on port " + port + " with " + NUM_WORKERS + " workers");
             }
-            new Boss(sChannel).start();
-            new IdleCleaner().start();
-            log.info("Started HTTP server on port " + port + " with " + NUM_WORKERS + " workers");
         }
     }
 
     public void stop() {
-        running = false;
+        synchronized (this) {
+            if (running) {
+                running = false;
+                for (int i = 0; i < NUM_WORKERS; i++) {
+                    workers[i].interrupt();
+                }
+                boss.interrupt();
+                cleaner.interrupt();
+                sessions.clear();
+                log.info("HTTP server stopped");
+            }
+        }
     }
 
     abstract class EventLoop extends Thread {
@@ -69,14 +86,14 @@ public class AutumnHttpServer {
         }
 
         void register(AbstractSelectableChannel channel, int op, Object attachment) {
+            regLock.lock();
             try {
-                regLock.lock();
                 selector.wakeup();
                 channel.register(selector, op, attachment);
-                regLock.unlock();
             } catch (ClosedChannelException e) {
                 log.warn("Attempt to register a closed channel", e);
             }
+            regLock.unlock();
         }
 
         abstract void process(SelectionKey key);
@@ -154,7 +171,7 @@ public class AutumnHttpServer {
                         session.processByteBuffer(buf);
                     }
                 } catch (IOException e) {
-                    log.error("Got exception while processing request: " +  e.getClass().getName());
+                    log.error("Got exception while processing request: " + e.getClass().getName());
                     try {
                         cChannel.close();
                     } catch (IOException e1) {
