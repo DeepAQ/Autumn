@@ -24,7 +24,7 @@ public class TPEngine {
 
     public TPEngine(int port) {
         this.port = port;
-        this.httpServer = new AutumnHttpServer(port, new TPHttpHandler(this));
+        this.httpServer = new AutumnHttpServer(port, new TPDispatcher(this));
     }
 
     public synchronized void start() {
@@ -69,6 +69,7 @@ public class TPEngine {
         synchronized (servletClass) {
             if (servletRef == null || servletRef.get() == null) {
                 try {
+                    log.info("Init Servlet " + servletClass.getName());
                     HttpServlet servlet = servletClass.newInstance();
                     servlet.init();
                     servletRef = new WeakReference<>(servlet);
@@ -81,5 +82,20 @@ public class TPEngine {
             }
         }
         return servletRef.get();
+    }
+
+    public HttpServlet findServletByPath(String path) {
+        Class<? extends HttpServlet> servletClass = null;
+        int bestLength = 0;
+        for (String mapPath : pathMap.keySet()) {
+            if (path.startsWith(mapPath) && mapPath.length() > bestLength) {
+                bestLength = mapPath.length();
+                servletClass = pathMap.get(mapPath);
+            }
+        }
+        if (servletClass != null) {
+            return this.checkInitServlet(servletClass);
+        }
+        return null;
     }
 }
