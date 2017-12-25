@@ -3,6 +3,7 @@ package cn.imaq.autumn.http.protocol;
 import lombok.Builder;
 import lombok.Data;
 
+import java.net.SocketAddress;
 import java.util.List;
 import java.util.Map;
 
@@ -18,6 +19,10 @@ public class AutumnHttpRequest {
     private Map<String, List<String>> headers;
 
     private byte[] body;
+
+    private SocketAddress localAddress;
+
+    private SocketAddress remoteAddress;
 
     public String toRequestString() {
         StringBuilder sb = new StringBuilder();

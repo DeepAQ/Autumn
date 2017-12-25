@@ -1,13 +1,20 @@
 package cn.imaq.tompuss.http;
 
 import cn.imaq.autumn.http.protocol.AutumnHttpRequest;
+import cn.imaq.tompuss.core.TPEngine;
+import cn.imaq.tompuss.core.TPInputStream;
+import cn.imaq.tompuss.core.TPServletMapping;
 
 import javax.servlet.*;
 import javax.servlet.annotation.MultipartConfig;
 import javax.servlet.http.*;
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.UnknownHostException;
 import java.security.Principal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -15,9 +22,15 @@ import java.util.*;
 
 public class TPHttpServletRequest implements HttpServletRequest {
     private AutumnHttpRequest httpRequest;
+    private TPServletMapping servletMapping;
+    private TPEngine engine;
+    private Map<String, Object> attributes = new HashMap<>();
+    private String encoding = null;
 
-    public TPHttpServletRequest(AutumnHttpRequest httpRequest) {
+    public TPHttpServletRequest(AutumnHttpRequest httpRequest, TPServletMapping servletMapping, TPEngine engine) {
         this.httpRequest = httpRequest;
+        this.servletMapping = servletMapping;
+        this.engine = engine;
     }
 
     /**
@@ -39,7 +52,7 @@ public class TPHttpServletRequest implements HttpServletRequest {
      */
     @Override
     public String getAuthType() {
-        // TODO delayed
+        // TODO auth
         return null;
     }
 
@@ -95,16 +108,16 @@ public class TPHttpServletRequest implements HttpServletRequest {
      * or -1 if the named header
      * was not included with the
      * request
-     * @exception IllegalArgumentException    If the header value
-     * can't be converted
-     * to a date
+     * @throws IllegalArgumentException If the header value
+     *                                  can't be converted
+     *                                  to a date
      */
     @Override
     public long getDateHeader(String name) {
         if (!httpRequest.getHeaders().containsKey(name)) {
             return -1;
         }
-        String value = httpRequest.getHeaders().get(name).get(0);
+        String value = this.getHeader(name);
         try {
             Date date = new SimpleDateFormat("EEE dd MMM yyyy HH:mm:ss z").parse(value);
             return date.getTime();
@@ -132,7 +145,10 @@ public class TPHttpServletRequest implements HttpServletRequest {
      */
     @Override
     public String getHeader(String name) {
-        return null;
+        if (!httpRequest.getHeaders().containsKey(name)) {
+            return null;
+        }
+        return httpRequest.getHeaders().get(name).get(0);
     }
 
     /**
@@ -161,7 +177,10 @@ public class TPHttpServletRequest implements HttpServletRequest {
      */
     @Override
     public Enumeration<String> getHeaders(String name) {
-        return null;
+        if (!httpRequest.getHeaders().containsKey(name)) {
+            return Collections.emptyEnumeration();
+        }
+        return Collections.enumeration(httpRequest.getHeaders().get(name));
     }
 
     /**
@@ -183,7 +202,7 @@ public class TPHttpServletRequest implements HttpServletRequest {
      */
     @Override
     public Enumeration<String> getHeaderNames() {
-        return null;
+        return Collections.enumeration(httpRequest.getHeaders().keySet());
     }
 
     /**
@@ -201,13 +220,16 @@ public class TPHttpServletRequest implements HttpServletRequest {
      * of the request header or -1
      * if the request doesn't have a
      * header of this name
-     * @exception NumberFormatException        If the header value
-     * can't be converted
-     * to an <code>int</code>
+     * @throws NumberFormatException If the header value
+     *                               can't be converted
+     *                               to an <code>int</code>
      */
     @Override
     public int getIntHeader(String name) {
-        return 0;
+        if (!httpRequest.getHeaders().containsKey(name)) {
+            return -1;
+        }
+        return Integer.valueOf(this.getHeader(name));
     }
 
     /**
@@ -222,7 +244,7 @@ public class TPHttpServletRequest implements HttpServletRequest {
      */
     @Override
     public String getMethod() {
-        return null;
+        return httpRequest.getMethod();
     }
 
     /**
@@ -247,7 +269,16 @@ public class TPHttpServletRequest implements HttpServletRequest {
      */
     @Override
     public String getPathInfo() {
-        return null;
+        String[] pathAndQuery = httpRequest.getPath().split("\\?", 2);
+        try {
+            String pathInfo = pathAndQuery[0].substring(servletMapping.getPath().length());
+            if (pathInfo.isEmpty()) {
+                return null;
+            }
+            return pathInfo;
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     /**
@@ -269,7 +300,7 @@ public class TPHttpServletRequest implements HttpServletRequest {
      */
     @Override
     public String getPathTranslated() {
-        return null;
+        return this.getPathInfo();
     }
 
     /**
@@ -296,7 +327,7 @@ public class TPHttpServletRequest implements HttpServletRequest {
      */
     @Override
     public String getContextPath() {
-        return null;
+        return "";
     }
 
     /**
@@ -312,6 +343,10 @@ public class TPHttpServletRequest implements HttpServletRequest {
      */
     @Override
     public String getQueryString() {
+        String[] pathAndQuery = httpRequest.getPath().split("\\?", 2);
+        if (pathAndQuery.length > 1) {
+            return pathAndQuery[1];
+        }
         return null;
     }
 
@@ -329,6 +364,7 @@ public class TPHttpServletRequest implements HttpServletRequest {
      */
     @Override
     public String getRemoteUser() {
+        // TODO auth
         return null;
     }
 
@@ -358,6 +394,7 @@ public class TPHttpServletRequest implements HttpServletRequest {
      */
     @Override
     public boolean isUserInRole(String role) {
+        // TODO auth
         return false;
     }
 
@@ -373,6 +410,7 @@ public class TPHttpServletRequest implements HttpServletRequest {
      */
     @Override
     public Principal getUserPrincipal() {
+        // TODO auth
         return null;
     }
 
@@ -390,6 +428,11 @@ public class TPHttpServletRequest implements HttpServletRequest {
      */
     @Override
     public String getRequestedSessionId() {
+        for (Cookie cookie : this.getCookies()) {
+            if (cookie.getName().equals("JSESSIONID")) {
+                return cookie.getValue();
+            }
+        }
         return null;
     }
 
@@ -418,7 +461,8 @@ public class TPHttpServletRequest implements HttpServletRequest {
      */
     @Override
     public String getRequestURI() {
-        return null;
+        String[] pathAndQuery = httpRequest.getPath().split("\\?", 2);
+        return pathAndQuery[0];
     }
 
     /**
@@ -444,7 +488,15 @@ public class TPHttpServletRequest implements HttpServletRequest {
      */
     @Override
     public StringBuffer getRequestURL() {
-        return null;
+        StringBuffer buffer = new StringBuffer();
+        buffer.append("http://");
+        if (httpRequest.getHeaders().containsKey("host")) {
+            buffer.append(httpRequest.getHeaders().get("host").get(0));
+        } else {
+            buffer.append(httpRequest.getLocalAddress());
+        }
+        buffer.append(this.getRequestURI());
+        return buffer;
     }
 
     /**
@@ -468,7 +520,7 @@ public class TPHttpServletRequest implements HttpServletRequest {
      */
     @Override
     public String getServletPath() {
-        return null;
+        return servletMapping.getPath();
     }
 
     /**
@@ -499,6 +551,7 @@ public class TPHttpServletRequest implements HttpServletRequest {
      */
     @Override
     public HttpSession getSession(boolean create) {
+        // TODO session
         return null;
     }
 
@@ -508,11 +561,11 @@ public class TPHttpServletRequest implements HttpServletRequest {
      *
      * @return the <code>HttpSession</code> associated
      * with this request
-     * @see    #getSession(boolean)
+     * @see #getSession(boolean)
      */
     @Override
     public HttpSession getSession() {
-        return null;
+        return this.getSession(true);
     }
 
     /**
@@ -526,6 +579,7 @@ public class TPHttpServletRequest implements HttpServletRequest {
      */
     @Override
     public String changeSessionId() {
+        // TODO session
         return null;
     }
 
@@ -535,16 +589,17 @@ public class TPHttpServletRequest implements HttpServletRequest {
      * <p>If the client did not specify any session ID, this method returns
      * <code>false</code>.
      *
-     * @return            <code>true</code> if this
+     * @return <code>true</code> if this
      * request has an id for a valid session
      * in the current session context;
      * <code>false</code> otherwise
-     * @see            #getRequestedSessionId
-     * @see            #getSession
-     * @see            HttpSessionContext
+     * @see #getRequestedSessionId
+     * @see #getSession
+     * @see HttpSessionContext
      */
     @Override
     public boolean isRequestedSessionIdValid() {
+        // TODO session
         return false;
     }
 
@@ -552,14 +607,14 @@ public class TPHttpServletRequest implements HttpServletRequest {
      * <p>Checks whether the requested session ID was conveyed to the
      * server as an HTTP cookie.</p>
      *
-     * @return            <code>true</code> if the session ID
+     * @return <code>true</code> if the session ID
      * was conveyed to the server an an HTTP
      * cookie; otherwise, <code>false</code>
      * @see #getSession
      */
     @Override
     public boolean isRequestedSessionIdFromCookie() {
-        return false;
+        return true;
     }
 
     /**
@@ -586,7 +641,7 @@ public class TPHttpServletRequest implements HttpServletRequest {
      */
     @Override
     public boolean isRequestedSessionIdFromUrl() {
-        return false;
+        return this.isRequestedSessionIdFromURL();
     }
 
     /**
@@ -617,6 +672,7 @@ public class TPHttpServletRequest implements HttpServletRequest {
      */
     @Override
     public boolean authenticate(HttpServletResponse response) throws IOException, ServletException {
+        // TODO auth
         return false;
     }
 
@@ -644,19 +700,19 @@ public class TPHttpServletRequest implements HttpServletRequest {
      *                 the login identifier of the user.
      * @param password The password <code>String</code> corresponding
      *                 to the identified user.
-     * @exception ServletException if the configured login mechanism
-     * does not support username
-     * password authentication, or if a
-     * non-null caller identity had
-     * already been established (prior
-     * to the call to login), or if
-     * validation of the provided
-     * username and password fails.
+     * @throws ServletException if the configured login mechanism
+     *                          does not support username
+     *                          password authentication, or if a
+     *                          non-null caller identity had
+     *                          already been established (prior
+     *                          to the call to login), or if
+     *                          validation of the provided
+     *                          username and password fails.
      * @since Servlet 3.0
      */
     @Override
     public void login(String username, String password) throws ServletException {
-
+        // TODO auth
     }
 
     /**
@@ -669,7 +725,7 @@ public class TPHttpServletRequest implements HttpServletRequest {
      */
     @Override
     public void logout() throws ServletException {
-
+        // TODO auth
     }
 
     /**
@@ -700,6 +756,7 @@ public class TPHttpServletRequest implements HttpServletRequest {
      */
     @Override
     public Collection<Part> getParts() throws IOException, ServletException {
+        // TODO forms
         return null;
     }
 
@@ -726,6 +783,7 @@ public class TPHttpServletRequest implements HttpServletRequest {
      */
     @Override
     public Part getPart(String name) throws IOException, ServletException {
+        // TODO forms
         return null;
     }
 
@@ -744,6 +802,7 @@ public class TPHttpServletRequest implements HttpServletRequest {
      */
     @Override
     public <T extends HttpUpgradeHandler> T upgrade(Class<T> handlerClass) throws IOException, ServletException {
+        // TODO websocket
         return null;
     }
 
@@ -770,7 +829,7 @@ public class TPHttpServletRequest implements HttpServletRequest {
      */
     @Override
     public Object getAttribute(String name) {
-        return null;
+        return attributes.get(name);
     }
 
     /**
@@ -784,7 +843,7 @@ public class TPHttpServletRequest implements HttpServletRequest {
      */
     @Override
     public Enumeration<String> getAttributeNames() {
-        return null;
+        return Collections.enumeration(attributes.keySet());
     }
 
     /**
@@ -803,7 +862,21 @@ public class TPHttpServletRequest implements HttpServletRequest {
      */
     @Override
     public String getCharacterEncoding() {
-        return null;
+        if (this.encoding == null) {
+            if (httpRequest.getHeaders().containsKey("content-type")) {
+                String[] typeParts = httpRequest.getHeaders().get("content-type").get(0).split(";");
+                for (String part : typeParts) {
+                    String trimmed = part.trim();
+                    if (trimmed.startsWith("charset=")) {
+                        this.encoding = trimmed.substring(8);
+                    }
+                }
+            }
+            if (this.encoding == null) {
+                this.encoding = "utf-8";
+            }
+        }
+        return this.encoding;
     }
 
     /**
@@ -819,7 +892,7 @@ public class TPHttpServletRequest implements HttpServletRequest {
      */
     @Override
     public void setCharacterEncoding(String env) throws UnsupportedEncodingException {
-
+        this.encoding = env;
     }
 
     /**
@@ -833,7 +906,10 @@ public class TPHttpServletRequest implements HttpServletRequest {
      */
     @Override
     public int getContentLength() {
-        return 0;
+        if (httpRequest.getBody() == null) {
+            return -1;
+        }
+        return httpRequest.getBody().length;
     }
 
     /**
@@ -847,7 +923,7 @@ public class TPHttpServletRequest implements HttpServletRequest {
      */
     @Override
     public long getContentLengthLong() {
-        return 0;
+        return this.getContentLength();
     }
 
     /**
@@ -860,6 +936,10 @@ public class TPHttpServletRequest implements HttpServletRequest {
      */
     @Override
     public String getContentType() {
+        if (httpRequest.getHeaders().containsKey("content-type")) {
+            String[] typeParts = httpRequest.getHeaders().get("content-type").get(0).split(";", 2);
+            return typeParts[0];
+        }
         return null;
     }
 
@@ -876,7 +956,10 @@ public class TPHttpServletRequest implements HttpServletRequest {
      */
     @Override
     public ServletInputStream getInputStream() throws IOException {
-        return null;
+        if (httpRequest.getBody() == null) {
+            return new TPInputStream(new byte[0]);
+        }
+        return new TPInputStream(httpRequest.getBody());
     }
 
     /**
@@ -905,6 +988,7 @@ public class TPHttpServletRequest implements HttpServletRequest {
      */
     @Override
     public String getParameter(String name) {
+        // TODO params
         return null;
     }
 
@@ -921,6 +1005,7 @@ public class TPHttpServletRequest implements HttpServletRequest {
      */
     @Override
     public Enumeration<String> getParameterNames() {
+        // TODO params
         return null;
     }
 
@@ -940,6 +1025,7 @@ public class TPHttpServletRequest implements HttpServletRequest {
      */
     @Override
     public String[] getParameterValues(String name) {
+        // TODO params
         return new String[0];
     }
 
@@ -957,6 +1043,7 @@ public class TPHttpServletRequest implements HttpServletRequest {
      */
     @Override
     public Map<String, String[]> getParameterMap() {
+        // TODO params
         return null;
     }
 
@@ -972,7 +1059,7 @@ public class TPHttpServletRequest implements HttpServletRequest {
      */
     @Override
     public String getProtocol() {
-        return null;
+        return httpRequest.getProtocol();
     }
 
     /**
@@ -987,7 +1074,7 @@ public class TPHttpServletRequest implements HttpServletRequest {
      */
     @Override
     public String getScheme() {
-        return null;
+        return "http";
     }
 
     /**
@@ -1000,7 +1087,19 @@ public class TPHttpServletRequest implements HttpServletRequest {
      */
     @Override
     public String getServerName() {
-        return null;
+        if (httpRequest.getHeaders().containsKey("host")) {
+            String host = httpRequest.getHeaders().get("host").get(0);
+            int pos = host.lastIndexOf(':');
+            if (pos >= 0) {
+                return host.substring(0, pos);
+            }
+            return host;
+        }
+        try {
+            return ((InetSocketAddress) httpRequest.getLocalAddress()).getHostName();
+        } catch (Exception e) {
+            return "";
+        }
     }
 
     /**
@@ -1013,7 +1112,18 @@ public class TPHttpServletRequest implements HttpServletRequest {
      */
     @Override
     public int getServerPort() {
-        return 0;
+        if (httpRequest.getHeaders().containsKey("host")) {
+            String host = httpRequest.getHeaders().get("host").get(0);
+            int pos = host.lastIndexOf(':');
+            if (pos >= 0) {
+                try {
+                    return Integer.parseInt(host.substring(pos + 1));
+                } catch (Exception ignored) {
+                }
+            }
+            return 80;
+        }
+        return engine.getPort();
     }
 
     /**
@@ -1033,7 +1143,7 @@ public class TPHttpServletRequest implements HttpServletRequest {
      */
     @Override
     public BufferedReader getReader() throws IOException {
-        return null;
+        return new BufferedReader(new InputStreamReader(this.getInputStream(), this.getCharacterEncoding()));
     }
 
     /**
@@ -1047,7 +1157,11 @@ public class TPHttpServletRequest implements HttpServletRequest {
      */
     @Override
     public String getRemoteAddr() {
-        return null;
+        try {
+            return ((InetSocketAddress) httpRequest.getRemoteAddress()).getAddress().getHostAddress();
+        } catch (Exception e) {
+            return "";
+        }
     }
 
     /**
@@ -1063,7 +1177,11 @@ public class TPHttpServletRequest implements HttpServletRequest {
      */
     @Override
     public String getRemoteHost() {
-        return null;
+        try {
+            return ((InetSocketAddress) httpRequest.getRemoteAddress()).getHostString();
+        } catch (Exception e) {
+            return "";
+        }
     }
 
     /**
@@ -1088,7 +1206,7 @@ public class TPHttpServletRequest implements HttpServletRequest {
      */
     @Override
     public void setAttribute(String name, Object o) {
-
+        attributes.put(name, o);
     }
 
     /**
@@ -1106,7 +1224,7 @@ public class TPHttpServletRequest implements HttpServletRequest {
      */
     @Override
     public void removeAttribute(String name) {
-
+        attributes.remove(name);
     }
 
     /**
@@ -1119,6 +1237,7 @@ public class TPHttpServletRequest implements HttpServletRequest {
      */
     @Override
     public Locale getLocale() {
+        // TODO locales
         return null;
     }
 
@@ -1136,6 +1255,7 @@ public class TPHttpServletRequest implements HttpServletRequest {
      */
     @Override
     public Enumeration<Locale> getLocales() {
+        // TODO locales
         return null;
     }
 
@@ -1180,6 +1300,7 @@ public class TPHttpServletRequest implements HttpServletRequest {
      */
     @Override
     public RequestDispatcher getRequestDispatcher(String path) {
+        // TODO
         return null;
     }
 
@@ -1192,6 +1313,7 @@ public class TPHttpServletRequest implements HttpServletRequest {
      */
     @Override
     public String getRealPath(String path) {
+        // TODO
         return null;
     }
 
@@ -1204,7 +1326,11 @@ public class TPHttpServletRequest implements HttpServletRequest {
      */
     @Override
     public int getRemotePort() {
-        return 0;
+        try {
+            return ((InetSocketAddress) httpRequest.getRemoteAddress()).getPort();
+        } catch (Exception e) {
+            return 0;
+        }
     }
 
     /**
@@ -1217,7 +1343,11 @@ public class TPHttpServletRequest implements HttpServletRequest {
      */
     @Override
     public String getLocalName() {
-        return null;
+        try {
+            return ((InetSocketAddress) httpRequest.getLocalAddress()).getHostString();
+        } catch (Exception e) {
+            return "";
+        }
     }
 
     /**
@@ -1230,7 +1360,11 @@ public class TPHttpServletRequest implements HttpServletRequest {
      */
     @Override
     public String getLocalAddr() {
-        return null;
+        try {
+            return ((InetSocketAddress) httpRequest.getLocalAddress()).getAddress().getHostAddress();
+        } catch (Exception e) {
+            return "";
+        }
     }
 
     /**
@@ -1242,7 +1376,11 @@ public class TPHttpServletRequest implements HttpServletRequest {
      */
     @Override
     public int getLocalPort() {
-        return 0;
+        try {
+            return ((InetSocketAddress) httpRequest.getLocalAddress()).getPort();
+        } catch (Exception e) {
+            return engine.getPort();
+        }
     }
 
     /**
@@ -1255,6 +1393,7 @@ public class TPHttpServletRequest implements HttpServletRequest {
      */
     @Override
     public ServletContext getServletContext() {
+        // TODO context
         return null;
     }
 
@@ -1301,6 +1440,7 @@ public class TPHttpServletRequest implements HttpServletRequest {
      */
     @Override
     public AsyncContext startAsync() throws IllegalStateException {
+        // TODO async
         return null;
     }
 
@@ -1368,6 +1508,7 @@ public class TPHttpServletRequest implements HttpServletRequest {
      */
     @Override
     public AsyncContext startAsync(ServletRequest servletRequest, ServletResponse servletResponse) throws IllegalStateException {
+        // TODO async
         return null;
     }
 
@@ -1389,6 +1530,7 @@ public class TPHttpServletRequest implements HttpServletRequest {
      */
     @Override
     public boolean isAsyncStarted() {
+        // TODO async
         return false;
     }
 
@@ -1406,6 +1548,7 @@ public class TPHttpServletRequest implements HttpServletRequest {
      */
     @Override
     public boolean isAsyncSupported() {
+        // TODO async
         return false;
     }
 
@@ -1425,6 +1568,7 @@ public class TPHttpServletRequest implements HttpServletRequest {
      */
     @Override
     public AsyncContext getAsyncContext() {
+        // TODO async
         return null;
     }
 
@@ -1457,6 +1601,6 @@ public class TPHttpServletRequest implements HttpServletRequest {
      */
     @Override
     public DispatcherType getDispatcherType() {
-        return null;
+        return DispatcherType.REQUEST;
     }
 }

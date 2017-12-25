@@ -17,6 +17,7 @@ public class HttpClientSession extends AbstractHttpSession {
     public AutumnHttpResponse getResponse() {
         String contentType = headersMap != null ? headersMap.get("content-type").get(0) : null;
         return AutumnHttpResponse.builder()
+                .protocol(protocol)
                 .status(responseCode)
                 .headers(headersMap)
                 .contentType(contentType)

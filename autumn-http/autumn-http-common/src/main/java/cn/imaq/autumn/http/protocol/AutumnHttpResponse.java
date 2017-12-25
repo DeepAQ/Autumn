@@ -9,6 +9,8 @@ import java.util.Map;
 @Data
 @Builder
 public class AutumnHttpResponse {
+    private String protocol;
+
     private int status;
 
     private Map<String, List<String>> headers;
