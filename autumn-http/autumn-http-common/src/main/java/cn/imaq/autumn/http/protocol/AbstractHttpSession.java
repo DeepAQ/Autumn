@@ -38,12 +38,9 @@ public abstract class AbstractHttpSession {
     private void processBuf() throws IOException {
         int readBytes = 0;
         if (state == State.START || state == State.HEADERS) {
-            String[] lines = new String(buf, 0, bufLimit).split("\r\n", -1);
-            if (lines.length <= 1) {
-                return;
-            }
-            for (int i = 0; i < lines.length - 1; i++) {
-                String line = lines[i];
+            AutumnByteArrayReader reader = new AutumnByteArrayReader(buf, 0, bufLimit);
+            String line;
+            while ((line = reader.nextLine()) != null) {
                 readBytes += line.getBytes().length + 2;
                 if (state == State.START) {
                     if (checkStart(line)) {
