@@ -12,9 +12,8 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import java.net.UnknownHostException;
+import java.net.URLDecoder;
 import java.security.Principal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -24,8 +23,10 @@ public class TPHttpServletRequest implements HttpServletRequest {
     private AutumnHttpRequest httpRequest;
     private TPServletMapping servletMapping;
     private TPEngine engine;
-    private Map<String, Object> attributes = new HashMap<>();
+
     private String encoding = null;
+    private Map<String, Object> attributes = new HashMap<>();
+    private Map<String, String[]> params;
 
     public TPHttpServletRequest(AutumnHttpRequest httpRequest, TPServletMapping servletMapping, TPEngine engine) {
         this.httpRequest = httpRequest;
@@ -988,8 +989,11 @@ public class TPHttpServletRequest implements HttpServletRequest {
      */
     @Override
     public String getParameter(String name) {
-        // TODO params
-        return null;
+        String[] values = this.getParameterValues(name);
+        if (values == null) {
+            return null;
+        }
+        return values[0];
     }
 
     /**
@@ -1005,8 +1009,7 @@ public class TPHttpServletRequest implements HttpServletRequest {
      */
     @Override
     public Enumeration<String> getParameterNames() {
-        // TODO params
-        return null;
+        return Collections.enumeration(this.getParameterMap().keySet());
     }
 
     /**
@@ -1025,8 +1028,7 @@ public class TPHttpServletRequest implements HttpServletRequest {
      */
     @Override
     public String[] getParameterValues(String name) {
-        // TODO params
-        return new String[0];
+        return this.getParameterMap().get(name);
     }
 
     /**
@@ -1043,8 +1045,41 @@ public class TPHttpServletRequest implements HttpServletRequest {
      */
     @Override
     public Map<String, String[]> getParameterMap() {
-        // TODO params
-        return null;
+        if (this.params == null) {
+            Map<String, List<String>> paramsMap = new HashMap<>();
+            // query string params
+            this.parseParamString(this.getQueryString(), paramsMap);
+            // POST params
+            if (this.getMethod().toLowerCase().equals("post")) {
+                switch (this.getContentType()) {
+                    case "application/x-www-form-urlencoded":
+                        this.parseParamString(new String(httpRequest.getBody()), paramsMap);
+                        break;
+                    case "multipart/form-data":
+                        // TODO forms
+                        break;
+                }
+            }
+            // Merge
+            this.params = new HashMap<>();
+            paramsMap.forEach((key, value) -> this.params.put(key, (String[]) value.toArray()));
+        }
+        return Collections.unmodifiableMap(this.params);
+    }
+
+    private void parseParamString(String paramStr, Map<String, List<String>> map) {
+        String[] queries = paramStr.split("&");
+        for (String query : queries) {
+            String[] nameAndValue = query.split("=", 2);
+            if (nameAndValue.length > 1) {
+                List<String> values = map.computeIfAbsent(nameAndValue[0], x -> new ArrayList<>());
+                try {
+                    values.add(URLDecoder.decode(nameAndValue[1], this.getCharacterEncoding()));
+                } catch (UnsupportedEncodingException e) {
+                    values.add(nameAndValue[1]);
+                }
+            }
+        }
     }
 
     /**
