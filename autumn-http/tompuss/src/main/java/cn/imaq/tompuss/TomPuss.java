@@ -36,12 +36,16 @@ public class TomPuss {
                     for (String path : anno.urlPatterns()) {
                         this.engine.addServlet(path, (Class<? extends HttpServlet>) cls);
                     }
-                    if (anno.loadOnStartup() >= 0) {
-                        this.engine.checkInitServlet((Class<? extends HttpServlet>) cls);
-                    }
+//                    if (anno.loadOnStartup() >= 0) {
+//                        this.engine.checkInitServlet((Class<? extends HttpServlet>) cls);
+//                    }
                 }
             }).scan();
             this.engine.start();
         }
+    }
+
+    public static void main(String[] args) {
+        new TomPuss().start();
     }
 }

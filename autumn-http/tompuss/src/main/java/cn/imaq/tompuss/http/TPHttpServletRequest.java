@@ -27,6 +27,7 @@ public class TPHttpServletRequest implements HttpServletRequest {
     private String encoding = null;
     private Map<String, Object> attributes = new HashMap<>();
     private Map<String, String[]> params;
+    private Map<String, TPFormPart> formParts;
 
     public TPHttpServletRequest(AutumnHttpRequest httpRequest, TPServletMapping servletMapping, TPEngine engine) {
         this.httpRequest = httpRequest;
@@ -146,10 +147,11 @@ public class TPHttpServletRequest implements HttpServletRequest {
      */
     @Override
     public String getHeader(String name) {
-        if (!httpRequest.getHeaders().containsKey(name)) {
+        String lower = name.toLowerCase();
+        if (!httpRequest.getHeaders().containsKey(lower)) {
             return null;
         }
-        return httpRequest.getHeaders().get(name).get(0);
+        return httpRequest.getHeaders().get(lower).get(0);
     }
 
     /**
@@ -178,10 +180,11 @@ public class TPHttpServletRequest implements HttpServletRequest {
      */
     @Override
     public Enumeration<String> getHeaders(String name) {
-        if (!httpRequest.getHeaders().containsKey(name)) {
+        String lower = name.toLowerCase();
+        if (!httpRequest.getHeaders().containsKey(lower)) {
             return Collections.emptyEnumeration();
         }
-        return Collections.enumeration(httpRequest.getHeaders().get(name));
+        return Collections.enumeration(httpRequest.getHeaders().get(lower));
     }
 
     /**
@@ -786,6 +789,16 @@ public class TPHttpServletRequest implements HttpServletRequest {
     public Part getPart(String name) throws IOException, ServletException {
         // TODO forms
         return null;
+    }
+
+    private Map<String, TPFormPart> getFormParts() {
+        if (this.formParts == null) {
+            this.formParts = new HashMap<>();
+            if (this.getContentType().equals("multipart/form-data")) {
+
+            }
+        }
+        return this.formParts;
     }
 
     /**
