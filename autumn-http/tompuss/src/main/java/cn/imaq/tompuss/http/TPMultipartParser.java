@@ -5,22 +5,23 @@ import cn.imaq.autumn.http.protocol.AutumnHttpRequest;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 public class TPMultipartParser {
-    public List<TPFormPart> parse(AutumnHttpRequest httpRequest) {
+    public static Map<String, TPFormPart> parse(AutumnHttpRequest httpRequest) {
         // Check Content-Type
         if (!httpRequest.getHeaders().containsKey("content-type") || httpRequest.getBody() == null) {
-            return Collections.emptyList();
+            return Collections.emptyMap();
         }
         String[] contentTypes = httpRequest.getHeaders().get("content-type").get(0).split(";");
         if (!contentTypes[0].trim().equals("multipart/form-data")) {
-            return Collections.emptyList();
+            return Collections.emptyMap();
         }
         String boundary = null;
         for (int i = 1; i < contentTypes.length; i++) {
             String[] nameAndValue = contentTypes[i].trim().split("=", 2);
-            if (nameAndValue[0].equals("boundary")) {
+            if (nameAndValue.length == 2 && nameAndValue[0].equals("boundary")) {
                 String value = nameAndValue[1];
                 if (value.startsWith("\"") && value.endsWith("\"")) {
                     value = value.substring(1, value.length() - 1);
@@ -30,12 +31,12 @@ public class TPMultipartParser {
             }
         }
         if (boundary == null) {
-            return Collections.emptyList();
+            return Collections.emptyMap();
         }
 
         // Parse
         AutumnByteArrayReader reader = new AutumnByteArrayReader(httpRequest.getBody());
-        List<TPFormPart> parts = new ArrayList<>();
+        Map<String, TPFormPart> partMap = new HashMap<>();
         State state = State.START;
         String line;
         TPFormPart part = null;
@@ -62,7 +63,7 @@ public class TPMultipartParser {
                 if (line.equals(boundary) || line.equals(boundary + "--")) {
                     part.setOffset(bodyStart);
                     part.setLength(readBytes - line.getBytes().length - 2 - bodyStart);
-                    parts.add(part);
+                    partMap.put(part.getName(), part);
                     part = new TPFormPart(httpRequest.getBody());
                     state = State.HEADER;
                 }
@@ -71,12 +72,12 @@ public class TPMultipartParser {
         if (state == State.BODY && part.getOffset() <= 0) {
             part.setOffset(bodyStart);
             part.setLength(readBytes - 2 - bodyStart);
-            parts.add(part);
+            partMap.put(part.getName(), part);
         }
-        return parts;
+        return partMap;
     }
 
-    enum State {
+    private enum State {
         START, HEADER, BODY;
     }
 }

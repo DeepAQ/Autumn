@@ -758,10 +758,10 @@ public class TPHttpServletRequest implements HttpServletRequest {
      * @see MultipartConfig#maxRequestSize
      * @since Servlet 3.0
      */
+    @SuppressWarnings("unchecked")
     @Override
     public Collection<Part> getParts() throws IOException, ServletException {
-        // TODO forms
-        return null;
+        return (Collection<Part>) (Collection<? extends Part>) this.getFormParts().values();
     }
 
     /**
@@ -787,16 +787,12 @@ public class TPHttpServletRequest implements HttpServletRequest {
      */
     @Override
     public Part getPart(String name) throws IOException, ServletException {
-        // TODO forms
-        return null;
+        return this.getFormParts().get(name);
     }
 
     private Map<String, TPFormPart> getFormParts() {
         if (this.formParts == null) {
-            this.formParts = new HashMap<>();
-            if (this.getContentType().equals("multipart/form-data")) {
-
-            }
+            this.formParts = TPMultipartParser.parse(httpRequest);
         }
         return this.formParts;
     }
@@ -1069,7 +1065,16 @@ public class TPHttpServletRequest implements HttpServletRequest {
                         this.parseParamString(new String(httpRequest.getBody()), paramsMap);
                         break;
                     case "multipart/form-data":
-                        // TODO forms
+                        try {
+                            for (Part part : this.getParts()) {
+                                if (part.getContentType().equals("text/plain")) {
+                                    byte[] buf = new byte[(int) part.getSize()];
+                                    part.getInputStream().read(buf);
+                                    paramsMap.computeIfAbsent(part.getName(), x -> new ArrayList<>()).add(new String(buf));
+                                }
+                            }
+                        } catch (IOException | ServletException ignored) {
+                        }
                         break;
                 }
             }
@@ -1084,7 +1089,7 @@ public class TPHttpServletRequest implements HttpServletRequest {
         String[] queries = paramStr.split("&");
         for (String query : queries) {
             String[] nameAndValue = query.split("=", 2);
-            if (nameAndValue.length > 1) {
+            if (nameAndValue.length == 2) {
                 List<String> values = map.computeIfAbsent(nameAndValue[0], x -> new ArrayList<>());
                 try {
                     values.add(URLDecoder.decode(nameAndValue[1], this.getCharacterEncoding()));
