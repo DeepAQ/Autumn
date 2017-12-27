@@ -1290,8 +1290,8 @@ public class TPHttpServletRequest implements HttpServletRequest {
      */
     @Override
     public Locale getLocale() {
-        // TODO locales
-        return null;
+        Enumeration<Locale> locales = this.getLocales();
+        return locales.nextElement();
     }
 
     /**
@@ -1308,8 +1308,15 @@ public class TPHttpServletRequest implements HttpServletRequest {
      */
     @Override
     public Enumeration<Locale> getLocales() {
-        // TODO locales
-        return null;
+        if (!httpRequest.getHeaders().containsKey("accept-language")) {
+            return Collections.enumeration(Collections.singleton(Locale.getDefault()));
+        }
+        List<Locale> locales = new ArrayList<>();
+        String[] langs = httpRequest.getHeaders().get("accept-language").get(0).split(",");
+        for (String lang : langs) {
+            locales.add(Locale.forLanguageTag(lang.split(";", 2)[0].trim()));
+        }
+        return Collections.enumeration(locales);
     }
 
     /**
