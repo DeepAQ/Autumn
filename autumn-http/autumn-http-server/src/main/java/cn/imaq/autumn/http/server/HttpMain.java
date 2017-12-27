@@ -6,6 +6,8 @@ import java.io.IOException;
 
 public class HttpMain {
     public static void main(String[] args) throws IOException {
-        new AutumnHttpServer(8802, new TeapotEchoHandler()).start();
+        AutumnHttpServer server = new AutumnHttpServer(8802, new TeapotEchoHandler());
+        server.start();
+//        server.stop();
     }
 }
