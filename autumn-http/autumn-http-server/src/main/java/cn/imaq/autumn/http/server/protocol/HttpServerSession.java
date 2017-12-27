@@ -51,6 +51,8 @@ public class HttpServerSession extends AbstractHttpSession {
                 .protocol(protocol)
                 .headers(headersMap)
                 .body(body)
+                .localAddress(cChannel.getLocalAddress())
+                .remoteAddress(cChannel.getRemoteAddress())
                 .build();
         AutumnHttpResponse response = handler.handle(request);
         writeResponse(response);

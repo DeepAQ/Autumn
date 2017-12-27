@@ -2,7 +2,6 @@ package cn.imaq.autumn.http.server;
 
 import cn.imaq.autumn.http.server.protocol.AutumnHttpHandler;
 import cn.imaq.autumn.http.server.protocol.HttpServerSession;
-import cn.imaq.autumn.http.server.util.AutumnHTTPBanner;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
@@ -11,10 +10,9 @@ import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.*;
 import java.nio.channels.spi.AbstractSelectableChannel;
-import java.util.Collections;
+import java.util.Collection;
 import java.util.Iterator;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -27,11 +25,11 @@ public class AutumnHttpServer {
     private int port;
     private AutumnHttpHandler handler;
 
-    private EventLoop boss;
-    private final IdleCleaner cleaner = new IdleCleaner();
+    private Thread boss;
+    private Thread cleaner;
     private final EventLoop[] workers = new Worker[NUM_WORKERS];
     private final AtomicInteger currentWorker = new AtomicInteger(0);
-    private final Set<WeakReference<HttpServerSession>> sessions = Collections.newSetFromMap(new ConcurrentHashMap<>());
+    private final Collection<WeakReference<HttpServerSession>> sessions = new ConcurrentLinkedQueue<>();
 
     private volatile boolean running = false;
 
@@ -43,7 +41,6 @@ public class AutumnHttpServer {
     public void start() throws IOException {
         synchronized (this) {
             if (!running) {
-                AutumnHTTPBanner.printBanner();
                 // Open channel
                 ServerSocketChannel sChannel = ServerSocketChannel.open();
                 sChannel.configureBlocking(false);
@@ -56,6 +53,7 @@ public class AutumnHttpServer {
                 }
                 boss = new Boss(sChannel);
                 boss.start();
+                cleaner = new IdleCleaner();
                 cleaner.start();
                 log.info("Started HTTP server on port " + port + " with " + NUM_WORKERS + " workers");
             }
@@ -126,7 +124,7 @@ public class AutumnHttpServer {
 
     class Boss extends EventLoop {
         Boss(ServerSocketChannel sChannel) throws IOException {
-            super("Boss");
+            super("AutumnHTTP-" + port + "-Boss");
             setPriority(MAX_PRIORITY);
             register(sChannel, SelectionKey.OP_ACCEPT, null);
         }
@@ -153,7 +151,7 @@ public class AutumnHttpServer {
         private ByteBuffer buf = ByteBuffer.allocateDirect(1024);
 
         Worker(int index) throws IOException {
-            super("Worker-" + index);
+            super("AutumnHTTP-" + port + "-Worker-" + index);
         }
 
         @Override
@@ -184,7 +182,7 @@ public class AutumnHttpServer {
 
     class IdleCleaner extends Thread {
         public IdleCleaner() {
-            super("IdleCleaner");
+            super("AutumnHTTP-" + port + "-IdleCleaner");
         }
 
         @Override
