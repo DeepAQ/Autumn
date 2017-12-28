@@ -1,4 +1,4 @@
-package cn.imaq.tompuss.http;
+package cn.imaq.tompuss.servlet;
 
 import lombok.Getter;
 import lombok.Setter;

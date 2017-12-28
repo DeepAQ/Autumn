@@ -1,7 +1,8 @@
-package cn.imaq.tompuss.http;
+package cn.imaq.tompuss.io;
 
 import cn.imaq.autumn.http.protocol.AutumnByteArrayReader;
 import cn.imaq.autumn.http.protocol.AutumnHttpRequest;
+import cn.imaq.tompuss.servlet.TPFormPart;
 
 import java.util.ArrayList;
 import java.util.Collections;
