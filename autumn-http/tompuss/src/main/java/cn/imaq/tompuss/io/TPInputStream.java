@@ -1,14 +1,14 @@
-package cn.imaq.tompuss.core;
+package cn.imaq.tompuss.io;
 
 import javax.servlet.ReadListener;
 import javax.servlet.ServletInputStream;
 import java.io.IOException;
 
 public class TPInputStream extends ServletInputStream {
-    protected byte buf[];
-    protected int pos;
-    protected int mark = 0;
-    protected int count;
+    private byte buf[];
+    private int pos;
+    private int mark = 0;
+    private int count;
 
     public TPInputStream(byte buf[]) {
         this.buf = buf;

@@ -1,9 +1,10 @@
-package cn.imaq.tompuss.http;
+package cn.imaq.tompuss.servlet;
 
 import cn.imaq.autumn.http.protocol.AutumnHttpRequest;
 import cn.imaq.tompuss.core.TPEngine;
-import cn.imaq.tompuss.core.TPInputStream;
+import cn.imaq.tompuss.io.TPInputStream;
 import cn.imaq.tompuss.core.TPServletMapping;
+import cn.imaq.tompuss.io.TPMultipartParser;
 
 import javax.servlet.*;
 import javax.servlet.annotation.MultipartConfig;
