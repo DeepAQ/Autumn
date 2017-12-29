@@ -12,16 +12,24 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSessionAttributeListener;
 import javax.servlet.http.HttpSessionIdListener;
 import javax.servlet.http.HttpSessionListener;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
 public class TPServletContext implements ServletContext {
     private TPEngine engine;
+    private String appName;
     private String contextPath;
-    private URL resourceRoot;
+    private File resourceRoot;
+
+    private Map<String, String> initParams = new ConcurrentHashMap<>();
+    private Map<String, Object> attributes = new ConcurrentHashMap<>();
 
     /**
      * Returns the context path of the web application.
@@ -260,7 +268,13 @@ public class TPServletContext implements ServletContext {
      */
     @Override
     public URL getResource(String path) throws MalformedURLException {
-        // TODO static
+        if (resourceRoot == null) {
+            return null;
+        }
+        File resFile = new File(resourceRoot, path);
+        if (resFile.exists()) {
+            return resFile.toURI().toURL();
+        }
         return null;
     }
 
@@ -296,8 +310,14 @@ public class TPServletContext implements ServletContext {
      */
     @Override
     public InputStream getResourceAsStream(String path) {
-        // TODO static
-        return null;
+        if (resourceRoot == null) {
+            return null;
+        }
+        try {
+            return new FileInputStream(new File(resourceRoot, path));
+        } catch (FileNotFoundException e) {
+            return null;
+        }
     }
 
     /**
@@ -539,7 +559,7 @@ public class TPServletContext implements ServletContext {
      */
     @Override
     public String getInitParameter(String name) {
-        return null;
+        return this.initParams.get(name);
     }
 
     /**
@@ -555,7 +575,7 @@ public class TPServletContext implements ServletContext {
      */
     @Override
     public Enumeration<String> getInitParameterNames() {
-        return null;
+        return Collections.enumeration(this.initParams.keySet());
     }
 
     /**
@@ -580,7 +600,11 @@ public class TPServletContext implements ServletContext {
      */
     @Override
     public boolean setInitParameter(String name, String value) {
-        return false;
+        if (this.initParams.containsKey(name)) {
+            return false;
+        }
+        this.initParams.put(name, value);
+        return true;
     }
 
     /**
@@ -613,7 +637,7 @@ public class TPServletContext implements ServletContext {
      */
     @Override
     public Object getAttribute(String name) {
-        return null;
+        return this.attributes.get(name);
     }
 
     /**
@@ -629,7 +653,7 @@ public class TPServletContext implements ServletContext {
      */
     @Override
     public Enumeration<String> getAttributeNames() {
-        return null;
+        return Collections.enumeration(this.attributes.keySet());
     }
 
     /**
@@ -655,7 +679,7 @@ public class TPServletContext implements ServletContext {
      */
     @Override
     public void setAttribute(String name, Object object) {
-
+        this.attributes.put(name, object);
     }
 
     /**
@@ -672,7 +696,7 @@ public class TPServletContext implements ServletContext {
      */
     @Override
     public void removeAttribute(String name) {
-
+        this.attributes.remove(name);
     }
 
     /**
@@ -686,7 +710,7 @@ public class TPServletContext implements ServletContext {
      */
     @Override
     public String getServletContextName() {
-        return null;
+        return this.appName;
     }
 
     /**
