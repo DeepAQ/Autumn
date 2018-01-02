@@ -30,6 +30,7 @@ public class TPServletContext implements ServletContext {
 
     private Map<String, String> initParams = new ConcurrentHashMap<>();
     private Map<String, Object> attributes = new ConcurrentHashMap<>();
+    private Map<String, TPServletRegistration> servletRegistrations = new ConcurrentHashMap<String, TPServletRegistration>();
 
     /**
      * Returns the context path of the web application.
@@ -758,7 +759,15 @@ public class TPServletContext implements ServletContext {
      */
     @Override
     public ServletRegistration.Dynamic addServlet(String servletName, String className) {
-        return null;
+        try {
+            Class<?> servletClass = Class.forName(className);
+            if (!Servlet.class.isAssignableFrom(servletClass)) {
+                throw new IllegalArgumentException();
+            }
+            return this.addServlet(servletName, (Class<? extends Servlet>) servletClass);
+        } catch (ClassNotFoundException e) {
+            throw new IllegalArgumentException(e);
+        }
     }
 
     /**
@@ -795,6 +804,10 @@ public class TPServletContext implements ServletContext {
      */
     @Override
     public ServletRegistration.Dynamic addServlet(String servletName, Servlet servlet) {
+        if (servletName == null || servletName.isEmpty()) {
+            throw new IllegalArgumentException();
+        }
+        this.servletRegistrations.put(servletName, new TPServletRegistration(this, servletName, servlet));
         return null;
     }
 
@@ -840,7 +853,11 @@ public class TPServletContext implements ServletContext {
      */
     @Override
     public ServletRegistration.Dynamic addServlet(String servletName, Class<? extends Servlet> servletClass) {
-        return null;
+        try {
+            return this.addServlet(servletName, this.createServlet(servletClass));
+        } catch (ServletException e) {
+            throw new IllegalArgumentException(e);
+        }
     }
 
     /**
@@ -911,7 +928,11 @@ public class TPServletContext implements ServletContext {
      */
     @Override
     public <T extends Servlet> T createServlet(Class<T> clazz) throws ServletException {
-        return null;
+        try {
+            return clazz.newInstance();
+        } catch (InstantiationException | IllegalAccessException e) {
+            throw new ServletException(e);
+        }
     }
 
     /**
@@ -931,7 +952,7 @@ public class TPServletContext implements ServletContext {
      */
     @Override
     public ServletRegistration getServletRegistration(String servletName) {
-        return null;
+        return this.servletRegistrations.get(servletName);
     }
 
     /**
@@ -960,7 +981,7 @@ public class TPServletContext implements ServletContext {
      */
     @Override
     public Map<String, ? extends ServletRegistration> getServletRegistrations() {
-        return null;
+        return this.servletRegistrations;
     }
 
     /**
