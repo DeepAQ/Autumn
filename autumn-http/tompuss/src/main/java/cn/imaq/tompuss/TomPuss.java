@@ -31,10 +31,10 @@ public class TomPuss {
                 if (HttpServlet.class.isAssignableFrom(cls)) {
                     WebServlet anno = cls.getAnnotation(WebServlet.class);
                     for (String path : anno.value()) {
-                        this.engine.addServlet(path, (Class<? extends HttpServlet>) cls);
+//                        this.engine.addServlet(path, (Class<? extends HttpServlet>) cls);
                     }
                     for (String path : anno.urlPatterns()) {
-                        this.engine.addServlet(path, (Class<? extends HttpServlet>) cls);
+//                        this.engine.addServlet(path, (Class<? extends HttpServlet>) cls);
                     }
 //                    if (anno.loadOnStartup() >= 0) {
 //                        this.engine.checkInitServlet((Class<? extends HttpServlet>) cls);

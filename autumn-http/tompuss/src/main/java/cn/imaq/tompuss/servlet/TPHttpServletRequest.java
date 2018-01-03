@@ -3,7 +3,6 @@ package cn.imaq.tompuss.servlet;
 import cn.imaq.autumn.http.protocol.AutumnHttpRequest;
 import cn.imaq.tompuss.core.TPEngine;
 import cn.imaq.tompuss.io.TPInputStream;
-import cn.imaq.tompuss.core.TPServletMapping;
 import cn.imaq.tompuss.io.TPMultipartParser;
 
 import javax.servlet.*;
@@ -22,18 +21,19 @@ import java.util.*;
 
 public class TPHttpServletRequest implements HttpServletRequest {
     private AutumnHttpRequest httpRequest;
-    private TPServletMapping servletMapping;
+    //    private TPServletMapping servletMapping;
     private TPEngine engine;
+    private TPServletContext context;
 
     private String encoding = null;
     private Map<String, Object> attributes = new HashMap<>();
     private Map<String, String[]> params;
     private Map<String, TPFormPart> formParts;
 
-    public TPHttpServletRequest(AutumnHttpRequest httpRequest, TPServletMapping servletMapping, TPEngine engine) {
+    public TPHttpServletRequest(AutumnHttpRequest httpRequest, TPEngine engine, TPServletContext context) {
         this.httpRequest = httpRequest;
-        this.servletMapping = servletMapping;
         this.engine = engine;
+        this.context = context;
     }
 
     /**
@@ -276,7 +276,7 @@ public class TPHttpServletRequest implements HttpServletRequest {
     public String getPathInfo() {
         String[] pathAndQuery = httpRequest.getPath().split("\\?", 2);
         try {
-            String pathInfo = pathAndQuery[0].substring(servletMapping.getPath().length());
+            String pathInfo = ""; // pathAndQuery[0].substring(servletMapping.getPath().length());
             if (pathInfo.isEmpty()) {
                 return null;
             }
@@ -525,7 +525,8 @@ public class TPHttpServletRequest implements HttpServletRequest {
      */
     @Override
     public String getServletPath() {
-        return servletMapping.getPath();
+        // return servletMapping.getPath();
+        return "";
     }
 
     /**
@@ -884,7 +885,7 @@ public class TPHttpServletRequest implements HttpServletRequest {
                 }
             }
             if (this.encoding == null) {
-                this.encoding = "utf-8";
+                this.encoding = context.getRequestCharacterEncoding();
             }
         }
         return this.encoding;
@@ -1361,7 +1362,7 @@ public class TPHttpServletRequest implements HttpServletRequest {
      */
     @Override
     public RequestDispatcher getRequestDispatcher(String path) {
-        // TODO
+        // TODO dispatcher
         return null;
     }
 
@@ -1374,7 +1375,7 @@ public class TPHttpServletRequest implements HttpServletRequest {
      */
     @Override
     public String getRealPath(String path) {
-        // TODO
+        // TODO dispatcher
         return null;
     }
 
@@ -1454,8 +1455,7 @@ public class TPHttpServletRequest implements HttpServletRequest {
      */
     @Override
     public ServletContext getServletContext() {
-        // TODO context
-        return null;
+        return this.context;
     }
 
     /**

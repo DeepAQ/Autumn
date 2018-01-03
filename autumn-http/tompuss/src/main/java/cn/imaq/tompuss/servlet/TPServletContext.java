@@ -32,8 +32,8 @@ public class TPServletContext implements ServletContext {
     private String contextPath;
     private File resourceRoot;
     private int sessionTimeout;
-    private String requestEncoding;
-    private String responseEncoding;
+    private String requestEncoding = "utf-8";
+    private String responseEncoding = "utf-8";
 
     private Map<String, String> initParams = new ConcurrentHashMap<>();
     private Map<String, Object> attributes = new ConcurrentHashMap<>();
