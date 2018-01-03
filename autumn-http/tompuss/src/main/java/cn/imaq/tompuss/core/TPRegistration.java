@@ -10,7 +10,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 public abstract class TPRegistration<T> implements Registration.Dynamic {
-    private TPServletContext context;
+    protected TPServletContext context;
     private String name;
     private T instance;
 

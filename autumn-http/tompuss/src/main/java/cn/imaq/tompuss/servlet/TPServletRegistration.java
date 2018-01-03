@@ -101,7 +101,7 @@ public class TPServletRegistration extends TPRegistration<Servlet> implements Se
             throw new IllegalArgumentException();
         }
         this.securityElement = constraint;
-        // TODO
+        // TODO security
         return Collections.emptySet();
     }
 
@@ -169,11 +169,15 @@ public class TPServletRegistration extends TPRegistration<Servlet> implements Se
      */
     @Override
     public Set<String> addMapping(String... urlPatterns) {
+        Set<String> conflicts = new HashSet<>();
         for (String pattern : urlPatterns) {
-            this.mappings.add(pattern);
-            // TODO mapping
+            if (this.context.addServletMapping(pattern, this)) {
+                this.mappings.add(pattern);
+            } else {
+                conflicts.add(pattern);
+            }
         }
-        return null;
+        return conflicts;
     }
 
     /**
