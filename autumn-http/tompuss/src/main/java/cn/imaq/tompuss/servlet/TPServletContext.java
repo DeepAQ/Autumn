@@ -1,6 +1,8 @@
 package cn.imaq.tompuss.servlet;
 
 import cn.imaq.tompuss.core.TPEngine;
+import cn.imaq.tompuss.filter.TPFilterMapping;
+import cn.imaq.tompuss.filter.TPFilterRegistration;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.servlet.*;
@@ -20,6 +22,8 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 @Slf4j
 public class TPServletContext implements ServletContext {
@@ -27,9 +31,17 @@ public class TPServletContext implements ServletContext {
     private String appName;
     private String contextPath;
     private File resourceRoot;
+    private int sessionTimeout;
+    private String requestEncoding = "utf-8";
+    private String responseEncoding = "utf-8";
 
     private Map<String, String> initParams = new ConcurrentHashMap<>();
     private Map<String, Object> attributes = new ConcurrentHashMap<>();
+    private Map<String, TPServletRegistration> servletRegistrations = new ConcurrentHashMap<>();
+    private Map<String, TPServletRegistration> servletMappings = new ConcurrentHashMap<>();
+    private Map<String, TPFilterRegistration> filterRegistrations = new ConcurrentHashMap<>();
+    private Deque<TPFilterMapping> filterMappings = new ConcurrentLinkedDeque<>();
+    private Map<Class<? extends EventListener>, Queue<EventListener>> listeners = new ConcurrentHashMap<>();
 
     /**
      * Returns the context path of the web application.
@@ -758,7 +770,12 @@ public class TPServletContext implements ServletContext {
      */
     @Override
     public ServletRegistration.Dynamic addServlet(String servletName, String className) {
-        return null;
+        try {
+            Class<?> servletClass = Class.forName(className);
+            return this.addServlet(servletName, (Class<? extends Servlet>) servletClass);
+        } catch (ClassNotFoundException | ClassCastException e) {
+            throw new IllegalArgumentException(e);
+        }
     }
 
     /**
@@ -795,7 +812,12 @@ public class TPServletContext implements ServletContext {
      */
     @Override
     public ServletRegistration.Dynamic addServlet(String servletName, Servlet servlet) {
-        return null;
+        if (servletName == null || servletName.isEmpty()) {
+            throw new IllegalArgumentException();
+        }
+        TPServletRegistration registration = new TPServletRegistration(this, servletName, servlet);
+        this.servletRegistrations.put(servletName, registration);
+        return registration;
     }
 
     /**
@@ -840,7 +862,15 @@ public class TPServletContext implements ServletContext {
      */
     @Override
     public ServletRegistration.Dynamic addServlet(String servletName, Class<? extends Servlet> servletClass) {
-        return null;
+        try {
+            return this.addServlet(servletName, this.createServlet(servletClass));
+        } catch (ServletException e) {
+            throw new IllegalArgumentException(e);
+        }
+    }
+
+    public boolean addServletMapping(String pattern, TPServletRegistration registration) {
+        return (this.servletMappings.putIfAbsent(pattern, registration) == null);
     }
 
     /**
@@ -874,6 +904,7 @@ public class TPServletContext implements ServletContext {
      */
     @Override
     public ServletRegistration.Dynamic addJspFile(String servletName, String jspFile) {
+        // TODO jsp
         return null;
     }
 
@@ -911,7 +942,11 @@ public class TPServletContext implements ServletContext {
      */
     @Override
     public <T extends Servlet> T createServlet(Class<T> clazz) throws ServletException {
-        return null;
+        try {
+            return clazz.newInstance();
+        } catch (InstantiationException | IllegalAccessException e) {
+            throw new ServletException(e);
+        }
     }
 
     /**
@@ -931,7 +966,7 @@ public class TPServletContext implements ServletContext {
      */
     @Override
     public ServletRegistration getServletRegistration(String servletName) {
-        return null;
+        return this.servletRegistrations.get(servletName);
     }
 
     /**
@@ -960,7 +995,7 @@ public class TPServletContext implements ServletContext {
      */
     @Override
     public Map<String, ? extends ServletRegistration> getServletRegistrations() {
-        return null;
+        return Collections.unmodifiableMap(this.servletRegistrations);
     }
 
     /**
@@ -1003,7 +1038,12 @@ public class TPServletContext implements ServletContext {
      */
     @Override
     public FilterRegistration.Dynamic addFilter(String filterName, String className) {
-        return null;
+        try {
+            Class<?> filterClass = Class.forName(className);
+            return this.addFilter(filterName, (Class<? extends Filter>) filterClass);
+        } catch (ClassNotFoundException | ClassCastException e) {
+            throw new IllegalArgumentException(e);
+        }
     }
 
     /**
@@ -1039,7 +1079,12 @@ public class TPServletContext implements ServletContext {
      */
     @Override
     public FilterRegistration.Dynamic addFilter(String filterName, Filter filter) {
-        return null;
+        if (filterName == null || filterName.isEmpty()) {
+            throw new IllegalArgumentException();
+        }
+        TPFilterRegistration registration = new TPFilterRegistration(this, filterName, filter);
+        this.filterRegistrations.put(filterName, registration);
+        return registration;
     }
 
     /**
@@ -1079,7 +1124,19 @@ public class TPServletContext implements ServletContext {
      */
     @Override
     public FilterRegistration.Dynamic addFilter(String filterName, Class<? extends Filter> filterClass) {
-        return null;
+        try {
+            return this.addFilter(filterName, this.createFilter(filterClass));
+        } catch (ServletException e) {
+            throw new IllegalArgumentException(e);
+        }
+    }
+
+    public void addFilterMapping(TPFilterMapping mapping, boolean isMatchAfter) {
+        if (isMatchAfter) {
+            this.filterMappings.addLast(mapping);
+        } else {
+            this.filterMappings.addFirst(mapping);
+        }
     }
 
     /**
@@ -1110,7 +1167,11 @@ public class TPServletContext implements ServletContext {
      */
     @Override
     public <T extends Filter> T createFilter(Class<T> clazz) throws ServletException {
-        return null;
+        try {
+            return clazz.newInstance();
+        } catch (InstantiationException | IllegalAccessException e) {
+            throw new ServletException(e);
+        }
     }
 
     /**
@@ -1130,7 +1191,7 @@ public class TPServletContext implements ServletContext {
      */
     @Override
     public FilterRegistration getFilterRegistration(String filterName) {
-        return null;
+        return this.filterRegistrations.get(filterName);
     }
 
     /**
@@ -1158,7 +1219,7 @@ public class TPServletContext implements ServletContext {
      */
     @Override
     public Map<String, ? extends FilterRegistration> getFilterRegistrations() {
-        return null;
+        return Collections.unmodifiableMap(this.filterRegistrations);
     }
 
     /**
@@ -1181,6 +1242,7 @@ public class TPServletContext implements ServletContext {
      */
     @Override
     public SessionCookieConfig getSessionCookieConfig() {
+        // TODO session
         return null;
     }
 
@@ -1210,7 +1272,7 @@ public class TPServletContext implements ServletContext {
      */
     @Override
     public void setSessionTrackingModes(Set<SessionTrackingMode> sessionTrackingModes) {
-
+        // TODO session
     }
 
     /**
@@ -1232,7 +1294,7 @@ public class TPServletContext implements ServletContext {
      */
     @Override
     public Set<SessionTrackingMode> getDefaultSessionTrackingModes() {
-        return null;
+        return Collections.singleton(SessionTrackingMode.COOKIE);
     }
 
     /**
@@ -1257,6 +1319,7 @@ public class TPServletContext implements ServletContext {
      */
     @Override
     public Set<SessionTrackingMode> getEffectiveSessionTrackingModes() {
+        // TODO session
         return null;
     }
 
@@ -1314,7 +1377,12 @@ public class TPServletContext implements ServletContext {
      */
     @Override
     public void addListener(String className) {
-
+        try {
+            Class<?> listenerClass = Class.forName(className);
+            this.addListener((Class<? extends EventListener>) listenerClass);
+        } catch (ClassNotFoundException | ClassCastException e) {
+            throw new IllegalArgumentException(e);
+        }
     }
 
     /**
@@ -1358,9 +1426,14 @@ public class TPServletContext implements ServletContext {
      *                                       with {@link WebListener}
      * @since Servlet 3.0
      */
+    @SuppressWarnings("unchecked")
     @Override
     public <T extends EventListener> void addListener(T t) {
-
+        for (Class<?> intf : t.getClass().getInterfaces()) {
+            if (EventListener.class.isAssignableFrom(intf)) {
+                this.listeners.computeIfAbsent((Class<? extends EventListener>) intf, x -> new ConcurrentLinkedQueue<>()).add(t);
+            }
+        }
     }
 
     /**
@@ -1412,7 +1485,11 @@ public class TPServletContext implements ServletContext {
      */
     @Override
     public void addListener(Class<? extends EventListener> listenerClass) {
-
+        try {
+            this.addListener(this.createListener(listenerClass));
+        } catch (ServletException e) {
+            throw new IllegalArgumentException(e);
+        }
     }
 
     /**
@@ -1463,7 +1540,11 @@ public class TPServletContext implements ServletContext {
      */
     @Override
     public <T extends EventListener> T createListener(Class<T> clazz) throws ServletException {
-        return null;
+        try {
+            return clazz.newInstance();
+        } catch (InstantiationException | IllegalAccessException e) {
+            throw new ServletException(e);
+        }
     }
 
     /**
@@ -1487,6 +1568,7 @@ public class TPServletContext implements ServletContext {
      */
     @Override
     public JspConfigDescriptor getJspConfigDescriptor() {
+        // TODO jsp
         return null;
     }
 
@@ -1514,7 +1596,7 @@ public class TPServletContext implements ServletContext {
      */
     @Override
     public ClassLoader getClassLoader() {
-        return null;
+        return this.getClass().getClassLoader();
     }
 
     /**
@@ -1540,7 +1622,7 @@ public class TPServletContext implements ServletContext {
      */
     @Override
     public void declareRoles(String... roleNames) {
-
+        // TODO security
     }
 
     /**
@@ -1566,7 +1648,7 @@ public class TPServletContext implements ServletContext {
      */
     @Override
     public String getVirtualServerName() {
-        return null;
+        return "";
     }
 
     /**
@@ -1584,7 +1666,7 @@ public class TPServletContext implements ServletContext {
      */
     @Override
     public int getSessionTimeout() {
-        return 0;
+        return this.sessionTimeout;
     }
 
     /**
@@ -1602,7 +1684,7 @@ public class TPServletContext implements ServletContext {
      */
     @Override
     public void setSessionTimeout(int sessionTimeout) {
-
+        this.sessionTimeout = sessionTimeout;
     }
 
     /**
@@ -1623,7 +1705,7 @@ public class TPServletContext implements ServletContext {
      */
     @Override
     public String getRequestCharacterEncoding() {
-        return null;
+        return this.requestEncoding;
     }
 
     /**
@@ -1641,7 +1723,7 @@ public class TPServletContext implements ServletContext {
      */
     @Override
     public void setRequestCharacterEncoding(String encoding) {
-
+        this.requestEncoding = encoding;
     }
 
     /**
@@ -1662,7 +1744,7 @@ public class TPServletContext implements ServletContext {
      */
     @Override
     public String getResponseCharacterEncoding() {
-        return null;
+        return this.responseEncoding;
     }
 
     /**
@@ -1680,6 +1762,6 @@ public class TPServletContext implements ServletContext {
      */
     @Override
     public void setResponseCharacterEncoding(String encoding) {
-
+        this.responseEncoding = encoding;
     }
 }
