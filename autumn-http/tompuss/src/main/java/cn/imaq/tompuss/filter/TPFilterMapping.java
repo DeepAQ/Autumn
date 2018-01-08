@@ -10,7 +10,7 @@ public abstract class TPFilterMapping {
     private TPFilterRegistration registration;
     private Set<DispatcherType> dispatcherTypes;
 
-    public TPFilterMapping(TPFilterRegistration registration, Set<DispatcherType> dispatcherTypes) {
+    TPFilterMapping(TPFilterRegistration registration, Set<DispatcherType> dispatcherTypes) {
         this.registration = registration;
         if (dispatcherTypes != null) {
             this.dispatcherTypes = dispatcherTypes;
@@ -22,7 +22,7 @@ public abstract class TPFilterMapping {
     static class ByServlet extends TPFilterMapping {
         private Set<String> servletNames = new HashSet<>();
 
-        public ByServlet(TPFilterRegistration registration, Set<DispatcherType> dispatcherTypes, String[] servletNames) {
+        ByServlet(TPFilterRegistration registration, Set<DispatcherType> dispatcherTypes, String[] servletNames) {
             super(registration, dispatcherTypes);
             this.servletNames.addAll(Arrays.asList(servletNames));
         }
@@ -31,7 +31,7 @@ public abstract class TPFilterMapping {
     static class ByUrlPattern extends TPFilterMapping {
         private Set<String> urlPatterns = new HashSet<>();
 
-        public ByUrlPattern(TPFilterRegistration registration, Set<DispatcherType> dispatcherTypes, String[] patterns) {
+        ByUrlPattern(TPFilterRegistration registration, Set<DispatcherType> dispatcherTypes, String[] patterns) {
             super(registration, dispatcherTypes);
             this.urlPatterns.addAll(Arrays.asList(patterns));
         }

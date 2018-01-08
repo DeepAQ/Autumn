@@ -3,6 +3,7 @@ package cn.imaq.tompuss.servlet;
 import cn.imaq.tompuss.core.TPEngine;
 import cn.imaq.tompuss.filter.TPFilterMapping;
 import cn.imaq.tompuss.filter.TPFilterRegistration;
+import cn.imaq.tompuss.util.TPPathUtil;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.servlet.*;
@@ -31,10 +32,10 @@ public class TPServletContext implements ServletContext {
     private String appName;
     private String contextPath;
     private File resourceRoot;
+
     private int sessionTimeout;
     private String requestEncoding = "utf-8";
     private String responseEncoding = "utf-8";
-
     private Map<String, String> initParams = new ConcurrentHashMap<>();
     private Map<String, Object> attributes = new ConcurrentHashMap<>();
     private Map<String, TPServletRegistration> servletRegistrations = new ConcurrentHashMap<>();
@@ -42,6 +43,13 @@ public class TPServletContext implements ServletContext {
     private Map<String, TPFilterRegistration> filterRegistrations = new ConcurrentHashMap<>();
     private Deque<TPFilterMapping> filterMappings = new ConcurrentLinkedDeque<>();
     private Map<Class<? extends EventListener>, Queue<EventListener>> listeners = new ConcurrentHashMap<>();
+
+    public TPServletContext(TPEngine engine, String appName, String contextPath, String resourceRoot) {
+        this.engine = engine;
+        this.appName = appName;
+        this.contextPath = TPPathUtil.transform(contextPath);
+        this.resourceRoot = new File(resourceRoot);
+    }
 
     /**
      * Returns the context path of the web application.
