@@ -6,6 +6,8 @@ import cn.imaq.tompuss.servlet.TPServletContext;
 import javax.servlet.DispatcherType;
 import javax.servlet.Filter;
 import javax.servlet.FilterRegistration;
+import javax.servlet.annotation.WebFilter;
+import javax.servlet.annotation.WebInitParam;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -15,6 +17,17 @@ public class TPFilterRegistration extends TPRegistration<Filter> implements Filt
 
     public TPFilterRegistration(TPServletContext context, String name, Filter instance) {
         super(context, name, instance);
+    }
+
+    public void loadAnnotation(WebFilter wf) {
+        EnumSet<DispatcherType> dispatcherTypes = EnumSet.copyOf(Arrays.asList(wf.dispatcherTypes()));
+        this.addMappingForUrlPatterns(dispatcherTypes, true, wf.value());
+        this.addMappingForUrlPatterns(dispatcherTypes, true, wf.urlPatterns());
+        this.addMappingForServletNames(dispatcherTypes, true, wf.servletNames());
+        this.setAsyncSupported(wf.asyncSupported());
+        for (WebInitParam initParam : wf.initParams()) {
+            this.setInitParameter(initParam.name(), initParam.value());
+        }
     }
 
     /**

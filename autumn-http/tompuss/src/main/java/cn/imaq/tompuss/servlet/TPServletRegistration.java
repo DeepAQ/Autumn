@@ -2,11 +2,10 @@ package cn.imaq.tompuss.servlet;
 
 import cn.imaq.tompuss.core.TPRegistration;
 
-import javax.servlet.MultipartConfigElement;
-import javax.servlet.Servlet;
-import javax.servlet.ServletRegistration;
-import javax.servlet.ServletSecurityElement;
+import javax.servlet.*;
 import javax.servlet.annotation.ServletSecurity;
+import javax.servlet.annotation.WebInitParam;
+import javax.servlet.annotation.WebServlet;
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -19,6 +18,16 @@ public class TPServletRegistration extends TPRegistration<Servlet> implements Se
 
     public TPServletRegistration(TPServletContext context, String name, Servlet instance) {
         super(context, name, instance);
+    }
+
+    public void loadAnnotation(WebServlet ws) {
+        this.addMapping(ws.value());
+        this.addMapping(ws.urlPatterns());
+        this.setLoadOnStartup(ws.loadOnStartup());
+        this.setAsyncSupported(ws.asyncSupported());
+        for (WebInitParam initParam : ws.initParams()) {
+            this.setInitParameter(initParam.name(), initParam.value());
+        }
     }
 
     /**

@@ -4,17 +4,13 @@ import cn.imaq.tompuss.core.TPEngine;
 import cn.imaq.tompuss.filter.TPFilterMapping;
 import cn.imaq.tompuss.filter.TPFilterRegistration;
 import cn.imaq.tompuss.util.TPPathUtil;
+import io.github.lukehutch.fastclasspathscanner.FastClasspathScanner;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.servlet.*;
-import javax.servlet.annotation.MultipartConfig;
-import javax.servlet.annotation.ServletSecurity;
-import javax.servlet.annotation.WebListener;
+import javax.servlet.annotation.*;
 import javax.servlet.descriptor.JspConfigDescriptor;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSessionAttributeListener;
-import javax.servlet.http.HttpSessionIdListener;
-import javax.servlet.http.HttpSessionListener;
+import javax.servlet.http.*;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -49,6 +45,37 @@ public class TPServletContext implements ServletContext {
         this.appName = appName;
         this.contextPath = TPPathUtil.transform(contextPath);
         this.resourceRoot = new File(resourceRoot);
+    }
+
+    @SuppressWarnings("unchecked")
+    public void scanAnnotations() {
+        log.info("Scanning annotations in classpath ...");
+        new FastClasspathScanner().matchClassesWithAnnotation(WebServlet.class, cls -> {
+            if (HttpServlet.class.isAssignableFrom(cls)) {
+                log.info("Adding Servlet " + cls.getName());
+                WebServlet ws = cls.getAnnotation(WebServlet.class);
+                TPServletRegistration registration = (TPServletRegistration) this.addServlet(
+                        ws.name().isEmpty() ? cls.getName() : ws.name(),
+                        (Class<? extends Servlet>) cls
+                );
+                registration.loadAnnotation(ws);
+            }
+        }).matchClassesWithAnnotation(WebFilter.class, cls -> {
+            if (HttpFilter.class.isAssignableFrom(cls)) {
+                log.info("Adding Filter " + cls.getName());
+                WebFilter wf = cls.getAnnotation(WebFilter.class);
+                TPFilterRegistration registration = (TPFilterRegistration) this.addFilter(
+                        wf.filterName().isEmpty() ? cls.getName() : wf.filterName(),
+                        (Class<? extends Filter>) cls
+                );
+                registration.loadAnnotation(wf);
+            }
+        }).matchClassesWithAnnotation(WebListener.class, cls -> {
+            if (EventListener.class.isAssignableFrom(cls)) {
+                log.info("Adding Listener " + cls.getName());
+                this.addListener((Class<? extends EventListener>) cls);
+            }
+        }).scan();
     }
 
     /**

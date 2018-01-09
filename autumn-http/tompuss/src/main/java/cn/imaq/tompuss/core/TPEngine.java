@@ -7,7 +7,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
-import javax.servlet.ServletContext;
 import java.io.IOException;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -44,16 +43,16 @@ public class TPEngine {
         this.httpServer.stop();
     }
 
-    public ServletContext newWebApp(String appName, String contextPath, String resourceRoot) {
+    public TPServletContext newWebApp(String appName, String contextPath, String resourceRoot) {
         TPServletContext context = new TPServletContext(this, appName, contextPath, resourceRoot);
         this.contexts.add(context);
         return context;
     }
 
-    public ServletContext matchContextByPath(String path) {
-        ServletContext result = null;
+    public TPServletContext matchContextByPath(String path) {
+        TPServletContext result = null;
         int bestLength = 0;
-        for (ServletContext context : contexts) {
+        for (TPServletContext context : contexts) {
             String contextPath = context.getContextPath();
             if (path.startsWith(contextPath) && contextPath.length() > bestLength) {
                 bestLength = contextPath.length();

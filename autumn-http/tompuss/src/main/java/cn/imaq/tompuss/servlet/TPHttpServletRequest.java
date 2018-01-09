@@ -1648,7 +1648,7 @@ public class TPHttpServletRequest implements HttpServletRequest {
      * <p>
      * <p>The initial dispatcher type of a request is defined as
      * <code>DispatcherType.REQUEST</code>. The dispatcher type of a request
-     * dispatched via {@link RequestDispatcher#forward(ServletRequest, * ServletResponse)} or {@link RequestDispatcher#include(ServletRequest, * ServletResponse)} is given as <code>DispatcherType.FORWARD</code> or
+     * dispatched via {@link RequestDispatcher#forward(ServletRequest, ServletResponse)} or {@link RequestDispatcher#include(ServletRequest, ServletResponse)} is given as <code>DispatcherType.FORWARD</code> or
      * <code>DispatcherType.INCLUDE</code>, respectively, while the
      * dispatcher type of an asynchronous request dispatched via
      * one of the {@link AsyncContext#dispatch} methods is given as
