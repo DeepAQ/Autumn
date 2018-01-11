@@ -2,6 +2,7 @@ package cn.imaq.tompuss.core;
 
 import cn.imaq.autumn.http.server.AutumnHttpServer;
 import cn.imaq.tompuss.servlet.TPServletContext;
+import cn.imaq.tompuss.util.TPMatchResult;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -49,7 +50,7 @@ public class TPEngine {
         return context;
     }
 
-    public TPServletContext matchContextByPath(String path) {
+    public TPMatchResult<TPServletContext> matchContextByPath(String path) {
         TPServletContext result = null;
         int bestLength = 0;
         for (TPServletContext context : contexts) {
@@ -59,6 +60,10 @@ public class TPEngine {
                 result = context;
             }
         }
-        return result;
+        if (result != null) {
+            return new TPMatchResult<>(result.getContextPath(), result);
+        } else {
+            return null;
+        }
     }
 }

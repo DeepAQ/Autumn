@@ -3,6 +3,7 @@ package cn.imaq.tompuss.servlet;
 import cn.imaq.tompuss.core.TPEngine;
 import cn.imaq.tompuss.filter.TPFilterMapping;
 import cn.imaq.tompuss.filter.TPFilterRegistration;
+import cn.imaq.tompuss.util.TPMatchResult;
 import cn.imaq.tompuss.util.TPPathUtil;
 import io.github.lukehutch.fastclasspathscanner.FastClasspathScanner;
 import lombok.extern.slf4j.Slf4j;
@@ -76,6 +77,23 @@ public class TPServletContext implements ServletContext {
                 this.addListener((Class<? extends EventListener>) cls);
             }
         }).scan();
+    }
+
+    public TPMatchResult<TPServletRegistration> matchServletByPath(String path) {
+        TPServletRegistration result = null;
+        String bestMatched = "";
+        for (Map.Entry<String, TPServletRegistration> mapEntry : this.servletMappings.entrySet()) {
+            String pattern = mapEntry.getKey();
+            if (path.startsWith(pattern) && pattern.length() > bestMatched.length()) {
+                bestMatched = pattern;
+                result = mapEntry.getValue();
+            }
+        }
+        if (result != null) {
+            return new TPMatchResult<>(bestMatched, result);
+        } else {
+            return null;
+        }
     }
 
     /**
@@ -905,6 +923,7 @@ public class TPServletContext implements ServletContext {
     }
 
     public boolean addServletMapping(String pattern, TPServletRegistration registration) {
+        pattern = TPPathUtil.transform(pattern);
         return (this.servletMappings.putIfAbsent(pattern, registration) == null);
     }
 
