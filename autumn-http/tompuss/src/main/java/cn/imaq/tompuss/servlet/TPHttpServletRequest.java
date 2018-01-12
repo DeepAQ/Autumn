@@ -1082,12 +1082,15 @@ public class TPHttpServletRequest implements HttpServletRequest {
             }
             // Merge
             this.params = new HashMap<>();
-            paramsMap.forEach((key, value) -> this.params.put(key, (String[]) value.toArray()));
+            paramsMap.forEach((key, value) -> this.params.put(key, value.toArray(new String[0])));
         }
         return Collections.unmodifiableMap(this.params);
     }
 
     private void parseParamString(String paramStr, Map<String, List<String>> map) {
+        if (paramStr == null) {
+            return;
+        }
         String[] queries = paramStr.split("&");
         for (String query : queries) {
             String[] nameAndValue = query.split("=", 2);
