@@ -149,7 +149,11 @@ public class TPServletContext implements ServletContext {
      */
     @Override
     public ServletContext getContext(String uripath) {
-        return engine.matchContextByPath(uripath);
+        TPMatchResult<TPServletContext> result = engine.matchContextByPath(uripath);
+        if (result == null) {
+            return null;
+        }
+        return result.getObject();
     }
 
     /**

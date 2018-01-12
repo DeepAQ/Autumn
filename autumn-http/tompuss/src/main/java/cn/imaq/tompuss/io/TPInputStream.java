@@ -85,8 +85,7 @@ public class TPInputStream extends ServletInputStream {
     public void setReadListener(ReadListener readListener) {
         try {
             readListener.onDataAvailable();
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (IOException ignored) {
         }
     }
 }
