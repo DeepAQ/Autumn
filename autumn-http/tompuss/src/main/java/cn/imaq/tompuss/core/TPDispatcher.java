@@ -3,15 +3,15 @@ package cn.imaq.tompuss.core;
 import cn.imaq.autumn.http.protocol.AutumnHttpRequest;
 import cn.imaq.autumn.http.protocol.AutumnHttpResponse;
 import cn.imaq.autumn.http.server.protocol.AutumnHttpHandler;
-import cn.imaq.tompuss.servlet.TPHttpServletRequest;
-import cn.imaq.tompuss.servlet.TPHttpServletResponse;
-import cn.imaq.tompuss.servlet.TPServletContext;
-import cn.imaq.tompuss.servlet.TPServletRegistration;
+import cn.imaq.tompuss.servlet.*;
 import cn.imaq.tompuss.util.TPMatchResult;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.servlet.Servlet;
 import javax.servlet.http.HttpServlet;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.io.Writer;
 
 @Slf4j
 public class TPDispatcher implements AutumnHttpHandler {
@@ -40,10 +40,11 @@ public class TPDispatcher implements AutumnHttpHandler {
         if (!(servlet instanceof HttpServlet)) {
             return notFound();
         }
-        TPHttpServletRequest req = new TPHttpServletRequest(request, engine, context);
-        TPHttpServletResponse resp = new TPHttpServletResponse(context);
+        TPHttpExchange exchange = new TPHttpExchange();
+        TPHttpServletRequest req = new TPHttpServletRequest(request, context, exchange);
+        TPHttpServletResponse resp = new TPHttpServletResponse(context, exchange);
         try {
-            ((HttpServlet) servlet).service(req, resp);
+            servlet.service(req, resp);
         } catch (Exception e) {
             log.warn("Exception in Servlet", e);
             return error(e);
@@ -60,10 +61,13 @@ public class TPDispatcher implements AutumnHttpHandler {
     }
 
     private static AutumnHttpResponse error(Exception e) {
+        Writer writer = new StringWriter();
+        e.printStackTrace(new PrintWriter(writer, true));
         return AutumnHttpResponse.builder()
                 .status(500)
                 .contentType("text/html")
-                .body(e.toString().getBytes())
+                .body(("<html><head><title>Server Error</title></head><body><h1>Server Error</h1><pre>" +
+                        writer.toString() +"</pre><hr>TomPuss</body></html>").getBytes())
                 .build();
     }
 }

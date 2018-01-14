@@ -16,6 +16,7 @@ import java.util.*;
 
 public class TPHttpServletResponse implements HttpServletResponse {
     private TPServletContext context;
+    private TPHttpExchange exchange;
 
     private int status;
     private String contentType;
@@ -25,9 +26,10 @@ public class TPHttpServletResponse implements HttpServletResponse {
     private Locale locale;
     private String encoding;
 
-    public TPHttpServletResponse(TPServletContext context) {
+    public TPHttpServletResponse(TPServletContext context, TPHttpExchange exchange) {
         this.reset();
         this.context = context;
+        this.exchange = exchange;
     }
 
     public AutumnHttpResponse toAutumnHttpResponse() {
@@ -40,6 +42,9 @@ public class TPHttpServletResponse implements HttpServletResponse {
         }
         if (locale != null) {
             this.setHeader("Content-Language", locale.toLanguageTag());
+        }
+        for (Cookie cookie : exchange.getCookies()) {
+            this.addCookie(cookie);
         }
         return AutumnHttpResponse.builder()
                 .status(status)

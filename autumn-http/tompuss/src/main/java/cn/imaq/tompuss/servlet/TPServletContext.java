@@ -3,9 +3,11 @@ package cn.imaq.tompuss.servlet;
 import cn.imaq.tompuss.core.TPEngine;
 import cn.imaq.tompuss.filter.TPFilterMapping;
 import cn.imaq.tompuss.filter.TPFilterRegistration;
+import cn.imaq.tompuss.session.TPSessionContext;
 import cn.imaq.tompuss.util.TPMatchResult;
 import cn.imaq.tompuss.util.TPPathUtil;
 import io.github.lukehutch.fastclasspathscanner.FastClasspathScanner;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.servlet.*;
@@ -25,11 +27,14 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 @Slf4j
 public class TPServletContext implements ServletContext {
+    @Getter
     private TPEngine engine;
     private String appName;
     private String contextPath;
     private File resourceRoot;
 
+    @Getter
+    private TPSessionContext sessionContext = new TPSessionContext(this);
     private int sessionTimeout;
     private String requestEncoding = "utf-8";
     private String responseEncoding = "utf-8";
