@@ -1,6 +1,7 @@
 package cn.imaq.tompuss.servlet;
 
 import cn.imaq.tompuss.core.TPEngine;
+import cn.imaq.tompuss.filter.TPFilterChain;
 import cn.imaq.tompuss.filter.TPFilterMapping;
 import cn.imaq.tompuss.filter.TPFilterRegistration;
 import cn.imaq.tompuss.session.TPSessionContext;
@@ -100,6 +101,16 @@ public class TPServletContext implements ServletContext {
         } else {
             return null;
         }
+    }
+
+    public TPFilterChain matchFilters(String path, String servletName) {
+        Set<TPFilterRegistration> filters = new LinkedHashSet<>();
+        for (TPFilterMapping mapping : filterMappings) {
+            if (mapping.match(path, servletName)) {
+                filters.add(mapping.getRegistration());
+            }
+        }
+        return new TPFilterChain(filters);
     }
 
     /**

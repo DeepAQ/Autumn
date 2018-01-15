@@ -34,33 +34,37 @@ public class TPServletRegistration extends TPRegistration<Servlet> implements Se
 
     public Servlet getServletInstance() {
         if (this.instance.getServletConfig() == null) {
-            // init
-            log.info("Initiating Servlet " + this.name + "[" + this.instance.getClass().getName() + "]");
-            ServletConfig config = new ServletConfig() {
-                @Override
-                public String getServletName() {
-                    return TPServletRegistration.this.name;
-                }
+            synchronized (this) {
+                if (this.instance.getServletConfig() == null) {
+                    // init
+                    log.info("Initiating Servlet " + this.name + "[" + this.instance.getClass().getName() + "]");
+                    ServletConfig config = new ServletConfig() {
+                        @Override
+                        public String getServletName() {
+                            return TPServletRegistration.this.name;
+                        }
 
-                @Override
-                public ServletContext getServletContext() {
-                    return TPServletRegistration.this.context;
-                }
+                        @Override
+                        public ServletContext getServletContext() {
+                            return TPServletRegistration.this.context;
+                        }
 
-                @Override
-                public String getInitParameter(String name) {
-                    return TPServletRegistration.this.getInitParameter(name);
-                }
+                        @Override
+                        public String getInitParameter(String name) {
+                            return TPServletRegistration.this.getInitParameter(name);
+                        }
 
-                @Override
-                public Enumeration<String> getInitParameterNames() {
-                    return Collections.enumeration(TPServletRegistration.this.getInitParameters().keySet());
+                        @Override
+                        public Enumeration<String> getInitParameterNames() {
+                            return Collections.enumeration(TPServletRegistration.this.getInitParameters().keySet());
+                        }
+                    };
+                    try {
+                        this.instance.init(config);
+                    } catch (ServletException e) {
+                        log.error("Error initiating Servlet " + this.name + "[" + this.instance.getClass().getName() + "]", e);
+                    }
                 }
-            };
-            try {
-                this.instance.init(config);
-            } catch (ServletException e) {
-                log.error("Error initiating Servlet " + this.name + "[" + this.instance.getClass().getName() + "]", e);
             }
         }
         return this.instance;

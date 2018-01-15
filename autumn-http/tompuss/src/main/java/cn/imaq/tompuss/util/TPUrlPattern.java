@@ -52,7 +52,7 @@ public class TPUrlPattern {
 
     @Getter
     @AllArgsConstructor
-    private enum Type {
+    public enum Type {
         DEFAULT(0),
         SUFFIX(10),
         PREFIX(20),

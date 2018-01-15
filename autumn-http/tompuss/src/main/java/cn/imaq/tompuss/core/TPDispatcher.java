@@ -3,6 +3,7 @@ package cn.imaq.tompuss.core;
 import cn.imaq.autumn.http.protocol.AutumnHttpRequest;
 import cn.imaq.autumn.http.protocol.AutumnHttpResponse;
 import cn.imaq.autumn.http.server.protocol.AutumnHttpHandler;
+import cn.imaq.tompuss.filter.TPFilterChain;
 import cn.imaq.tompuss.servlet.*;
 import cn.imaq.tompuss.util.TPMatchResult;
 import lombok.extern.slf4j.Slf4j;
@@ -26,13 +27,14 @@ public class TPDispatcher implements AutumnHttpHandler {
     @Override
     public AutumnHttpResponse handle(AutumnHttpRequest request) {
         String path = request.getPath().split("\\?", 2)[0];
+        // Match context
         TPMatchResult<TPServletContext> contextMatch = engine.matchContextByPath(path);
         if (contextMatch == null) {
             return notFound();
         }
         TPServletContext context = contextMatch.getObject();
+        // Match Servlet
         String remainPath = path.substring(contextMatch.getLength() - 1);
-        // TODO filters
         TPMatchResult<TPServletRegistration> servletMatch = context.matchServletByPath(remainPath);
         if (servletMatch == null) {
             return notFound();
@@ -41,13 +43,17 @@ public class TPDispatcher implements AutumnHttpHandler {
         if (!(servlet instanceof HttpServlet)) {
             return notFound();
         }
+        // Build request and response
         TPHttpExchange exchange = new TPHttpExchange();
         TPHttpServletRequest req = new TPHttpServletRequest(request, context, exchange);
         TPHttpServletResponse resp = new TPHttpServletResponse(context, exchange);
+        // Match Filters
+        TPFilterChain filterChain = context.matchFilters(path, servletMatch.getObject().getName());
         try {
+            filterChain.doFilter(req, resp);
             servlet.service(req, resp);
         } catch (Exception e) {
-            log.warn("Exception in Servlet", e);
+            log.warn("Exception in dispatcher", e);
             return error(e);
         }
         return resp.toAutumnHttpResponse();

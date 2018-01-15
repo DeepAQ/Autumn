@@ -38,7 +38,7 @@ public class TPHttpServletResponse implements HttpServletResponse {
             body = outputStream.toByteArray();
         }
         if (contentType != null) {
-            this.setHeader("Content-Type", contentType);
+            this.setHeader("Content-Type", contentType + ";charset=" + this.getCharacterEncoding());
         }
         if (locale != null) {
             this.setHeader("Content-Language", locale.toLanguageTag());

@@ -2,18 +2,19 @@ package cn.imaq.tompuss.filter;
 
 import cn.imaq.tompuss.core.TPRegistration;
 import cn.imaq.tompuss.servlet.TPServletContext;
+import lombok.extern.slf4j.Slf4j;
 
-import javax.servlet.DispatcherType;
-import javax.servlet.Filter;
-import javax.servlet.FilterRegistration;
+import javax.servlet.*;
 import javax.servlet.annotation.WebFilter;
 import javax.servlet.annotation.WebInitParam;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
+@Slf4j
 public class TPFilterRegistration extends TPRegistration<Filter> implements FilterRegistration.Dynamic {
     private Set<String> servletMappings = Collections.newSetFromMap(new ConcurrentHashMap<>());
     private Set<String> urlPatternMappings = Collections.newSetFromMap(new ConcurrentHashMap<>());
+    private volatile boolean init = false;
 
     public TPFilterRegistration(TPServletContext context, String name, Filter instance) {
         super(context, name, instance);
@@ -28,6 +29,46 @@ public class TPFilterRegistration extends TPRegistration<Filter> implements Filt
         for (WebInitParam initParam : wf.initParams()) {
             this.setInitParameter(initParam.name(), initParam.value());
         }
+    }
+
+    public Filter getFilterInstance() {
+        if (!this.init) {
+            if (((GenericFilter) this.instance).getFilterConfig() != null) {
+                this.init = true;
+            } else synchronized (this) {
+                if (!this.init) {
+                    log.info("Initiating Filter " + this.name + "[" + this.instance.getClass().getName() + "]");
+                    FilterConfig config = new FilterConfig() {
+                        @Override
+                        public String getFilterName() {
+                            return TPFilterRegistration.this.name;
+                        }
+
+                        @Override
+                        public ServletContext getServletContext() {
+                            return TPFilterRegistration.this.context;
+                        }
+
+                        @Override
+                        public String getInitParameter(String name) {
+                            return TPFilterRegistration.this.getInitParameter(name);
+                        }
+
+                        @Override
+                        public Enumeration<String> getInitParameterNames() {
+                            return Collections.enumeration(TPFilterRegistration.this.getInitParameters().keySet());
+                        }
+                    };
+                    try {
+                        this.instance.init(config);
+                        this.init = true;
+                    } catch (ServletException e) {
+                        log.error("Error initiating Filter " + this.name + "[" + this.instance.getClass().getName() + "]", e);
+                    }
+                }
+            }
+        }
+        return this.instance;
     }
 
     /**
