@@ -9,6 +9,8 @@ import cn.imaq.tompuss.util.TPMatchResult;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.servlet.Servlet;
+import javax.servlet.ServletRequestEvent;
+import javax.servlet.ServletRequestListener;
 import javax.servlet.http.HttpServlet;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -47,6 +49,7 @@ public class TPDispatcher implements AutumnHttpHandler {
         TPHttpExchange exchange = new TPHttpExchange();
         TPHttpServletRequest req = new TPHttpServletRequest(request, context, exchange);
         TPHttpServletResponse resp = new TPHttpServletResponse(context, exchange);
+        context.getListeners(ServletRequestListener.class).forEach(x -> x.requestInitialized(new ServletRequestEvent(context, req)));
         // Match Filters
         TPFilterChain filterChain = context.matchFilters(path, servletMatch.getObject().getName());
         try {
@@ -55,6 +58,8 @@ public class TPDispatcher implements AutumnHttpHandler {
         } catch (Exception e) {
             log.warn("Exception in dispatcher", e);
             return error(e);
+        } finally {
+            context.getListeners(ServletRequestListener.class).forEach(x -> x.requestDestroyed(new ServletRequestEvent(context, req)));
         }
         return resp.toAutumnHttpResponse();
     }

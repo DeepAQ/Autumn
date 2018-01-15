@@ -1621,6 +1621,14 @@ public class TPServletContext implements ServletContext {
         }
     }
 
+    @SuppressWarnings("unchecked")
+    public <T extends EventListener> Collection<T> getListeners(Class<T> listenerClass) {
+        if (!this.listeners.containsKey(listenerClass)) {
+            return Collections.emptyList();
+        }
+        return (Collection<T>) this.listeners.get(listenerClass);
+    }
+
     /**
      * Gets the <code>&lt;jsp-config&gt;</code> related configuration
      * that was aggregated from the <code>web.xml</code> and

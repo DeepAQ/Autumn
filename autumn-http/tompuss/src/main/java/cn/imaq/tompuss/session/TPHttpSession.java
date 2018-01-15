@@ -1,7 +1,11 @@
 package cn.imaq.tompuss.session;
 
+import cn.imaq.tompuss.servlet.TPServletContext;
+
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpSession;
+import javax.servlet.http.HttpSessionAttributeListener;
+import javax.servlet.http.HttpSessionBindingEvent;
 import javax.servlet.http.HttpSessionContext;
 import java.util.Collections;
 import java.util.Enumeration;
@@ -9,7 +13,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class TPHttpSession implements HttpSession {
-    private ServletContext context;
+    private TPServletContext context;
     private String sessId;
     private long created;
     private long lastAccess;
@@ -18,7 +22,7 @@ public class TPHttpSession implements HttpSession {
 
     private Map<String, Object> attributes = new ConcurrentHashMap<>();
 
-    public TPHttpSession(ServletContext context, String sessId) {
+    TPHttpSession(TPServletContext context, String sessId) {
         this.context = context;
         this.sessId = sessId;
         this.created = System.currentTimeMillis();
@@ -30,12 +34,12 @@ public class TPHttpSession implements HttpSession {
      * Returns the time when this session was created, measured
      * in milliseconds since midnight January 1, 1970 GMT.
      *
-     * @throws IllegalStateException if this method is called on an
-     *                               invalidated session
      * @return a <code>long</code> specifying
      * when this session was created,
      * expressed in
      * milliseconds since 1/1/1970 GMT
+     * @throws IllegalStateException if this method is called on an
+     *                               invalidated session
      */
     @Override
     public long getCreationTime() {
@@ -66,13 +70,13 @@ public class TPHttpSession implements HttpSession {
      * a value associated with the session, do not affect the access
      * time.
      *
-     * @throws IllegalStateException if this method is called on an
-     *                               invalidated session
      * @return a <code>long</code>
      * representing the last time
      * the client sent a request associated
      * with this session, expressed in
      * milliseconds since 1/1/1970 GMT
+     * @throws IllegalStateException if this method is called on an
+     *                               invalidated session
      */
     @Override
     public long getLastAccessedTime() {
@@ -119,7 +123,7 @@ public class TPHttpSession implements HttpSession {
      * @return an integer specifying the number of
      * seconds this session remains open
      * between client requests
-     * @see        #setMaxInactiveInterval
+     * @see #setMaxInactiveInterval
      */
     @Override
     public int getMaxInactiveInterval() {
@@ -143,9 +147,9 @@ public class TPHttpSession implements HttpSession {
      * <code>null</code> if no object is bound under the name.
      *
      * @param name a string specifying the name of the object
+     * @return the object with the specified name
      * @throws IllegalStateException if this method is called on an
      *                               invalidated session
-     * @return the object with the specified name
      */
     @Override
     public Object getAttribute(String name) {
@@ -156,9 +160,9 @@ public class TPHttpSession implements HttpSession {
 
     /**
      * @param name a string specifying the name of the object
+     * @return the object with the specified name
      * @throws IllegalStateException if this method is called on an
      *                               invalidated session
-     * @return the object with the specified name
      * @deprecated As of Version 2.2, this method is
      * replaced by {@link #getAttribute}.
      */
@@ -171,12 +175,12 @@ public class TPHttpSession implements HttpSession {
      * Returns an <code>Enumeration</code> of <code>String</code> objects
      * containing the names of all the objects bound to this session.
      *
-     * @throws IllegalStateException if this method is called on an
-     *                               invalidated session
      * @return an <code>Enumeration</code> of
      * <code>String</code> objects specifying the
      * names of all the objects bound to
      * this session
+     * @throws IllegalStateException if this method is called on an
+     *                               invalidated session
      */
     @Override
     public Enumeration<String> getAttributeNames() {
@@ -186,12 +190,12 @@ public class TPHttpSession implements HttpSession {
     }
 
     /**
-     * @throws IllegalStateException if this method is called on an
-     *                               invalidated session
      * @return an array of <code>String</code>
      * objects specifying the
      * names of all the objects bound to
      * this session
+     * @throws IllegalStateException if this method is called on an
+     *                               invalidated session
      * @deprecated As of Version 2.2, this method is
      * replaced by {@link #getAttributeNames}
      */
@@ -231,7 +235,11 @@ public class TPHttpSession implements HttpSession {
     public void setAttribute(String name, Object value) {
         this.checkValid();
         this.updateLastAccess();
-        this.attributes.put(name, value);
+        if (this.attributes.put(name, value) == null) {
+            this.context.getListeners(HttpSessionAttributeListener.class).forEach(x -> x.attributeAdded(new HttpSessionBindingEvent(this, name, value)));
+        } else {
+            this.context.getListeners(HttpSessionAttributeListener.class).forEach(x -> x.attributeReplaced(new HttpSessionBindingEvent(this, name, value)));
+        }
     }
 
     /**
@@ -270,6 +278,7 @@ public class TPHttpSession implements HttpSession {
         this.checkValid();
         this.updateLastAccess();
         this.attributes.remove(name);
+        this.context.getListeners(HttpSessionAttributeListener.class).forEach(x -> x.attributeRemoved(new HttpSessionBindingEvent(this, name)));
     }
 
     /**
