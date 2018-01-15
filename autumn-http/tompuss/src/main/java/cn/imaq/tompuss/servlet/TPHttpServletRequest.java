@@ -1,9 +1,9 @@
 package cn.imaq.tompuss.servlet;
 
 import cn.imaq.autumn.http.protocol.AutumnHttpRequest;
-import cn.imaq.tompuss.core.TPEngine;
 import cn.imaq.tompuss.io.TPInputStream;
 import cn.imaq.tompuss.io.TPMultipartParser;
+import cn.imaq.tompuss.session.TPSessionContext;
 
 import javax.servlet.*;
 import javax.servlet.annotation.MultipartConfig;
@@ -21,19 +21,18 @@ import java.util.*;
 
 public class TPHttpServletRequest implements HttpServletRequest {
     private AutumnHttpRequest httpRequest;
-    //    private TPServletMapping servletMapping;
-    private TPEngine engine;
     private TPServletContext context;
+    private TPHttpExchange exchange;
 
     private String encoding = null;
     private Map<String, Object> attributes = new HashMap<>();
     private Map<String, String[]> params;
     private Map<String, TPFormPart> formParts;
 
-    public TPHttpServletRequest(AutumnHttpRequest httpRequest, TPEngine engine, TPServletContext context) {
+    public TPHttpServletRequest(AutumnHttpRequest httpRequest, TPServletContext context, TPHttpExchange exchange) {
         this.httpRequest = httpRequest;
-        this.engine = engine;
         this.context = context;
+        this.exchange = exchange;
     }
 
     /**
@@ -82,7 +81,7 @@ public class TPHttpServletRequest implements HttpServletRequest {
                 }
             }
         }
-        return (Cookie[]) cookieList.toArray();
+        return cookieList.toArray(new Cookie[0]);
     }
 
     /**
@@ -433,9 +432,12 @@ public class TPHttpServletRequest implements HttpServletRequest {
      */
     @Override
     public String getRequestedSessionId() {
-        for (Cookie cookie : this.getCookies()) {
-            if (cookie.getName().equals("JSESSIONID")) {
-                return cookie.getValue();
+        Cookie[] cookies = this.getCookies();
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if (cookie.getName().equals("JSESSIONID")) {
+                    return cookie.getValue();
+                }
             }
         }
         return null;
@@ -557,8 +559,22 @@ public class TPHttpServletRequest implements HttpServletRequest {
      */
     @Override
     public HttpSession getSession(boolean create) {
-        // TODO session
-        return null;
+        String sessId = this.getRequestedSessionId();
+        TPSessionContext sessionContext = context.getSessionContext();
+        HttpSession session = null;
+        if (sessId != null) {
+            session = sessionContext.getSession(sessId);
+        }
+        if (session == null && create) {
+            session = sessionContext.createSession(sessId);
+            if (!session.getId().equals(sessId)) {
+                Cookie cookie = new Cookie("JSESSIONID", session.getId());
+                cookie.setPath(this.context.getContextPath());
+                cookie.setHttpOnly(true);
+                this.exchange.getCookies().add(cookie);
+            }
+        }
+        return session;
     }
 
     /**
@@ -1082,12 +1098,15 @@ public class TPHttpServletRequest implements HttpServletRequest {
             }
             // Merge
             this.params = new HashMap<>();
-            paramsMap.forEach((key, value) -> this.params.put(key, (String[]) value.toArray()));
+            paramsMap.forEach((key, value) -> this.params.put(key, value.toArray(new String[0])));
         }
         return Collections.unmodifiableMap(this.params);
     }
 
     private void parseParamString(String paramStr, Map<String, List<String>> map) {
+        if (paramStr == null) {
+            return;
+        }
         String[] queries = paramStr.split("&");
         for (String query : queries) {
             String[] nameAndValue = query.split("=", 2);
@@ -1178,7 +1197,7 @@ public class TPHttpServletRequest implements HttpServletRequest {
             }
             return 80;
         }
-        return engine.getPort();
+        return this.context.getEngine().getPort();
     }
 
     /**
@@ -1441,7 +1460,7 @@ public class TPHttpServletRequest implements HttpServletRequest {
         try {
             return ((InetSocketAddress) httpRequest.getLocalAddress()).getPort();
         } catch (Exception e) {
-            return engine.getPort();
+            return this.context.getEngine().getPort();
         }
     }
 
@@ -1648,7 +1667,7 @@ public class TPHttpServletRequest implements HttpServletRequest {
      * <p>
      * <p>The initial dispatcher type of a request is defined as
      * <code>DispatcherType.REQUEST</code>. The dispatcher type of a request
-     * dispatched via {@link RequestDispatcher#forward(ServletRequest, * ServletResponse)} or {@link RequestDispatcher#include(ServletRequest, * ServletResponse)} is given as <code>DispatcherType.FORWARD</code> or
+     * dispatched via {@link RequestDispatcher#forward(ServletRequest, ServletResponse)} or {@link RequestDispatcher#include(ServletRequest, ServletResponse)} is given as <code>DispatcherType.FORWARD</code> or
      * <code>DispatcherType.INCLUDE</code>, respectively, while the
      * dispatcher type of an asynchronous request dispatched via
      * one of the {@link AsyncContext#dispatch} methods is given as

@@ -1,15 +1,16 @@
 package cn.imaq.tompuss.servlet;
 
 import cn.imaq.tompuss.core.TPRegistration;
+import lombok.extern.slf4j.Slf4j;
 
-import javax.servlet.MultipartConfigElement;
-import javax.servlet.Servlet;
-import javax.servlet.ServletRegistration;
-import javax.servlet.ServletSecurityElement;
+import javax.servlet.*;
 import javax.servlet.annotation.ServletSecurity;
+import javax.servlet.annotation.WebInitParam;
+import javax.servlet.annotation.WebServlet;
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+@Slf4j
 public class TPServletRegistration extends TPRegistration<Servlet> implements ServletRegistration.Dynamic {
     private int loadOnStartup = -1;
     private ServletSecurityElement securityElement;
@@ -19,6 +20,54 @@ public class TPServletRegistration extends TPRegistration<Servlet> implements Se
 
     public TPServletRegistration(TPServletContext context, String name, Servlet instance) {
         super(context, name, instance);
+    }
+
+    public void loadAnnotation(WebServlet ws) {
+        this.addMapping(ws.value());
+        this.addMapping(ws.urlPatterns());
+        this.setLoadOnStartup(ws.loadOnStartup());
+        this.setAsyncSupported(ws.asyncSupported());
+        for (WebInitParam initParam : ws.initParams()) {
+            this.setInitParameter(initParam.name(), initParam.value());
+        }
+    }
+
+    public Servlet getServletInstance() {
+        if (this.instance.getServletConfig() == null) {
+            synchronized (this) {
+                if (this.instance.getServletConfig() == null) {
+                    // init
+                    log.info("Initiating Servlet " + this.name + "[" + this.instance.getClass().getName() + "]");
+                    ServletConfig config = new ServletConfig() {
+                        @Override
+                        public String getServletName() {
+                            return TPServletRegistration.this.name;
+                        }
+
+                        @Override
+                        public ServletContext getServletContext() {
+                            return TPServletRegistration.this.context;
+                        }
+
+                        @Override
+                        public String getInitParameter(String name) {
+                            return TPServletRegistration.this.getInitParameter(name);
+                        }
+
+                        @Override
+                        public Enumeration<String> getInitParameterNames() {
+                            return Collections.enumeration(TPServletRegistration.this.getInitParameters().keySet());
+                        }
+                    };
+                    try {
+                        this.instance.init(config);
+                    } catch (ServletException e) {
+                        log.error("Error initiating Servlet " + this.name + "[" + this.instance.getClass().getName() + "]", e);
+                    }
+                }
+            }
+        }
+        return this.instance;
     }
 
     /**

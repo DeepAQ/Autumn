@@ -11,8 +11,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public abstract class TPRegistration<T> implements Registration.Dynamic {
     protected TPServletContext context;
-    private String name;
-    private T instance;
+    protected String name;
+    protected T instance;
 
     private boolean asyncSupported;
     private Map<String, String> initParams = new ConcurrentHashMap<>();

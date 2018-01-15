@@ -86,9 +86,9 @@ public class HttpServerSession extends AbstractHttpSession {
             sb.append("Content-Type: ").append(response.getContentType()).append("\r\n");
         }
         if (response.getBody() != null) {
-            sb.append("Content-Length: ").append(response.getBody().length).append("\r\n\r\n");
+            sb.append("Content-Length: ").append(response.getBody().length).append("\r\n");
         }
-        cChannel.write(ByteBuffer.wrap(sb.toString().getBytes()));
+        cChannel.write(ByteBuffer.wrap(sb.append("\r\n").toString().getBytes()));
         if (response.getBody() != null) {
             cChannel.write(ByteBuffer.wrap(response.getBody()));
         }

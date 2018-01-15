@@ -1,19 +1,21 @@
 package cn.imaq.tompuss.servlet;
 
 import cn.imaq.tompuss.core.TPEngine;
+import cn.imaq.tompuss.filter.TPFilterChain;
 import cn.imaq.tompuss.filter.TPFilterMapping;
 import cn.imaq.tompuss.filter.TPFilterRegistration;
+import cn.imaq.tompuss.session.TPSessionContext;
+import cn.imaq.tompuss.util.TPMatchResult;
+import cn.imaq.tompuss.util.TPPathUtil;
+import cn.imaq.tompuss.util.TPUrlPattern;
+import io.github.lukehutch.fastclasspathscanner.FastClasspathScanner;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.servlet.*;
-import javax.servlet.annotation.MultipartConfig;
-import javax.servlet.annotation.ServletSecurity;
-import javax.servlet.annotation.WebListener;
+import javax.servlet.annotation.*;
 import javax.servlet.descriptor.JspConfigDescriptor;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSessionAttributeListener;
-import javax.servlet.http.HttpSessionIdListener;
-import javax.servlet.http.HttpSessionListener;
+import javax.servlet.http.*;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -27,21 +29,89 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 @Slf4j
 public class TPServletContext implements ServletContext {
+    @Getter
     private TPEngine engine;
     private String appName;
     private String contextPath;
     private File resourceRoot;
+
+    @Getter
+    private TPSessionContext sessionContext = new TPSessionContext(this);
     private int sessionTimeout;
     private String requestEncoding = "utf-8";
     private String responseEncoding = "utf-8";
-
     private Map<String, String> initParams = new ConcurrentHashMap<>();
     private Map<String, Object> attributes = new ConcurrentHashMap<>();
     private Map<String, TPServletRegistration> servletRegistrations = new ConcurrentHashMap<>();
-    private Map<String, TPServletRegistration> servletMappings = new ConcurrentHashMap<>();
+    private Map<TPUrlPattern, TPServletRegistration> servletMappings = new ConcurrentHashMap<>();
     private Map<String, TPFilterRegistration> filterRegistrations = new ConcurrentHashMap<>();
     private Deque<TPFilterMapping> filterMappings = new ConcurrentLinkedDeque<>();
     private Map<Class<? extends EventListener>, Queue<EventListener>> listeners = new ConcurrentHashMap<>();
+
+    public TPServletContext(TPEngine engine, String appName, String contextPath, String resourceRoot) {
+        this.engine = engine;
+        this.appName = appName;
+        this.contextPath = TPPathUtil.transform(contextPath);
+        this.resourceRoot = new File(resourceRoot);
+    }
+
+    @SuppressWarnings("unchecked")
+    public void scanAnnotations() {
+        log.info("Scanning annotations in classpath ...");
+        new FastClasspathScanner().matchClassesWithAnnotation(WebServlet.class, cls -> {
+            if (HttpServlet.class.isAssignableFrom(cls)) {
+                log.info("Adding Servlet " + cls.getName());
+                WebServlet ws = cls.getAnnotation(WebServlet.class);
+                TPServletRegistration registration = (TPServletRegistration) this.addServlet(
+                        ws.name().isEmpty() ? cls.getName() : ws.name(),
+                        (Class<? extends Servlet>) cls
+                );
+                registration.loadAnnotation(ws);
+            }
+        }).matchClassesWithAnnotation(WebFilter.class, cls -> {
+            if (HttpFilter.class.isAssignableFrom(cls)) {
+                log.info("Adding Filter " + cls.getName());
+                WebFilter wf = cls.getAnnotation(WebFilter.class);
+                TPFilterRegistration registration = (TPFilterRegistration) this.addFilter(
+                        wf.filterName().isEmpty() ? cls.getName() : wf.filterName(),
+                        (Class<? extends Filter>) cls
+                );
+                registration.loadAnnotation(wf);
+            }
+        }).matchClassesWithAnnotation(WebListener.class, cls -> {
+            if (EventListener.class.isAssignableFrom(cls)) {
+                log.info("Adding Listener " + cls.getName());
+                this.addListener((Class<? extends EventListener>) cls);
+            }
+        }).scan();
+    }
+
+    public TPMatchResult<TPServletRegistration> matchServletByPath(String path) {
+        TPServletRegistration result = null;
+        TPUrlPattern.Match bestMatch = TPUrlPattern.Match.NO_MATCH;
+        for (Map.Entry<TPUrlPattern, TPServletRegistration> mapEntry : this.servletMappings.entrySet()) {
+            TPUrlPattern.Match match = mapEntry.getKey().match(path);
+            if (match.compareTo(bestMatch) > 0) {
+                bestMatch = match;
+                result = mapEntry.getValue();
+            }
+        }
+        if (result != null) {
+            return new TPMatchResult<>(bestMatch.getLength(), result);
+        } else {
+            return null;
+        }
+    }
+
+    public TPFilterChain matchFilters(String path, String servletName) {
+        Set<TPFilterRegistration> filters = new LinkedHashSet<>();
+        for (TPFilterMapping mapping : filterMappings) {
+            if (mapping.match(path, servletName)) {
+                filters.add(mapping.getRegistration());
+            }
+        }
+        return new TPFilterChain(filters);
+    }
 
     /**
      * Returns the context path of the web application.
@@ -96,7 +166,11 @@ public class TPServletContext implements ServletContext {
      */
     @Override
     public ServletContext getContext(String uripath) {
-        return engine.matchContextByPath(uripath);
+        TPMatchResult<TPServletContext> result = engine.matchContextByPath(uripath);
+        if (result == null) {
+            return null;
+        }
+        return result.getObject();
     }
 
     /**
@@ -870,7 +944,7 @@ public class TPServletContext implements ServletContext {
     }
 
     public boolean addServletMapping(String pattern, TPServletRegistration registration) {
-        return (this.servletMappings.putIfAbsent(pattern, registration) == null);
+        return (this.servletMappings.putIfAbsent(new TPUrlPattern(pattern), registration) == null);
     }
 
     /**
@@ -1545,6 +1619,14 @@ public class TPServletContext implements ServletContext {
         } catch (InstantiationException | IllegalAccessException e) {
             throw new ServletException(e);
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T extends EventListener> Collection<T> getListeners(Class<T> listenerClass) {
+        if (!this.listeners.containsKey(listenerClass)) {
+            return Collections.emptyList();
+        }
+        return (Collection<T>) this.listeners.get(listenerClass);
     }
 
     /**
