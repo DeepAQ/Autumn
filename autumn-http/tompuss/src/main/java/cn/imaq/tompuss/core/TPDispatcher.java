@@ -25,12 +25,13 @@ public class TPDispatcher implements AutumnHttpHandler {
 
     @Override
     public AutumnHttpResponse handle(AutumnHttpRequest request) {
-        TPMatchResult<TPServletContext> contextMatch = engine.matchContextByPath(request.getPath());
+        String path = request.getPath().split("\\?", 2)[0];
+        TPMatchResult<TPServletContext> contextMatch = engine.matchContextByPath(path);
         if (contextMatch == null) {
             return notFound();
         }
         TPServletContext context = contextMatch.getObject();
-        String remainPath = request.getPath().substring(contextMatch.getMatched().length() - 1);
+        String remainPath = path.substring(contextMatch.getLength() - 1);
         // TODO filters
         TPMatchResult<TPServletRegistration> servletMatch = context.matchServletByPath(remainPath);
         if (servletMatch == null) {

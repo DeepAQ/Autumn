@@ -6,7 +6,7 @@ import lombok.Data;
 @Data
 @AllArgsConstructor
 public class TPMatchResult<T> {
-    private String matched;
+    private int length;
 
     private T object;
 }

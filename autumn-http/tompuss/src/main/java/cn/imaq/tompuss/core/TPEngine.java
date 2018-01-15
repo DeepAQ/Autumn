@@ -61,7 +61,7 @@ public class TPEngine {
             }
         }
         if (result != null) {
-            return new TPMatchResult<>(result.getContextPath(), result);
+            return new TPMatchResult<>(result.getContextPath().length(), result);
         } else {
             return null;
         }

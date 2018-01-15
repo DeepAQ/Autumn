@@ -6,6 +6,7 @@ import cn.imaq.tompuss.filter.TPFilterRegistration;
 import cn.imaq.tompuss.session.TPSessionContext;
 import cn.imaq.tompuss.util.TPMatchResult;
 import cn.imaq.tompuss.util.TPPathUtil;
+import cn.imaq.tompuss.util.TPUrlPattern;
 import io.github.lukehutch.fastclasspathscanner.FastClasspathScanner;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -41,7 +42,7 @@ public class TPServletContext implements ServletContext {
     private Map<String, String> initParams = new ConcurrentHashMap<>();
     private Map<String, Object> attributes = new ConcurrentHashMap<>();
     private Map<String, TPServletRegistration> servletRegistrations = new ConcurrentHashMap<>();
-    private Map<String, TPServletRegistration> servletMappings = new ConcurrentHashMap<>();
+    private Map<TPUrlPattern, TPServletRegistration> servletMappings = new ConcurrentHashMap<>();
     private Map<String, TPFilterRegistration> filterRegistrations = new ConcurrentHashMap<>();
     private Deque<TPFilterMapping> filterMappings = new ConcurrentLinkedDeque<>();
     private Map<Class<? extends EventListener>, Queue<EventListener>> listeners = new ConcurrentHashMap<>();
@@ -86,16 +87,16 @@ public class TPServletContext implements ServletContext {
 
     public TPMatchResult<TPServletRegistration> matchServletByPath(String path) {
         TPServletRegistration result = null;
-        String bestMatched = "";
-        for (Map.Entry<String, TPServletRegistration> mapEntry : this.servletMappings.entrySet()) {
-            String pattern = mapEntry.getKey();
-            if (path.startsWith(pattern) && pattern.length() > bestMatched.length()) {
-                bestMatched = pattern;
+        TPUrlPattern.Match bestMatch = TPUrlPattern.Match.NO_MATCH;
+        for (Map.Entry<TPUrlPattern, TPServletRegistration> mapEntry : this.servletMappings.entrySet()) {
+            TPUrlPattern.Match match = mapEntry.getKey().match(path);
+            if (match.compareTo(bestMatch) > 0) {
+                bestMatch = match;
                 result = mapEntry.getValue();
             }
         }
         if (result != null) {
-            return new TPMatchResult<>(bestMatched, result);
+            return new TPMatchResult<>(bestMatch.getLength(), result);
         } else {
             return null;
         }
@@ -932,8 +933,7 @@ public class TPServletContext implements ServletContext {
     }
 
     public boolean addServletMapping(String pattern, TPServletRegistration registration) {
-        pattern = TPPathUtil.transform(pattern);
-        return (this.servletMappings.putIfAbsent(pattern, registration) == null);
+        return (this.servletMappings.putIfAbsent(new TPUrlPattern(pattern), registration) == null);
     }
 
     /**
