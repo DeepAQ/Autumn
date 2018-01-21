@@ -29,22 +29,26 @@ public class TPUrlPattern {
 
     public Match match(String path) {
         boolean matches = false;
+        String matched = "";
         switch (this.type) {
             case EXACT:
                 matches = this.pattern.equals(path);
+                matched = this.pattern;
                 break;
             case PREFIX:
                 matches = path.startsWith(this.pattern);
+                matched = this.pattern;
                 break;
             case SUFFIX:
                 matches = path.endsWith(this.pattern);
+                matched = path;
                 break;
             case DEFAULT:
                 matches = true;
                 break;
         }
         if (matches) {
-            return new Match(this.type, this.pattern.length());
+            return new Match(this.type, this.pattern.length(), matched);
         } else {
             return Match.NO_MATCH;
         }
@@ -64,17 +68,19 @@ public class TPUrlPattern {
     @Getter
     @AllArgsConstructor
     public static class Match implements Comparable<Match> {
-        public static final Match NO_MATCH = new Match(Type.DEFAULT, -1);
+        public static final Match NO_MATCH = new Match(Type.DEFAULT, -1, "");
 
-        private Type type;
+        private Type patternType;
 
-        private int length;
+        private int patternLength;
+
+        private String matched;
 
         @Override
         public int compareTo(Match other) {
-            if (this.type.priority > other.type.priority) {
+            if (this.patternType.priority > other.patternType.priority) {
                 return 1;
-            } else if ((this.type.priority == other.type.priority) && (this.length > other.length)) {
+            } else if ((this.patternType.priority == other.patternType.priority) && (this.patternLength > other.patternLength)) {
                 return 1;
             } else {
                 return -1;

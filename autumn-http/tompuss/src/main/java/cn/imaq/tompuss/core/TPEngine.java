@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -44,7 +45,7 @@ public class TPEngine {
         this.httpServer.stop();
     }
 
-    public TPServletContext newWebApp(String appName, String contextPath, String resourceRoot) {
+    public TPServletContext newWebApp(String appName, String contextPath, File resourceRoot) {
         TPServletContext context = new TPServletContext(this, appName, contextPath, resourceRoot);
         this.contexts.add(context);
         return context;
@@ -61,7 +62,7 @@ public class TPEngine {
             }
         }
         if (result != null) {
-            return new TPMatchResult<>(result.getContextPath().length(), result);
+            return new TPMatchResult<>(result.getContextPath(), result);
         } else {
             return null;
         }

@@ -36,7 +36,7 @@ public class TPDispatcher implements AutumnHttpHandler {
         }
         TPServletContext context = contextMatch.getObject();
         // Match Servlet
-        String remainPath = path.substring(contextMatch.getLength() - 1);
+        String remainPath = path.substring(contextMatch.getMatched().length() - 1);
         TPMatchResult<TPServletRegistration> servletMatch = context.matchServletByPath(remainPath);
         if (servletMatch == null) {
             return notFound();
@@ -47,7 +47,7 @@ public class TPDispatcher implements AutumnHttpHandler {
         }
         // Build request and response
         TPHttpExchange exchange = new TPHttpExchange();
-        TPHttpServletRequest req = new TPHttpServletRequest(request, context, exchange);
+        TPHttpServletRequest req = new TPHttpServletRequest(request, context, servletMatch, exchange);
         TPHttpServletResponse resp = new TPHttpServletResponse(context, exchange);
         context.getListeners(ServletRequestListener.class).forEach(x -> x.requestInitialized(new ServletRequestEvent(context, req)));
         // Match Filters

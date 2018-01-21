@@ -4,6 +4,7 @@ import cn.imaq.autumn.http.protocol.AutumnHttpRequest;
 import cn.imaq.tompuss.io.TPInputStream;
 import cn.imaq.tompuss.io.TPMultipartParser;
 import cn.imaq.tompuss.session.TPSessionContext;
+import cn.imaq.tompuss.util.TPMatchResult;
 
 import javax.servlet.*;
 import javax.servlet.annotation.MultipartConfig;
@@ -22,6 +23,7 @@ import java.util.*;
 public class TPHttpServletRequest implements HttpServletRequest {
     private AutumnHttpRequest httpRequest;
     private TPServletContext context;
+    private TPMatchResult matchResult;
     private TPHttpExchange exchange;
 
     private String encoding = null;
@@ -29,9 +31,10 @@ public class TPHttpServletRequest implements HttpServletRequest {
     private Map<String, String[]> params;
     private Map<String, TPFormPart> formParts;
 
-    public TPHttpServletRequest(AutumnHttpRequest httpRequest, TPServletContext context, TPHttpExchange exchange) {
+    public TPHttpServletRequest(AutumnHttpRequest httpRequest, TPServletContext context, TPMatchResult matchResult, TPHttpExchange exchange) {
         this.httpRequest = httpRequest;
         this.context = context;
+        this.matchResult = matchResult;
         this.exchange = exchange;
     }
 
@@ -275,7 +278,7 @@ public class TPHttpServletRequest implements HttpServletRequest {
     public String getPathInfo() {
         String[] pathAndQuery = httpRequest.getPath().split("\\?", 2);
         try {
-            String pathInfo = ""; // pathAndQuery[0].substring(servletMapping.getPath().length());
+            String pathInfo = pathAndQuery[0].substring(this.getServletPath().length());
             if (pathInfo.isEmpty()) {
                 return null;
             }
@@ -331,7 +334,7 @@ public class TPHttpServletRequest implements HttpServletRequest {
      */
     @Override
     public String getContextPath() {
-        return "";
+        return this.context.getContextPath();
     }
 
     /**
@@ -527,8 +530,7 @@ public class TPHttpServletRequest implements HttpServletRequest {
      */
     @Override
     public String getServletPath() {
-        // return servletMapping.getPath();
-        return "";
+        return this.matchResult.getMatched();
     }
 
     /**

@@ -22,6 +22,7 @@ public class TPHttpServletResponse implements HttpServletResponse {
     private String contentType;
     private Map<String, List<String>> headers;
     private TPOutputStream outputStream;
+    private PrintWriter writer;
     private int bufferSize = 32;
     private Locale locale;
     private String encoding;
@@ -34,6 +35,9 @@ public class TPHttpServletResponse implements HttpServletResponse {
 
     public AutumnHttpResponse toAutumnHttpResponse() {
         byte[] body = null;
+        if (writer != null) {
+            writer.flush();
+        }
         if (outputStream != null) {
             body = outputStream.toByteArray();
         }
@@ -614,7 +618,10 @@ public class TPHttpServletResponse implements HttpServletResponse {
      */
     @Override
     public PrintWriter getWriter() throws IOException {
-        return new PrintWriter(new OutputStreamWriter(this.getOutputStream(), this.getCharacterEncoding()));
+        if (this.writer == null) {
+            this.writer = new PrintWriter(new OutputStreamWriter(this.getOutputStream(), this.getCharacterEncoding()));
+        }
+        return this.writer;
     }
 
     /**

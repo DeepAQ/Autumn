@@ -4,4 +4,5 @@ dependencies {
     compile project(':autumn-http:autumn-http-server')
     compile 'javax.servlet:javax.servlet-api:4.0.0'
     compile 'io.github.lukehutch:fast-classpath-scanner:2.9.3'
+    compile 'org.eclipse.jetty.toolchain:jetty-jsp-jdt:2.3.3'
 }

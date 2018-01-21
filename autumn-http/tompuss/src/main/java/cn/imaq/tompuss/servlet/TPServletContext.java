@@ -11,6 +11,7 @@ import cn.imaq.tompuss.util.TPUrlPattern;
 import io.github.lukehutch.fastclasspathscanner.FastClasspathScanner;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.jasper.servlet.JspServlet;
 
 import javax.servlet.*;
 import javax.servlet.annotation.*;
@@ -48,11 +49,11 @@ public class TPServletContext implements ServletContext {
     private Deque<TPFilterMapping> filterMappings = new ConcurrentLinkedDeque<>();
     private Map<Class<? extends EventListener>, Queue<EventListener>> listeners = new ConcurrentHashMap<>();
 
-    public TPServletContext(TPEngine engine, String appName, String contextPath, String resourceRoot) {
+    public TPServletContext(TPEngine engine, String appName, String contextPath, File resourceRoot) {
         this.engine = engine;
         this.appName = appName;
         this.contextPath = TPPathUtil.transform(contextPath);
-        this.resourceRoot = new File(resourceRoot);
+        this.resourceRoot = resourceRoot;
     }
 
     @SuppressWarnings("unchecked")
@@ -86,6 +87,12 @@ public class TPServletContext implements ServletContext {
         }).scan();
     }
 
+    public void enableJsp() {
+        log.info("Enabling JSP support ...");
+        System.setProperty("org.apache.jasper.compiler.disablejsr199", "true");
+        this.addServlet("JspServlet", JspServlet.class).addMapping("*.jsp");
+    }
+
     public TPMatchResult<TPServletRegistration> matchServletByPath(String path) {
         TPServletRegistration result = null;
         TPUrlPattern.Match bestMatch = TPUrlPattern.Match.NO_MATCH;
@@ -97,7 +104,7 @@ public class TPServletContext implements ServletContext {
             }
         }
         if (result != null) {
-            return new TPMatchResult<>(bestMatch.getLength(), result);
+            return new TPMatchResult<>(bestMatch.getMatched(), result);
         } else {
             return null;
         }

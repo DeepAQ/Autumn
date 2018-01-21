@@ -52,7 +52,7 @@ public abstract class TPFilterMapping {
         @Override
         public boolean match(String path, String servletName) {
             for (TPUrlPattern pattern : urlPatterns) {
-                if (pattern.getType() != TPUrlPattern.Type.DEFAULT && pattern.match(path).getLength() >= 0) {
+                if (pattern.getType() != TPUrlPattern.Type.DEFAULT && pattern.match(path).getPatternLength() >= 0) {
                     return true;
                 }
             }
