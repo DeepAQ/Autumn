@@ -51,10 +51,9 @@ public class TPDispatcher implements AutumnHttpHandler {
         TPHttpServletResponse resp = new TPHttpServletResponse(context, exchange);
         context.getListeners(ServletRequestListener.class).forEach(x -> x.requestInitialized(new ServletRequestEvent(context, req)));
         // Match Filters
-        TPFilterChain filterChain = context.matchFilters(path, servletMatch.getObject().getName());
+        TPFilterChain filterChain = context.matchFilters(path, servlet);
         try {
             filterChain.doFilter(req, resp);
-            servlet.service(req, resp);
         } catch (Exception e) {
             log.warn("Exception in dispatcher", e);
             return error(e);

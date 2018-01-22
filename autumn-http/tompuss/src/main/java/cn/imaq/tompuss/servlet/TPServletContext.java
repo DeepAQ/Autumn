@@ -110,14 +110,14 @@ public class TPServletContext implements ServletContext {
         }
     }
 
-    public TPFilterChain matchFilters(String path, String servletName) {
+    public TPFilterChain matchFilters(String path, Servlet servlet) {
         Set<TPFilterRegistration> filters = new LinkedHashSet<>();
         for (TPFilterMapping mapping : filterMappings) {
-            if (mapping.match(path, servletName)) {
+            if (mapping.match(path, servlet.getServletConfig().getServletName())) {
                 filters.add(mapping.getRegistration());
             }
         }
-        return new TPFilterChain(filters);
+        return new TPFilterChain(filters, servlet);
     }
 
     /**

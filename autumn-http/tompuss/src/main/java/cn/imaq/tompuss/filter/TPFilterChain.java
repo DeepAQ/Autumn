@@ -1,17 +1,17 @@
 package cn.imaq.tompuss.filter;
 
-import javax.servlet.FilterChain;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
+import javax.servlet.*;
 import java.io.IOException;
 import java.util.Iterator;
 
 public class TPFilterChain implements FilterChain {
     private Iterator<TPFilterRegistration> iterator;
 
-    public TPFilterChain(Iterable<TPFilterRegistration> filters) {
+    private Servlet servlet;
+
+    public TPFilterChain(Iterable<TPFilterRegistration> filters, Servlet servlet) {
         this.iterator = filters.iterator();
+        this.servlet = servlet;
     }
 
     /**
@@ -28,6 +28,8 @@ public class TPFilterChain implements FilterChain {
     public void doFilter(ServletRequest request, ServletResponse response) throws IOException, ServletException {
         if (iterator.hasNext()) {
             iterator.next().getFilterInstance().doFilter(request, response, this);
+        } else if (servlet != null) {
+            servlet.service(request, response);
         }
     }
 }
