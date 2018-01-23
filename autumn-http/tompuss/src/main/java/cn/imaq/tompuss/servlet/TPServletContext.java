@@ -1,6 +1,7 @@
 package cn.imaq.tompuss.servlet;
 
 import cn.imaq.tompuss.core.TPEngine;
+import cn.imaq.tompuss.core.TPRequestDispatcher;
 import cn.imaq.tompuss.filter.TPFilterChain;
 import cn.imaq.tompuss.filter.TPFilterMapping;
 import cn.imaq.tompuss.filter.TPFilterRegistration;
@@ -110,10 +111,10 @@ public class TPServletContext implements ServletContext {
         }
     }
 
-    public TPFilterChain matchFilters(String path, Servlet servlet) {
+    public TPFilterChain matchFilters(String path, Servlet servlet, DispatcherType dispatcherType) {
         Set<TPFilterRegistration> filters = new LinkedHashSet<>();
         for (TPFilterMapping mapping : filterMappings) {
-            if (mapping.match(path, servlet.getServletConfig().getServletName())) {
+            if (mapping.getDispatcherTypes().contains(dispatcherType) && mapping.match(path, servlet.getServletConfig().getServletName())) {
                 filters.add(mapping.getRegistration());
             }
         }
@@ -441,8 +442,7 @@ public class TPServletContext implements ServletContext {
      */
     @Override
     public RequestDispatcher getRequestDispatcher(String path) {
-        // TODO dispatcher
-        return null;
+        return new TPRequestDispatcher(this, path);
     }
 
     /**

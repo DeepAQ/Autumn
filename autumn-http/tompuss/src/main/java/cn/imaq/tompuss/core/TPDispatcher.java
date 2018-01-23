@@ -3,15 +3,13 @@ package cn.imaq.tompuss.core;
 import cn.imaq.autumn.http.protocol.AutumnHttpRequest;
 import cn.imaq.autumn.http.protocol.AutumnHttpResponse;
 import cn.imaq.autumn.http.server.protocol.AutumnHttpHandler;
-import cn.imaq.tompuss.filter.TPFilterChain;
-import cn.imaq.tompuss.servlet.*;
+import cn.imaq.tompuss.servlet.TPHttpExchange;
+import cn.imaq.tompuss.servlet.TPHttpServletRequest;
+import cn.imaq.tompuss.servlet.TPHttpServletResponse;
+import cn.imaq.tompuss.servlet.TPServletContext;
 import cn.imaq.tompuss.util.TPMatchResult;
 import lombok.extern.slf4j.Slf4j;
 
-import javax.servlet.Servlet;
-import javax.servlet.ServletRequestEvent;
-import javax.servlet.ServletRequestListener;
-import javax.servlet.http.HttpServlet;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.io.Writer;
@@ -35,30 +33,20 @@ public class TPDispatcher implements AutumnHttpHandler {
             return notFound();
         }
         TPServletContext context = contextMatch.getObject();
-        // Match Servlet
         String remainPath = path.substring(contextMatch.getMatched().length() - 1);
-        TPMatchResult<TPServletRegistration> servletMatch = context.matchServletByPath(remainPath);
-        if (servletMatch == null) {
-            return notFound();
-        }
-        Servlet servlet = servletMatch.getObject().getServletInstance();
-        if (!(servlet instanceof HttpServlet)) {
-            return notFound();
-        }
         // Build request and response
         TPHttpExchange exchange = new TPHttpExchange();
-        TPHttpServletRequest req = new TPHttpServletRequest(request, context, servletMatch, exchange);
+        TPHttpServletRequest req = new TPHttpServletRequest(request, context, exchange);
         TPHttpServletResponse resp = new TPHttpServletResponse(context, exchange);
-        context.getListeners(ServletRequestListener.class).forEach(x -> x.requestInitialized(new ServletRequestEvent(context, req)));
-        // Match Filters
-        TPFilterChain filterChain = context.matchFilters(path, servlet);
+        // Dispatch
         try {
-            filterChain.doFilter(req, resp);
+            TPRequestDispatcher.Result result = ((TPRequestDispatcher) context.getRequestDispatcher(remainPath)).request(req, resp);
+            if (result == TPRequestDispatcher.Result.NOTFOUND) {
+                return notFound();
+            }
         } catch (Exception e) {
             log.warn("Exception in dispatcher", e);
             return error(e);
-        } finally {
-            context.getListeners(ServletRequestListener.class).forEach(x -> x.requestDestroyed(new ServletRequestEvent(context, req)));
         }
         return resp.toAutumnHttpResponse();
     }

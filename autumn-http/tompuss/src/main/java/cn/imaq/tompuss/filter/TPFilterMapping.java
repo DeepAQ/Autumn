@@ -14,6 +14,7 @@ public abstract class TPFilterMapping {
     @Getter
     private TPFilterRegistration registration;
 
+    @Getter
     private Set<DispatcherType> dispatcherTypes;
 
     TPFilterMapping(TPFilterRegistration registration, Set<DispatcherType> dispatcherTypes) {

@@ -5,6 +5,7 @@ import cn.imaq.tompuss.io.TPInputStream;
 import cn.imaq.tompuss.io.TPMultipartParser;
 import cn.imaq.tompuss.session.TPSessionContext;
 import cn.imaq.tompuss.util.TPMatchResult;
+import lombok.Setter;
 
 import javax.servlet.*;
 import javax.servlet.annotation.MultipartConfig;
@@ -23,7 +24,6 @@ import java.util.*;
 public class TPHttpServletRequest implements HttpServletRequest {
     private AutumnHttpRequest httpRequest;
     private TPServletContext context;
-    private TPMatchResult matchResult;
     private TPHttpExchange exchange;
 
     private String encoding = null;
@@ -31,10 +31,14 @@ public class TPHttpServletRequest implements HttpServletRequest {
     private Map<String, String[]> params;
     private Map<String, TPFormPart> formParts;
 
-    public TPHttpServletRequest(AutumnHttpRequest httpRequest, TPServletContext context, TPMatchResult matchResult, TPHttpExchange exchange) {
+    @Setter
+    private TPMatchResult matchResult;
+    @Setter
+    private DispatcherType dispatcherType = DispatcherType.REQUEST;
+
+    public TPHttpServletRequest(AutumnHttpRequest httpRequest, TPServletContext context, TPHttpExchange exchange) {
         this.httpRequest = httpRequest;
         this.context = context;
-        this.matchResult = matchResult;
         this.exchange = exchange;
     }
 
@@ -530,6 +534,9 @@ public class TPHttpServletRequest implements HttpServletRequest {
      */
     @Override
     public String getServletPath() {
+        if (this.matchResult == null) {
+            return "";
+        }
         return this.matchResult.getMatched();
     }
 
@@ -1383,8 +1390,10 @@ public class TPHttpServletRequest implements HttpServletRequest {
      */
     @Override
     public RequestDispatcher getRequestDispatcher(String path) {
-        // TODO dispatcher
-        return null;
+        if (!path.startsWith("/")) {
+            path = this.getServletPath() + "/" + path;
+        }
+        return this.context.getRequestDispatcher(path);
     }
 
     /**
@@ -1683,6 +1692,6 @@ public class TPHttpServletRequest implements HttpServletRequest {
      */
     @Override
     public DispatcherType getDispatcherType() {
-        return DispatcherType.REQUEST;
+        return this.dispatcherType;
     }
 }

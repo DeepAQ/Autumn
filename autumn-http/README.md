@@ -10,7 +10,7 @@ TomPuss 是一个基于 AutumnHTTP 开发的 Servlet 容器，支持基本的 Se
     - [x] Cookies
     - [x] Session
     - [x] File upload
-    - [ ] Forward
+    - [x] Forward
     - [ ] Async context
     - [ ] WebSocket
 - [x] HttpFilter
@@ -23,6 +23,6 @@ TomPuss 是一个基于 AutumnHTTP 开发的 Servlet 容器，支持基本的 Se
     - [ ] HttpSessionIdListener
     - [x] HttpSessionListener
 - [ ] Static resources
-- [ ] JSP
+- [x] JSP
 - [x] Configuration by annotations
 - [ ] Configuration by web.xml
