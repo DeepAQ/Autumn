@@ -1289,6 +1289,15 @@ public class TPHttpServletRequest implements HttpServletRequest {
      */
     @Override
     public void setAttribute(String name, Object o) {
+        if (attributes.containsKey(name)) {
+            context.getListeners(ServletRequestAttributeListener.class).forEach(x ->
+                    x.attributeReplaced(new ServletRequestAttributeEvent(context, this, name, o))
+            );
+        } else {
+            context.getListeners(ServletRequestAttributeListener.class).forEach(x ->
+                    x.attributeAdded(new ServletRequestAttributeEvent(context, this, name, o))
+            );
+        }
         attributes.put(name, o);
     }
 
@@ -1307,6 +1316,9 @@ public class TPHttpServletRequest implements HttpServletRequest {
      */
     @Override
     public void removeAttribute(String name) {
+        context.getListeners(ServletRequestAttributeListener.class).forEach(x ->
+                x.attributeRemoved(new ServletRequestAttributeEvent(context, this, name, attributes.get(name)))
+        );
         attributes.remove(name);
     }
 

@@ -44,7 +44,7 @@ public class TPDispatcher implements AutumnHttpHandler {
             if (result == TPRequestDispatcher.Result.NOTFOUND) {
                 return notFound();
             }
-        } catch (Exception e) {
+        } catch (Throwable e) {
             log.warn("Exception in dispatcher", e);
             return error(e);
         }
@@ -59,7 +59,7 @@ public class TPDispatcher implements AutumnHttpHandler {
                 .build();
     }
 
-    private static AutumnHttpResponse error(Exception e) {
+    private static AutumnHttpResponse error(Throwable e) {
         Writer writer = new StringWriter();
         e.printStackTrace(new PrintWriter(writer, true));
         return AutumnHttpResponse.builder()

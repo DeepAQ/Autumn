@@ -795,6 +795,15 @@ public class TPServletContext implements ServletContext {
      */
     @Override
     public void setAttribute(String name, Object object) {
+        if (this.attributes.containsKey(name)) {
+            this.getListeners(ServletContextAttributeListener.class).forEach(x ->
+                    x.attributeReplaced(new ServletContextAttributeEvent(this, name, object))
+            );
+        } else {
+            this.getListeners(ServletContextAttributeListener.class).forEach(x ->
+                    x.attributeAdded(new ServletContextAttributeEvent(this, name, object))
+            );
+        }
         this.attributes.put(name, object);
     }
 
@@ -812,6 +821,9 @@ public class TPServletContext implements ServletContext {
      */
     @Override
     public void removeAttribute(String name) {
+        this.getListeners(ServletContextAttributeListener.class).forEach(x ->
+                x.attributeRemoved(new ServletContextAttributeEvent(this, name, this.attributes.get(name)))
+        );
         this.attributes.remove(name);
     }
 
