@@ -1,6 +1,7 @@
 package cn.imaq.tompuss.servlet;
 
 import cn.imaq.tompuss.core.TPRegistration;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.servlet.*;
@@ -12,6 +13,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 @Slf4j
 public class TPServletRegistration extends TPRegistration<Servlet> implements ServletRegistration.Dynamic {
+    @Getter
     private int loadOnStartup = -1;
     private ServletSecurityElement securityElement;
     private MultipartConfigElement multipartConfig;

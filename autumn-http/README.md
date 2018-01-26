@@ -15,7 +15,7 @@ TomPuss 是一个基于 AutumnHTTP 开发的 Servlet 容器，支持基本的 Se
     - [ ] WebSocket
 - [x] HttpFilter
 - [x] EventListener
-    - [ ] ServletContextListener
+    - [x] ServletContextListener
     - [ ] ServletContextAttributeListener
     - [x] ServletRequestListener
     - [ ] ServletRequestAttributeListener

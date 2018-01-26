@@ -37,6 +37,7 @@ public class TPServletContext implements ServletContext {
     private String appName;
     private String contextPath;
     private File resourceRoot;
+    private volatile boolean started = false;
 
     @Getter
     private TPSessionContext sessionContext = new TPSessionContext(this);
@@ -58,16 +59,15 @@ public class TPServletContext implements ServletContext {
         this.resourceRoot = resourceRoot;
     }
 
-    public void loadConfigFile(String fileName) {
+    public synchronized void loadConfigFile(String fileName) {
         TPXmlUtil.parseWebXml(this, new File(this.resourceRoot, fileName));
     }
 
     @SuppressWarnings("unchecked")
-    public void scanAnnotations() {
+    public synchronized void scanAnnotations() {
         log.info("Scanning annotations in classpath ...");
         new FastClasspathScanner().matchClassesWithAnnotation(WebServlet.class, cls -> {
             if (HttpServlet.class.isAssignableFrom(cls)) {
-                log.info("Adding Servlet " + cls.getName());
                 WebServlet ws = cls.getAnnotation(WebServlet.class);
                 TPServletRegistration registration = (TPServletRegistration) this.addServlet(
                         ws.name().isEmpty() ? cls.getName() : ws.name(),
@@ -77,7 +77,6 @@ public class TPServletContext implements ServletContext {
             }
         }).matchClassesWithAnnotation(WebFilter.class, cls -> {
             if (HttpFilter.class.isAssignableFrom(cls)) {
-                log.info("Adding Filter " + cls.getName());
                 WebFilter wf = cls.getAnnotation(WebFilter.class);
                 TPFilterRegistration registration = (TPFilterRegistration) this.addFilter(
                         wf.filterName().isEmpty() ? cls.getName() : wf.filterName(),
@@ -87,16 +86,35 @@ public class TPServletContext implements ServletContext {
             }
         }).matchClassesWithAnnotation(WebListener.class, cls -> {
             if (EventListener.class.isAssignableFrom(cls)) {
-                log.info("Adding Listener " + cls.getName());
                 this.addListener((Class<? extends EventListener>) cls);
             }
         }).scan();
     }
 
-    public void enableJsp() {
+    public synchronized void enableJsp() {
         log.info("Enabling JSP support ...");
         System.setProperty("org.apache.jasper.compiler.disablejsr199", "true");
         this.addServlet("JspServlet", JspServlet.class).addMapping("*.jsp");
+    }
+
+    public synchronized void startup() {
+        log.info("Starting up context ...");
+        if (!this.started) {
+            Map<Integer, List<TPServletRegistration>> servletStartupMap = new TreeMap<>();
+            for (TPServletRegistration servletRegistration : this.servletRegistrations.values()) {
+                if (servletRegistration.getLoadOnStartup() >= 0) {
+                    servletStartupMap.computeIfAbsent(servletRegistration.getLoadOnStartup(), x -> new LinkedList<>())
+                            .add(servletRegistration);
+                }
+            }
+            for (List<TPServletRegistration> servletRegistrations : servletStartupMap.values()) {
+                for (TPServletRegistration servletRegistration : servletRegistrations) {
+                    servletRegistration.getServletInstance();
+                }
+            }
+            this.getListeners(ServletContextListener.class).forEach(x -> x.contextInitialized(new ServletContextEvent(this)));
+            this.started = true;
+        }
     }
 
     public TPMatchResult<TPServletRegistration> matchServletByPath(String path) {
@@ -901,6 +919,7 @@ public class TPServletContext implements ServletContext {
         if (servletName == null || servletName.isEmpty()) {
             throw new IllegalArgumentException();
         }
+        log.info("Adding Servlet " + servletName + "[" + servlet.getClass().getName() + "]");
         TPServletRegistration registration = new TPServletRegistration(this, servletName, servlet);
         this.servletRegistrations.put(servletName, registration);
         return registration;
@@ -1168,6 +1187,7 @@ public class TPServletContext implements ServletContext {
         if (filterName == null || filterName.isEmpty()) {
             throw new IllegalArgumentException();
         }
+        log.info("Adding Filter " + filterName + "[" + filter.getClass().getName() + "]");
         TPFilterRegistration registration = new TPFilterRegistration(this, filterName, filter);
         this.filterRegistrations.put(filterName, registration);
         return registration;
@@ -1515,6 +1535,7 @@ public class TPServletContext implements ServletContext {
     @SuppressWarnings("unchecked")
     @Override
     public <T extends EventListener> void addListener(T t) {
+        log.info("Adding Listener " + t.getClass().getName());
         for (Class<?> intf : t.getClass().getInterfaces()) {
             if (EventListener.class.isAssignableFrom(intf)) {
                 this.listeners.computeIfAbsent((Class<? extends EventListener>) intf, x -> new ConcurrentLinkedQueue<>()).add(t);
