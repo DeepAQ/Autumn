@@ -30,6 +30,7 @@ public class TomPuss {
             TPBanner.printBanner();
             this.engine = new TPEngine(port);
             TPServletContext app = this.engine.newWebApp("root", "/", this.resourceRoot);
+            app.loadConfigFile("WEB-INF/web.xml");
             app.scanAnnotations();
             app.enableJsp();
             this.engine.start();

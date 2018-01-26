@@ -9,6 +9,7 @@ import cn.imaq.tompuss.session.TPSessionContext;
 import cn.imaq.tompuss.util.TPMatchResult;
 import cn.imaq.tompuss.util.TPPathUtil;
 import cn.imaq.tompuss.util.TPUrlPattern;
+import cn.imaq.tompuss.util.TPXmlUtil;
 import io.github.lukehutch.fastclasspathscanner.FastClasspathScanner;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -55,6 +56,10 @@ public class TPServletContext implements ServletContext {
         this.appName = appName;
         this.contextPath = TPPathUtil.transform(contextPath);
         this.resourceRoot = resourceRoot;
+    }
+
+    public void loadConfigFile(String fileName) {
+        TPXmlUtil.parseWebXml(this, new File(this.resourceRoot, fileName));
     }
 
     @SuppressWarnings("unchecked")

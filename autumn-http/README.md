@@ -25,4 +25,4 @@ TomPuss 是一个基于 AutumnHTTP 开发的 Servlet 容器，支持基本的 Se
 - [ ] Static resources
 - [x] JSP
 - [x] Configuration by annotations
-- [ ] Configuration by web.xml
+- [x] Configuration by web.xml
