@@ -13,7 +13,7 @@
 | --- | --- | --- |
 | AutumnCore | 计划中 | IoC 容器与依赖注入 |
 | [AutumnHTTP](autumn-http/) | 能用 | HTTP 服务器 / Servlet 容器 |
-| AutumnREST | 计划中 | REST 服务框架 |
+| AutumnREST | 开发中 | REST 服务框架 |
 | [AutumnRPC](autumn-rpc/) | 能用 | 跨语言(将来)的 HTTP RPC 框架 |
 | AutumnCache | 计划中 | 统一封装多种 KV 存储 |
 
