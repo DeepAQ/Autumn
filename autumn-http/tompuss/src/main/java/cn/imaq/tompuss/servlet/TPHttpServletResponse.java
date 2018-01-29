@@ -2,6 +2,7 @@ package cn.imaq.tompuss.servlet;
 
 import cn.imaq.autumn.http.protocol.AutumnHttpResponse;
 import cn.imaq.tompuss.io.TPOutputStream;
+import lombok.Setter;
 
 import javax.servlet.ServletContext;
 import javax.servlet.ServletOutputStream;
@@ -27,6 +28,9 @@ public class TPHttpServletResponse implements HttpServletResponse {
     private Locale locale;
     private String encoding;
 
+    @Setter
+    private byte[] body;
+
     public TPHttpServletResponse(TPServletContext context, TPHttpExchange exchange) {
         this.reset();
         this.context = context;
@@ -34,12 +38,13 @@ public class TPHttpServletResponse implements HttpServletResponse {
     }
 
     public AutumnHttpResponse toAutumnHttpResponse() {
-        byte[] body = null;
-        if (writer != null) {
-            writer.flush();
-        }
-        if (outputStream != null) {
-            body = outputStream.toByteArray();
+        if (body == null) {
+            if (writer != null) {
+                writer.flush();
+            }
+            if (outputStream != null) {
+                body = outputStream.toByteArray();
+            }
         }
         if (contentType != null) {
             this.setHeader("Content-Type", contentType + ";charset=" + this.getCharacterEncoding());

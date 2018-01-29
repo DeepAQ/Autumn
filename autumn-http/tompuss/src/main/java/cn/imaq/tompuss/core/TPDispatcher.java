@@ -8,6 +8,7 @@ import cn.imaq.tompuss.servlet.TPHttpServletRequest;
 import cn.imaq.tompuss.servlet.TPHttpServletResponse;
 import cn.imaq.tompuss.servlet.TPServletContext;
 import cn.imaq.tompuss.util.TPMatchResult;
+import cn.imaq.tompuss.util.TPNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.PrintWriter;
@@ -40,13 +41,20 @@ public class TPDispatcher implements AutumnHttpHandler {
         TPHttpServletResponse resp = new TPHttpServletResponse(context, exchange);
         // Dispatch
         try {
-            TPRequestDispatcher.Result result = ((TPRequestDispatcher) context.getRequestDispatcher(remainPath)).request(req, resp);
-            if (result == TPRequestDispatcher.Result.NOTFOUND) {
-                return notFound();
-            }
+            ((TPRequestDispatcher) context.getRequestDispatcher(remainPath)).request(req, resp);
+        } catch (TPNotFoundException e) {
+            return notFound();
         } catch (Throwable e) {
             log.warn("Exception in dispatcher", e);
             return error(e);
+        }
+        if (resp.getStatus() == 404) {
+            TPHttpServletResponse resResp = new TPHttpServletResponse(context, exchange);
+            try {
+                ((TPRequestDispatcher) context.getRequestDispatcher(remainPath)).dispatchResource(resResp);
+                resp = resResp;
+            } catch (Exception ignored) {
+            }
         }
         return resp.toAutumnHttpResponse();
     }

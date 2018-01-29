@@ -19,12 +19,11 @@ import javax.servlet.*;
 import javax.servlet.annotation.*;
 import javax.servlet.descriptor.JspConfigDescriptor;
 import javax.servlet.http.*;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.InputStream;
+import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
@@ -284,8 +283,11 @@ public class TPServletContext implements ServletContext {
      */
     @Override
     public String getMimeType(String file) {
-        // TODO static
-        return null;
+        try {
+            return Files.probeContentType(Paths.get(new File(resourceRoot, file).toURI()));
+        } catch (IOException e) {
+            return "application/octet-stream";
+        }
     }
 
     /**

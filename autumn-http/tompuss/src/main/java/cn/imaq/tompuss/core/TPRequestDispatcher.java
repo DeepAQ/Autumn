@@ -2,14 +2,17 @@ package cn.imaq.tompuss.core;
 
 import cn.imaq.tompuss.filter.TPFilterChain;
 import cn.imaq.tompuss.servlet.TPHttpServletRequest;
+import cn.imaq.tompuss.servlet.TPHttpServletResponse;
 import cn.imaq.tompuss.servlet.TPServletContext;
 import cn.imaq.tompuss.servlet.TPServletRegistration;
 import cn.imaq.tompuss.util.TPMatchResult;
+import cn.imaq.tompuss.util.TPNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.servlet.*;
 import javax.servlet.http.HttpServlet;
 import java.io.IOException;
+import java.io.InputStream;
 
 @Slf4j
 public class TPRequestDispatcher implements RequestDispatcher {
@@ -44,20 +47,22 @@ public class TPRequestDispatcher implements RequestDispatcher {
         this.dispatch(request, response);
     }
 
-    public Result request(ServletRequest request, ServletResponse response) throws ServletException, IOException {
-        return this.dispatch(request, response);
+    public void request(ServletRequest request, ServletResponse response) throws ServletException, IOException {
+        this.dispatch(request, response);
     }
 
-    public Result dispatch(ServletRequest request, ServletResponse response) throws ServletException, IOException {
+    private void dispatch(ServletRequest request, ServletResponse response) throws ServletException, IOException {
         // Match Servlet
         TPMatchResult<TPServletRegistration> servletMatch = context.matchServletByPath(resPath);
         ((TPHttpServletRequest) request).setMatchResult(servletMatch);
         if (servletMatch == null) {
-            return Result.NOTFOUND;
+            this.dispatchResource(response);
+            return;
         }
         Servlet servlet = servletMatch.getObject().getServletInstance();
         if (!(servlet instanceof HttpServlet)) {
-            return Result.NOTFOUND;
+            this.dispatchResource(response);
+            return;
         }
         context.getListeners(ServletRequestListener.class).forEach(x -> x.requestInitialized(new ServletRequestEvent(context, request)));
         // Match Filters
@@ -67,11 +72,18 @@ public class TPRequestDispatcher implements RequestDispatcher {
         } finally {
             context.getListeners(ServletRequestListener.class).forEach(x -> x.requestDestroyed(new ServletRequestEvent(context, request)));
         }
-        return Result.SUCCESS;
     }
 
-    enum Result {
-        SUCCESS,
-        NOTFOUND
+    public void dispatchResource(ServletResponse response) throws TPNotFoundException, IOException {
+        InputStream is = context.getResourceAsStream(this.resPath);
+        if (is == null) {
+            throw new TPNotFoundException();
+        }
+        String mimeType = context.getMimeType(this.resPath);
+        response.reset();
+        response.setContentType(mimeType);
+        byte[] buf = new byte[is.available()];
+        is.read(buf);
+        ((TPHttpServletResponse) response).setBody(buf);
     }
 }
