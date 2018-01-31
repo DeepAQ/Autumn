@@ -31,10 +31,14 @@ public class AutumnByteArrayReader {
             }
             pos++;
         }
-        if (pos < offset + limit) {
-            pos++;
-            return new String(src, lineStart, pos - lineStart);
-        }
+//        if (pos < offset + limit) {
+//            pos++;
+//            return new String(src, lineStart, pos - lineStart);
+//        }
         return null;
+    }
+
+    public int getReadBytes() {
+        return lineStart - offset;
     }
 }
