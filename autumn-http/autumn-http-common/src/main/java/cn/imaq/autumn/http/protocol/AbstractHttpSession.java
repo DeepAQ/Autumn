@@ -41,7 +41,6 @@ public abstract class AbstractHttpSession {
             AutumnByteArrayReader reader = new AutumnByteArrayReader(buf, 0, bufLimit);
             String line;
             while ((line = reader.nextLine()) != null) {
-                readBytes += line.getBytes().length + 2;
                 if (state == State.START) {
                     if (checkStart(line)) {
                         lastActive = System.currentTimeMillis();
@@ -83,6 +82,7 @@ public abstract class AbstractHttpSession {
                     }
                 }
             }
+            readBytes += reader.getReadBytes();
         }
         if (state == State.BODY) {
             lastActive = System.currentTimeMillis();
@@ -99,7 +99,7 @@ public abstract class AbstractHttpSession {
                 state = State.START;
             }
         }
-        if (readBytes < bufLimit) {
+        if (readBytes < bufLimit && readBytes > 0) {
             System.arraycopy(buf, readBytes, buf, 0, bufLimit - readBytes);
         }
         bufLimit -= readBytes;
