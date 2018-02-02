@@ -1,4 +1,4 @@
-package cn.imaq.autumn.rest.util;
+package cn.imaq.autumn.rest.core;
 
 public enum RequestMethod {
     GET,
