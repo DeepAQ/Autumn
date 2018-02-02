@@ -16,5 +16,5 @@ public @interface RequestMapping {
 
     String[] consumes() default {};
 
-    String[] produces() default {};
+    String produces() default "";
 }

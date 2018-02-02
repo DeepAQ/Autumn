@@ -13,7 +13,7 @@ public class RequestMappingModel {
     private Set<String> paths;
     private Set<RequestMethod> methods = Collections.emptySet();
     private Set<String> consumes = Collections.emptySet();
-    private Set<String> produces = Collections.emptySet();
+    private String produces;
     private Method method;
 
     private RequestMappingModel() {
@@ -28,9 +28,7 @@ public class RequestMappingModel {
         if (rm.consumes().length > 0) {
             model.setConsumes(new HashSet<>(Arrays.asList(rm.consumes())));
         }
-        if (rm.produces().length > 0) {
-            model.setProduces(new HashSet<>(Arrays.asList(rm.produces())));
-        }
+        model.setProduces(rm.produces());
         return model;
     }
 
@@ -50,9 +48,6 @@ public class RequestMappingModel {
         }
         if (!parent.getConsumes().isEmpty()) {
             this.consumes.retainAll(parent.getConsumes());
-        }
-        if (!parent.getProduces().isEmpty()) {
-            this.produces.retainAll(parent.getProduces());
         }
     }
 }

@@ -3,16 +3,15 @@ package cn.imaq.autumn.rest.core;
 import cn.imaq.autumn.rest.annotation.RequestMapping;
 import cn.imaq.autumn.rest.annotation.RestController;
 import io.github.lukehutch.fastclasspathscanner.FastClasspathScanner;
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
+import javax.servlet.http.HttpServletRequest;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
 public class RestContext {
-    @Getter
     private List<RequestMappingModel> mappings = new ArrayList<>();
 
     private RestContext() {
@@ -34,11 +33,31 @@ public class RestContext {
                         mapping.combine(parentMapping);
                     }
                     mapping.setMethod(method);
-                    context.getMappings().add(mapping);
+                    context.mappings.add(mapping);
                     log.info("Mapped " + mapping.getPaths() + " to " + method);
                 }
             }
         }).scan();
         return context;
+    }
+
+    public RequestMappingModel matchRequest(HttpServletRequest req) {
+        String realPath = req.getServletPath();
+        String pathInfo = req.getPathInfo();
+        if (pathInfo != null) {
+            realPath += pathInfo;
+        }
+        for (RequestMappingModel mapping : mappings) {
+            if (mapping.getPaths().contains(realPath)) {
+                if (!mapping.getMethods().isEmpty() && !mapping.getMethods().contains(RequestMethod.valueOf(req.getMethod()))) {
+                    continue;
+                }
+                if (!mapping.getConsumes().isEmpty() && !mapping.getConsumes().contains(req.getContentType())) {
+                    continue;
+                }
+                return mapping;
+            }
+        }
+        return null;
     }
 }
