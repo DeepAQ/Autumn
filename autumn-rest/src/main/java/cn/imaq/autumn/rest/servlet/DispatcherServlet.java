@@ -2,7 +2,7 @@ package cn.imaq.autumn.rest.servlet;
 
 import cn.imaq.autumn.rest.core.RequestMappingModel;
 import cn.imaq.autumn.rest.core.RestContext;
-import cn.imaq.autumn.rest.exception.MethodParamResolveException;
+import cn.imaq.autumn.rest.exception.ParamResolveException;
 import cn.imaq.autumn.rest.param.resolver.MethodParamsResolver;
 import lombok.extern.slf4j.Slf4j;
 
@@ -22,6 +22,7 @@ public class DispatcherServlet extends HttpServlet {
     private static final String REST_CONTEXT = RestContext.class.getName();
 
     private RestContext restContext;
+    private MethodParamsResolver paramsResolver = new MethodParamsResolver();
     private Map<Class<?>, Object> instances = new ConcurrentHashMap<>();
 
     @Override
@@ -53,13 +54,13 @@ public class DispatcherServlet extends HttpServlet {
             produces = "text/html";
         }
         try {
-            Object[] params = MethodParamsResolver.resolveAll(method, req, resp);
+            Object[] params = paramsResolver.resolveAll(method, req, resp);
             String result = String.valueOf(method.invoke(getInstance(method.getDeclaringClass()), params));
             resp.setContentType(produces);
             resp.getOutputStream().print(result);
         } catch (IllegalAccessException | InvocationTargetException e) {
             log.error("Error invoking method " + method + ": " + e);
-        } catch (MethodParamResolveException e) {
+        } catch (ParamResolveException e) {
             throw new ServletException(e);
         }
     }

@@ -16,6 +16,6 @@ public class SingleValue<T> implements ParamValue<T> {
 
     @Override
     public Collection<T> getMultipleValues() {
-        return Collections.singleton(value);
+        return value == null ? null : Collections.singleton(value);
     }
 }
