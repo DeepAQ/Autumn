@@ -40,7 +40,7 @@ public class MethodParamsResolver {
                 })
                 .matchClassesImplementing(TypeConverter.class, cls -> {
                     try {
-                        TypeConverter<?> converter = cls.newInstance();
+                        TypeConverter converter = cls.newInstance();
                         for (Class targetType : converter.getTargetTypes()) {
                             typeConverters.put(targetType, converter);
                         }
@@ -122,7 +122,7 @@ public class MethodParamsResolver {
     }
 
     private <T> T convertSingle(Object src, Class<T> targetType) throws ParamConvertException {
-        TypeConverter<T> converter = typeConverters.get(targetType);
+        TypeConverter converter = typeConverters.get(targetType);
         if (converter == null) {
             throw new ParamConvertException("Unable to find converter to " + targetType.getName());
         }
@@ -130,7 +130,7 @@ public class MethodParamsResolver {
     }
 
     private <T> T[] convertMultiple(Collection<?> src, Class<T> targetType) throws ParamConvertException {
-        TypeConverter<T> converter = null;
+        TypeConverter converter = null;
         // List<T> results = new ArrayList<>(src.size());
         T[] results = (T[]) Array.newInstance(targetType, src.size());
         int index = 0;

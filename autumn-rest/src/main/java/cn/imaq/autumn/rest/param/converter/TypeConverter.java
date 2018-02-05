@@ -4,8 +4,8 @@ import cn.imaq.autumn.rest.exception.ParamConvertException;
 
 import java.util.List;
 
-public interface TypeConverter<T> {
-    List<Class<? extends T>> getTargetTypes();
+public interface TypeConverter {
+    List<Class<?>> getTargetTypes();
 
-    <P extends T> P convert(Object src, Class<P> targetType) throws ParamConvertException;
+    <T> T convert(Object src, Class<T> targetType) throws ParamConvertException;
 }

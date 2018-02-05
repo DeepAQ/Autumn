@@ -2,18 +2,18 @@ package cn.imaq.autumn.rest.param.converter;
 
 import cn.imaq.autumn.rest.exception.ParamConvertException;
 
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.List;
 
-public class StringConverter implements TypeConverter<String> {
+public class StringConverter implements TypeConverter {
     @Override
-    public List<Class<? extends String>> getTargetTypes() {
-        return Collections.singletonList(String.class);
+    public List<Class<?>> getTargetTypes() {
+        return Arrays.asList(String.class, CharSequence.class);
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    public <P extends String> P convert(Object src, Class<P> targetType) throws ParamConvertException {
-        return (P) String.valueOf(src);
+    public <T> T convert(Object src, Class<T> targetType) throws ParamConvertException {
+        return (T) String.valueOf(src);
     }
 }

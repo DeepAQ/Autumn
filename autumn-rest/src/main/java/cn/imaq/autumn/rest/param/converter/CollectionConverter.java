@@ -4,15 +4,15 @@ import cn.imaq.autumn.rest.exception.ParamConvertException;
 
 import java.util.*;
 
-public class CollectionConverter implements TypeConverter<Collection> {
+public class CollectionConverter implements TypeConverter {
     @Override
-    public List<Class<? extends Collection>> getTargetTypes() {
+    public List<Class<?>> getTargetTypes() {
         return Arrays.asList(Collection.class, List.class, Set.class, SortedSet.class, NavigableSet.class, Queue.class, Deque.class);
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    public <P extends Collection> P convert(Object src, Class<P> targetType) throws ParamConvertException {
+    public <T> T convert(Object src, Class<T> targetType) throws ParamConvertException {
         Collection<?> srcCollection;
         if (src instanceof Collection) {
             srcCollection = (Collection) src;
@@ -22,15 +22,15 @@ public class CollectionConverter implements TypeConverter<Collection> {
             throw new ParamConvertException(src, targetType);
         }
         if (targetType == Collection.class) {
-            return (P) srcCollection;
+            return (T) srcCollection;
         } else if (targetType == List.class) {
-            return (P) new ArrayList(srcCollection);
+            return (T) new ArrayList(srcCollection);
         } else if (targetType == Set.class) {
-            return (P) new LinkedHashSet(srcCollection);
+            return (T) new LinkedHashSet(srcCollection);
         } else if (targetType == SortedSet.class || targetType == NavigableSet.class) {
-            return (P) new TreeSet(srcCollection);
+            return (T) new TreeSet(srcCollection);
         } else if (targetType == Queue.class || targetType == Deque.class) {
-            return (P) new ArrayDeque(srcCollection);
+            return (T) new ArrayDeque(srcCollection);
         }
         throw new ParamConvertException(src, targetType);
     }
