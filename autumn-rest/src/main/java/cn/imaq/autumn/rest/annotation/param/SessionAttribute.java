@@ -6,12 +6,12 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Get one or more values of single param, or param map of the request
+ * Get one attribute from session
  */
 @Target(ElementType.PARAMETER)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface RequestParam {
-    String value() default "";
+public @interface SessionAttribute {
+    String value();
 
     boolean required() default true;
 

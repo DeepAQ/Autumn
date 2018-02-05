@@ -6,14 +6,10 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Get one or more values of single param, or param map of the request
+ * Get one or more {@link javax.servlet.http.Cookie} objects from Cookies
  */
 @Target(ElementType.PARAMETER)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface RequestParam {
+public @interface CookieObject {
     String value() default "";
-
-    boolean required() default true;
-
-    String defaultValue() default "";
 }

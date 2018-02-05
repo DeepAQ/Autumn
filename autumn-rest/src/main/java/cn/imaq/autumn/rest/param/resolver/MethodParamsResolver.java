@@ -84,6 +84,9 @@ public class MethodParamsResolver {
             }
             // resolve parameter
             ParamValue value = resolver.resolve(param, req, resp);
+            if (value == null) {
+                throw new ParamResolveException("No suitable resolvers found for param " + param);
+            }
             // get raw value before converting
             boolean needMultipleValues = paramType.isArray() || Collection.class.isAssignableFrom(paramType);
             Object rawValue = needMultipleValues ? value.getMultipleValues() : value.getSingleValue();
