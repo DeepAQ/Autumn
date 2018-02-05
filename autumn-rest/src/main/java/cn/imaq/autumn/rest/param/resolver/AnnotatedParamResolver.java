@@ -11,7 +11,11 @@ import java.lang.reflect.ParameterizedType;
 public abstract class AnnotatedParamResolver<A extends Annotation> implements ParamResolver {
     @SuppressWarnings("unchecked")
     public Class<A> getAnnotationClass() {
-        return (Class<A>) ((ParameterizedType) getClass().getGenericSuperclass()).getActualTypeArguments()[0];
+        try {
+            return (Class<A>) ((ParameterizedType) getClass().getGenericSuperclass()).getActualTypeArguments()[0];
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     @Override

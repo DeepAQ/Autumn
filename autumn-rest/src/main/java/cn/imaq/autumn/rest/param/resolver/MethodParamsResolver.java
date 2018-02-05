@@ -6,40 +6,44 @@ import cn.imaq.autumn.rest.param.converter.CollectionConverter;
 import cn.imaq.autumn.rest.param.converter.TypeConverter;
 import cn.imaq.autumn.rest.param.value.ParamValue;
 import io.github.lukehutch.fastclasspathscanner.FastClasspathScanner;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
+@Slf4j
 public class MethodParamsResolver {
     private static Map<Class<? extends Annotation>, AnnotatedParamResolver> annotatedResolvers = new HashMap<>();
+    private static List<TypedParamResolver> typedResolvers = new ArrayList<>();
     private static Map<Class<?>, TypeConverter> typeConverters = new HashMap<>();
     private static CollectionConverter collectionConverter = new CollectionConverter();
 
-    private static void addAnnotatedResolver(AnnotatedParamResolver<?> resolver) {
-        annotatedResolvers.put(resolver.getAnnotationClass(), resolver);
-    }
-
-    private static void addTypeConverter(TypeConverter<?> converter) {
-        for (Class targetType : converter.getTargetTypes()) {
-            typeConverters.put(targetType, converter);
-        }
-    }
-
     static {
+        log.info("Initializing param resolvers and converters ...");
         new FastClasspathScanner()
                 .matchSubclassesOf(AnnotatedParamResolver.class, cls -> {
                     try {
-                        addAnnotatedResolver(cls.newInstance());
-                    } catch (Exception e) {
-                        e.printStackTrace();
+                        AnnotatedParamResolver<?> resolver = cls.newInstance();
+                        annotatedResolvers.put(resolver.getAnnotationClass(), resolver);
+                    } catch (Exception ignored) {
+                    }
+                })
+                .matchSubclassesOf(TypedParamResolver.class, cls -> {
+                    try {
+                        typedResolvers.add(cls.newInstance());
+                    } catch (Exception ignored) {
                     }
                 })
                 .matchClassesImplementing(TypeConverter.class, cls -> {
                     try {
-                        addTypeConverter(cls.newInstance());
+                        TypeConverter<?> converter = cls.newInstance();
+                        for (Class targetType : converter.getTargetTypes()) {
+                            typeConverters.put(targetType, converter);
+                        }
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -47,30 +51,41 @@ public class MethodParamsResolver {
                 .scan();
     }
 
+    private Map<Parameter, ParamResolver> resolverCache = new ConcurrentHashMap<>();
+
     public Object[] resolveAll(Method method, HttpServletRequest req, HttpServletResponse resp) throws ParamResolveException {
         Parameter[] params = method.getParameters();
         Object[] rawValues = new Object[params.length];
         for (int i = 0; i < params.length; i++) {
             Parameter param = params[i];
-            ParamResolver resolver = null;
-            // try annotated resolvers first
-            for (Annotation annotation : param.getAnnotations()) {
-                if (annotatedResolvers.containsKey(annotation.annotationType())) {
-                    resolver = annotatedResolvers.get(annotation.annotationType());
-                    break;
-                }
-            }
-            if (resolver == null) {
-                // TODO try typed resolvers
-            }
-            if (resolver == null) {
-                throw new ParamResolveException("No resolvers found for param " + param);
-            }
-            // resolve
-            ParamValue value = resolver.resolve(param, req, resp);
             Class<?> paramType = param.getType();
-            boolean needMultipleValues = paramType.isArray() || Collection.class.isAssignableFrom(paramType);
+            // look for suitable resolver
+            ParamResolver resolver = resolverCache.get(param);
+            if (resolver == null) {
+                // try annotated resolvers first
+                for (Annotation annotation : param.getAnnotations()) {
+                    if (annotatedResolvers.containsKey(annotation.annotationType())) {
+                        resolver = annotatedResolvers.get(annotation.annotationType());
+                        break;
+                    }
+                }
+                if (resolver == null) {
+                    for (TypedParamResolver typedResolver : typedResolvers) {
+                        if (paramType.isAssignableFrom(typedResolver.getType())) {
+                            resolver = typedResolver;
+                            break;
+                        }
+                    }
+                }
+                if (resolver == null) {
+                    throw new ParamResolveException("No suitable resolvers found for param " + param);
+                }
+                resolverCache.put(param, resolver);
+            }
+            // resolve parameter
+            ParamValue value = resolver.resolve(param, req, resp);
             // get raw value before converting
+            boolean needMultipleValues = paramType.isArray() || Collection.class.isAssignableFrom(paramType);
             Object rawValue = needMultipleValues ? value.getMultipleValues() : value.getSingleValue();
             try {
                 if (rawValue != null && !paramType.isAssignableFrom(rawValue.getClass())) {
@@ -88,6 +103,7 @@ public class MethodParamsResolver {
                                     valueCollection = Arrays.asList(convertMultiple(valueCollection, (Class) innerType));
                                 }
                             }
+                            // convert collections types (if needed)
                             rawValue = collectionConverter.convert(valueCollection, (Class<? extends Collection>) paramType);
                         }
                     } else {
