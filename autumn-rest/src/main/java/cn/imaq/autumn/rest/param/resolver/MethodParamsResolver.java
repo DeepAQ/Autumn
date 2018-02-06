@@ -6,6 +6,7 @@ import cn.imaq.autumn.rest.exception.ParamResolveException;
 import cn.imaq.autumn.rest.param.converter.CollectionConverter;
 import cn.imaq.autumn.rest.param.converter.TypeConverter;
 import cn.imaq.autumn.rest.param.value.ParamValue;
+import com.fasterxml.jackson.core.TreeNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.lukehutch.fastclasspathscanner.FastClasspathScanner;
 import lombok.extern.slf4j.Slf4j;
@@ -157,11 +158,14 @@ public class MethodParamsResolver {
             } else if (singleValue instanceof byte[]) {
                 return jsonMapper.readValue(((byte[]) singleValue),
                         jsonMapper.constructType(param.getParameterizedType()));
+            } else if (singleValue instanceof TreeNode) {
+                return jsonMapper.convertValue(singleValue,
+                        jsonMapper.constructType(param.getParameterizedType()));
             }
         } catch (IOException e) {
             throw new ParamConvertException(e);
         }
-        throw new ParamConvertException("Source is not JSON string");
+        throw new ParamConvertException("Param cannot be converted as JSON");
     }
 
     private <T> T convertSingle(Object src, Class<T> targetType) throws ParamConvertException {
