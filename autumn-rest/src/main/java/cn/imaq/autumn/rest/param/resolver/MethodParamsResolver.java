@@ -1,15 +1,18 @@
 package cn.imaq.autumn.rest.param.resolver;
 
+import cn.imaq.autumn.rest.annotation.param.JSON;
 import cn.imaq.autumn.rest.exception.ParamConvertException;
 import cn.imaq.autumn.rest.exception.ParamResolveException;
 import cn.imaq.autumn.rest.param.converter.CollectionConverter;
 import cn.imaq.autumn.rest.param.converter.TypeConverter;
 import cn.imaq.autumn.rest.param.value.ParamValue;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.lukehutch.fastclasspathscanner.FastClasspathScanner;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
 import java.util.*;
@@ -52,6 +55,7 @@ public class MethodParamsResolver {
     }
 
     private Map<Parameter, ParamResolver> resolverCache = new ConcurrentHashMap<>();
+    private ObjectMapper jsonMapper = new ObjectMapper();
 
     public Object[] resolveAll(Method method, HttpServletRequest req, HttpServletResponse resp) throws ParamResolveException {
         Parameter[] params = method.getParameters();
@@ -87,34 +91,49 @@ public class MethodParamsResolver {
             if (value == null) {
                 throw new ParamResolveException("No suitable resolvers found for param " + param);
             }
-            // get raw value before converting
-            boolean needMultipleValues = paramType.isArray() || Collection.class.isAssignableFrom(paramType);
-            Object rawValue = needMultipleValues ? value.getMultipleValues() : value.getSingleValue();
-            try {
+            Object rawValue;
+            // process JSON annotation
+            if (param.isAnnotationPresent(JSON.class)) {
+                rawValue = value.getSingleValue();
+                if (rawValue instanceof String) {
+                    try {
+                        rawValue = jsonMapper.readValue(((String) rawValue), jsonMapper.constructType(param.getParameterizedType()));
+                    } catch (IOException e) {
+                        throw new ParamResolveException(e);
+                    }
+                } else {
+                    throw new ParamResolveException("Cannot convert from JSON, source is not string");
+                }
+            } else {
+                // get raw value before converting
+                boolean needMultipleValues = paramType.isArray() || Collection.class.isAssignableFrom(paramType);
+                rawValue = needMultipleValues ? value.getMultipleValues() : value.getSingleValue();
                 if (rawValue != null && !paramType.isAssignableFrom(rawValue.getClass())) {
-                    // convert types
-                    if (needMultipleValues) {
-                        Collection valueCollection = ((Collection) rawValue);
-                        if (paramType.isArray()) {
-                            Class<?> innerType = paramType.getComponentType();
-                            rawValue = convertMultiple(valueCollection, innerType);
-                        } else {
-                            Type type = param.getParameterizedType();
-                            if (type instanceof ParameterizedType) {
-                                Type innerType = ((ParameterizedType) type).getActualTypeArguments()[0];
-                                if (innerType instanceof Class) {
-                                    valueCollection = Arrays.asList(convertMultiple(valueCollection, (Class) innerType));
+                    try {
+                        // convert types
+                        if (needMultipleValues) {
+                            Collection valueCollection = ((Collection) rawValue);
+                            if (paramType.isArray()) {
+                                Class<?> innerType = paramType.getComponentType();
+                                rawValue = convertMultiple(valueCollection, innerType);
+                            } else {
+                                Type type = param.getParameterizedType();
+                                if (type instanceof ParameterizedType) {
+                                    Type innerType = ((ParameterizedType) type).getActualTypeArguments()[0];
+                                    if (innerType instanceof Class) {
+                                        valueCollection = Arrays.asList(convertMultiple(valueCollection, (Class<?>) innerType));
+                                    }
                                 }
+                                // convert collections types (if needed)
+                                rawValue = collectionConverter.convert(valueCollection, (Class<?>) paramType);
                             }
-                            // convert collections types (if needed)
-                            rawValue = collectionConverter.convert(valueCollection, (Class<? extends Collection>) paramType);
+                        } else {
+                            rawValue = convertSingle(rawValue, paramType);
                         }
-                    } else {
-                        rawValue = convertSingle(rawValue, paramType);
+                    } catch (Exception e) {
+                        throw new ParamResolveException(e);
                     }
                 }
-            } catch (Exception e) {
-                throw new ParamResolveException(e);
             }
             rawValues[i] = rawValue;
         }

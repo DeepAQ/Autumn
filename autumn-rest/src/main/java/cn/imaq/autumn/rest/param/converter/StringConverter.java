@@ -14,6 +14,12 @@ public class StringConverter implements TypeConverter {
     @SuppressWarnings("unchecked")
     @Override
     public <T> T convert(Object src, Class<T> targetType) throws ParamConvertException {
+        if (src instanceof byte[]) {
+            return (T) new String((byte[]) src);
+        }
+        if (src instanceof char[]) {
+            return (T) new String((char[]) src);
+        }
         return (T) String.valueOf(src);
     }
 }
