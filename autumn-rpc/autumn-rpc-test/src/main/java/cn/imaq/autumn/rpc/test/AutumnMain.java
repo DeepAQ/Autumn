@@ -19,7 +19,7 @@ public class AutumnMain {
         System.out.println(testService.testEnum(1));
         System.out.println(testService.testObject("Hello", new MyObject(MyEnum.D)));
         System.out.println(testService.testArray(new Object[]{null, null, null}));
-        System.out.println(testService.testList(Arrays.asList(new MyObject(MyEnum.A), new MyObject(MyEnum.B), new MyObject(MyEnum.C), new MyObject(MyEnum.D))));
+        System.out.println(testService.testList(Arrays.asList(new MyObject(MyEnum.A), new MyObject(MyEnum.B), new MyObject(MyEnum.C), new MyObject(MyEnum.D))).get(0).getMyEnum());
         try {
             testService.testThrowException("Throw exception test");
         } catch (Exception e) {

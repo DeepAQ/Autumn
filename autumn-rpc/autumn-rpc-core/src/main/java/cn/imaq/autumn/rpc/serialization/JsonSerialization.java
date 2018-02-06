@@ -55,7 +55,7 @@ public class JsonSerialization implements AutumnSerialization {
                 if (root.get(1).isArray()) {
                     paramTypes = new Class[root.get(1).size()];
                 }
-                Object[] params = new Object[root.get(2).size()];
+                JsonNode[] params = new JsonNode[root.get(2).size()];
                 for (int i = 0; i < root.get(2).size(); i++) {
                     if (paramTypes != null && paramTypes.length > i) {
                         paramTypes[i] = getClass(root.get(1).get(i).textValue());
@@ -96,15 +96,17 @@ public class JsonSerialization implements AutumnSerialization {
             JsonNode root = mapper.readTree(buf);
             if (root.isArray() && root.size() >= 2) {
                 Class returnType = defaultReturnType;
+                Object result = root.get(1);
                 if (root.size() >= 3) {
                     try {
                         returnType = getClass(root.get(2).textValue());
+                        result = mapper.treeToValue(((JsonNode) result), returnType);
                     } catch (ClassNotFoundException ignored) {
                     }
                 }
                 return AutumnRPCResponse.builder()
                         .status(root.get(0).intValue())
-                        .result(mapper.treeToValue(root.get(1), returnType))
+                        .result(result)
                         .resultType(returnType)
                         .build();
             }

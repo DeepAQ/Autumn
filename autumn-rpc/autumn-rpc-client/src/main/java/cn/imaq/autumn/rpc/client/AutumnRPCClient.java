@@ -14,6 +14,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
+import java.lang.reflect.Type;
 import java.net.URL;
 import java.util.Iterator;
 import java.util.Map;
@@ -93,7 +94,7 @@ public class AutumnRPCClient {
             byte[] response = httpClient.post(url, payload, serialization.contentType(), timeout);
             AutumnRPCResponse rpcResponse = serialization.deserializeResponse(response, method.getReturnType());
             if (rpcResponse.getStatus() == STATUS_OK) {
-                return rpcResponse.getResult();
+                return serialization.convertTypes(new Object[]{rpcResponse.getResult()}, new Type[]{method.getGenericReturnType()})[0];
             } else {
                 throw (Throwable) rpcResponse.getResult();
             }

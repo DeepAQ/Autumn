@@ -13,7 +13,7 @@ public interface TestService extends Remote {
 
     String testArray(Object[] arr) throws RemoteException;
 
-    String testList(List<MyObject> list) throws RemoteException;
+    List<MyObject> testList(List<MyObject> list) throws RemoteException;
 
     void testThrowException(String msg) throws Exception;
 

@@ -32,10 +32,8 @@ public class TestServiceImpl extends UnicastRemoteObject implements TestService 
     }
 
     @Override
-    public String testList(List<MyObject> list) throws RemoteException {
-        StringBuilder sb = new StringBuilder("Test list: ");
-        list.forEach(o -> sb.append(o.getMyEnum()));
-        return sb.toString();
+    public List<MyObject> testList(List<MyObject> list) throws RemoteException {
+        return list;
     }
 
     @Override
