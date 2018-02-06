@@ -62,7 +62,6 @@ public class MethodParamsResolver {
         Object[] rawValues = new Object[params.length];
         for (int i = 0; i < params.length; i++) {
             Parameter param = params[i];
-            Class<?> paramType = param.getType();
             // look for suitable resolver
             ParamResolver resolver = resolverCache.get(param);
             if (resolver == null) {
@@ -74,6 +73,7 @@ public class MethodParamsResolver {
                     }
                 }
                 if (resolver == null) {
+                    Class<?> paramType = param.getType();
                     for (TypedParamResolver typedResolver : typedResolvers) {
                         if (paramType.isAssignableFrom(typedResolver.getType())) {
                             resolver = typedResolver;
@@ -93,51 +93,75 @@ public class MethodParamsResolver {
             }
             Object rawValue;
             // process JSON annotation
-            if (param.isAnnotationPresent(JSON.class)) {
-                rawValue = value.getSingleValue();
-                if (rawValue instanceof String) {
-                    try {
-                        rawValue = jsonMapper.readValue(((String) rawValue), jsonMapper.constructType(param.getParameterizedType()));
-                    } catch (IOException e) {
-                        throw new ParamResolveException(e);
-                    }
+            try {
+                if (param.isAnnotationPresent(JSON.class)) {
+                    rawValue = convertFromJson(param, value);
                 } else {
-                    throw new ParamResolveException("Cannot convert from JSON, source is not string");
+                    // convert type
+                    rawValue = convertParam(param, value);
                 }
-            } else {
-                // get raw value before converting
-                boolean needMultipleValues = paramType.isArray() || Collection.class.isAssignableFrom(paramType);
-                rawValue = needMultipleValues ? value.getMultipleValues() : value.getSingleValue();
-                if (rawValue != null && !paramType.isAssignableFrom(rawValue.getClass())) {
-                    try {
-                        // convert types
-                        if (needMultipleValues) {
-                            Collection valueCollection = ((Collection) rawValue);
-                            if (paramType.isArray()) {
-                                Class<?> innerType = paramType.getComponentType();
-                                rawValue = convertMultiple(valueCollection, innerType);
-                            } else {
-                                Type type = param.getParameterizedType();
-                                if (type instanceof ParameterizedType) {
-                                    Type innerType = ((ParameterizedType) type).getActualTypeArguments()[0];
-                                    if (innerType instanceof Class) {
-                                        valueCollection = Arrays.asList(convertMultiple(valueCollection, (Class<?>) innerType));
-                                    }
-                                }
-                                // convert collections types (if needed)
-                                rawValue = collectionConverter.convert(valueCollection, (Class<?>) paramType);
-                            }
-                        } else {
-                            rawValue = convertSingle(rawValue, paramType);
-                        }
-                    } catch (Exception e) {
-                        throw new ParamResolveException(e);
-                    }
-                }
+            } catch (ParamConvertException e) {
+                throw new ParamResolveException(e);
             }
             rawValues[i] = rawValue;
         }
         return rawValues;
+    }
+
+    private Object convertParam(Parameter param, ParamValue value) throws ParamConvertException {
+        Class<?> paramType = param.getType();
+        if (paramType.isInstance(value.getSingleValue())) {
+            return value.getSingleValue();
+        }
+        if (paramType.isInstance(value.getMultipleValues())) {
+            return value.getMultipleValues();
+        }
+        boolean needMultipleValues = paramType.isArray() || Collection.class.isAssignableFrom(paramType);
+        Object rawValue = needMultipleValues ? value.getMultipleValues() : value.getSingleValue();
+        if (rawValue != null) {
+            try {
+                // convert types
+                if (needMultipleValues) {
+                    Collection valueCollection = ((Collection) rawValue);
+                    if (paramType.isArray()) {
+                        Class<?> innerType = paramType.getComponentType();
+                        return convertMultiple(valueCollection, innerType);
+                    } else {
+                        Type type = param.getParameterizedType();
+                        if (type instanceof ParameterizedType) {
+                            Type innerType = ((ParameterizedType) type).getActualTypeArguments()[0];
+                            if (innerType instanceof Class) {
+                                valueCollection = Arrays.asList((Object[]) convertMultiple(valueCollection, (Class<?>) innerType));
+                            }
+                        }
+                        // convert collections types (if needed)
+                        return collectionConverter.convert(valueCollection, (Class<?>) paramType);
+                    }
+                } else {
+                    return convertSingle(rawValue, paramType);
+                }
+            } catch (ParamConvertException e) {
+                // try JSON
+                return convertFromJson(param, value);
+            }
+        }
+        return null;
+    }
+
+    private Object convertFromJson(Parameter param, ParamValue value) throws ParamConvertException {
+        Object singleValue = value.getSingleValue();
+        try {
+            if (singleValue instanceof String) {
+                return jsonMapper.readValue((String) singleValue,
+                        jsonMapper.constructType(param.getParameterizedType()));
+            } else if (singleValue instanceof byte[]) {
+                return jsonMapper.readValue(((byte[]) singleValue),
+                        jsonMapper.constructType(param.getParameterizedType()));
+            }
+        } catch (IOException e) {
+            throw new ParamConvertException(e);
+        }
+        throw new ParamConvertException("Source is not JSON string");
     }
 
     private <T> T convertSingle(Object src, Class<T> targetType) throws ParamConvertException {
@@ -148,14 +172,14 @@ public class MethodParamsResolver {
         return converter.convert(src, targetType);
     }
 
-    private <T> T[] convertMultiple(Collection<?> src, Class<T> targetType) throws ParamConvertException {
+    private Object convertMultiple(Collection<?> src, Class<?> targetType) throws ParamConvertException {
         TypeConverter converter = null;
         // List<T> results = new ArrayList<>(src.size());
-        T[] results = (T[]) Array.newInstance(targetType, src.size());
+        Object results = Array.newInstance(targetType, src.size());
         int index = 0;
         for (Object o : src) {
             if (targetType.isInstance(o)) {
-                results[index] = (T) o;
+                Array.set(results, index, o);
             } else {
                 if (converter == null) {
                     converter = typeConverters.get(targetType);
@@ -163,7 +187,7 @@ public class MethodParamsResolver {
                 if (converter == null) {
                     throw new ParamConvertException("Unable to find converter to " + targetType.getName());
                 }
-                results[index] = converter.convert(o, targetType);
+                Array.set(results, index, converter.convert(o, targetType));
             }
             index++;
         }
