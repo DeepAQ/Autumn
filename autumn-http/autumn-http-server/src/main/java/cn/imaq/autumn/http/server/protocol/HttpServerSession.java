@@ -12,7 +12,7 @@ import java.util.*;
 public class HttpServerSession extends AbstractHttpSession {
     private static final Set<String> VALID_METHODS = new HashSet<>();
     static {
-        Collections.addAll(VALID_METHODS, "GET", "POST", "PUT", "DELETE");
+        Collections.addAll(VALID_METHODS, "GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "TRACE");
     }
 
     private AutumnHttpHandler handler;
