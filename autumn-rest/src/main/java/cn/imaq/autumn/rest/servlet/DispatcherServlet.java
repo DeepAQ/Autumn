@@ -2,7 +2,6 @@ package cn.imaq.autumn.rest.servlet;
 
 import cn.imaq.autumn.rest.core.RequestMappingModel;
 import cn.imaq.autumn.rest.core.RestContext;
-import cn.imaq.autumn.rest.exception.ParamResolveException;
 import cn.imaq.autumn.rest.param.resolver.MethodParamsResolver;
 import lombok.extern.slf4j.Slf4j;
 
@@ -12,7 +11,6 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -58,9 +56,8 @@ public class DispatcherServlet extends HttpServlet {
             String result = String.valueOf(method.invoke(getInstance(method.getDeclaringClass()), params));
             resp.setContentType(produces);
             resp.getOutputStream().print(result);
-        } catch (IllegalAccessException | InvocationTargetException e) {
+        } catch (Exception e) {
             log.error("Error invoking method " + method + ": " + e);
-        } catch (ParamResolveException e) {
             throw new ServletException(e);
         }
     }

@@ -114,9 +114,6 @@ public class MethodParamsResolver {
         if (paramType.isInstance(value.getSingleValue())) {
             return value.getSingleValue();
         }
-        if (paramType.isInstance(value.getMultipleValues())) {
-            return value.getMultipleValues();
-        }
         boolean needMultipleValues = paramType.isArray() || Collection.class.isAssignableFrom(paramType);
         Object rawValue = needMultipleValues ? value.getMultipleValues() : value.getSingleValue();
         if (rawValue != null) {
@@ -143,7 +140,11 @@ public class MethodParamsResolver {
                 }
             } catch (ParamConvertException e) {
                 // try JSON
-                return convertFromJson(param, value);
+                try {
+                    return convertFromJson(param, value);
+                } catch (ParamConvertException e1) {
+                    throw new ParamConvertException("Cannot convert param " + param + ", tried all converters");
+                }
             }
         }
         return null;
