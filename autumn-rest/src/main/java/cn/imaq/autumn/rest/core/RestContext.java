@@ -9,10 +9,13 @@ import javax.servlet.http.HttpServletRequest;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
 public class RestContext {
     private List<RequestMappingModel> mappings = new ArrayList<>();
+    private Map<Class<?>, Object> instances = new ConcurrentHashMap<>();
 
     private RestContext() {
     }
@@ -39,6 +42,22 @@ public class RestContext {
             }
         }).scan();
         return context;
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T> T getInstance(Class<? extends T> clazz) {
+        Object instance = instances.get(clazz);
+        if (instance != null && clazz.isInstance(instance)) {
+            return (T) instance;
+        }
+        try {
+            instance = clazz.newInstance();
+            instances.put(clazz, instance);
+            return (T) instance;
+        } catch (InstantiationException | IllegalAccessException e) {
+            log.error("Error instantiating " + clazz.getName() + ": " + e);
+            return null;
+        }
     }
 
     public RequestMappingModel matchRequest(HttpServletRequest req) {
