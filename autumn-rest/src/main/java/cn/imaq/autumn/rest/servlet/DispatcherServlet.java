@@ -13,17 +13,14 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.lang.reflect.Method;
-import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
 public class DispatcherServlet extends HttpServlet {
-    private static final String REST_CONTEXT = RestContext.class.getName();
+    public static final String REST_CONTEXT = RestContext.class.getName();
 
     private RestContext restContext;
     private MethodParamsResolver paramsResolver = new MethodParamsResolver();
-    private Map<Class<?>, Object> instances = new ConcurrentHashMap<>();
 
     @Override
     public void init() throws ServletException {
@@ -52,7 +49,7 @@ public class DispatcherServlet extends HttpServlet {
         String produces = mapping.getProduces();
         try {
             Object[] params = paramsResolver.resolveAll(method, req, resp);
-            Object result = method.invoke(getInstance(method.getDeclaringClass()), params);
+            Object result = method.invoke(restContext.getInstance(method.getDeclaringClass()), params);
             byte[] resultBytes;
             if (result instanceof String) {
                 resultBytes = ((String) result).getBytes();
@@ -60,7 +57,7 @@ public class DispatcherServlet extends HttpServlet {
                 resultBytes = ((byte[]) result);
             } else {
                 Class<? extends MessageConverter> converterClass = mapping.getConverter();
-                MessageConverter converter = getInstance(converterClass);
+                MessageConverter converter = restContext.getInstance(converterClass);
                 resultBytes = Objects.requireNonNull(converter).toBytes(result);
                 produces = converter.getContentType();
             }
@@ -69,22 +66,6 @@ public class DispatcherServlet extends HttpServlet {
         } catch (Exception e) {
             log.error("Error invoking method " + method + ": " + e);
             throw new ServletException(e);
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    private <T> T getInstance(Class<? extends T> clazz) {
-        Object instance = instances.get(clazz);
-        if (instance != null && clazz.isInstance(instance)) {
-            return (T) instance;
-        }
-        try {
-            instance = clazz.newInstance();
-            instances.put(clazz, instance);
-            return (T) instance;
-        } catch (InstantiationException | IllegalAccessException e) {
-            log.error("Error instantiating " + clazz.getName() + ": " + e);
-            return null;
         }
     }
 }
