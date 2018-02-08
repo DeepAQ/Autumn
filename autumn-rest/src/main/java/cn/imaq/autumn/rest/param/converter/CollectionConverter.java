@@ -4,7 +4,7 @@ import cn.imaq.autumn.rest.exception.ParamConvertException;
 
 import java.util.*;
 
-public class CollectionConverter implements TypeConverter {
+public class CollectionConverter implements ParamConverter {
     @Override
     public List<Class<?>> getTargetTypes() {
         return Arrays.asList(Collection.class, List.class, Set.class, SortedSet.class, NavigableSet.class, Queue.class, Deque.class);

@@ -1,6 +1,8 @@
 package cn.imaq.autumn.rest.annotation;
 
 import cn.imaq.autumn.rest.core.RequestMethod;
+import cn.imaq.autumn.rest.message.DefaultConverterDelegate;
+import cn.imaq.autumn.rest.message.MessageConverter;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -16,5 +18,7 @@ public @interface RequestMapping {
 
     String[] consumes() default {};
 
-    String produces() default "";
+    String produces() default "text/html";
+
+    Class<? extends MessageConverter> converter() default DefaultConverterDelegate.class;
 }

@@ -7,7 +7,7 @@ import java.text.ParseException;
 import java.util.Arrays;
 import java.util.List;
 
-public class NumberConverter implements TypeConverter {
+public class NumberConverter implements ParamConverter {
     @Override
     public List<Class<?>> getTargetTypes() {
         return Arrays.asList(Number.class, Byte.class, Short.class, Integer.class, Long.class, Float.class, Double.class, byte.class, short.class, int.class, long.class, float.class, double.class);
