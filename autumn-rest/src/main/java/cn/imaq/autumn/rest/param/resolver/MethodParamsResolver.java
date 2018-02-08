@@ -4,7 +4,7 @@ import cn.imaq.autumn.rest.annotation.param.JSON;
 import cn.imaq.autumn.rest.exception.ParamConvertException;
 import cn.imaq.autumn.rest.exception.ParamResolveException;
 import cn.imaq.autumn.rest.param.converter.CollectionConverter;
-import cn.imaq.autumn.rest.param.converter.TypeConverter;
+import cn.imaq.autumn.rest.param.converter.ParamConverter;
 import cn.imaq.autumn.rest.param.value.ParamValue;
 import com.fasterxml.jackson.core.TreeNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -23,7 +23,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class MethodParamsResolver {
     private static Map<Class<? extends Annotation>, AnnotatedParamResolver> annotatedResolvers = new HashMap<>();
     private static List<TypedParamResolver> typedResolvers = new ArrayList<>();
-    private static Map<Class<?>, TypeConverter> typeConverters = new HashMap<>();
+    private static Map<Class<?>, ParamConverter> typeConverters = new HashMap<>();
     private static CollectionConverter collectionConverter = new CollectionConverter();
 
     static {
@@ -42,9 +42,9 @@ public class MethodParamsResolver {
                     } catch (Exception ignored) {
                     }
                 })
-                .matchClassesImplementing(TypeConverter.class, cls -> {
+                .matchClassesImplementing(ParamConverter.class, cls -> {
                     try {
-                        TypeConverter converter = cls.newInstance();
+                        ParamConverter converter = cls.newInstance();
                         for (Class targetType : converter.getTargetTypes()) {
                             typeConverters.put(targetType, converter);
                         }
@@ -114,9 +114,6 @@ public class MethodParamsResolver {
         if (paramType.isInstance(value.getSingleValue())) {
             return value.getSingleValue();
         }
-        if (paramType.isInstance(value.getMultipleValues())) {
-            return value.getMultipleValues();
-        }
         boolean needMultipleValues = paramType.isArray() || Collection.class.isAssignableFrom(paramType);
         Object rawValue = needMultipleValues ? value.getMultipleValues() : value.getSingleValue();
         if (rawValue != null) {
@@ -143,7 +140,11 @@ public class MethodParamsResolver {
                 }
             } catch (ParamConvertException e) {
                 // try JSON
-                return convertFromJson(param, value);
+                try {
+                    return convertFromJson(param, value);
+                } catch (ParamConvertException e1) {
+                    throw new ParamConvertException("Cannot convert param " + param + ", tried all converters");
+                }
             }
         }
         return null;
@@ -169,7 +170,7 @@ public class MethodParamsResolver {
     }
 
     private <T> T convertSingle(Object src, Class<T> targetType) throws ParamConvertException {
-        TypeConverter converter = typeConverters.get(targetType);
+        ParamConverter converter = typeConverters.get(targetType);
         if (converter == null) {
             throw new ParamConvertException("Unable to find converter to " + targetType.getName());
         }
@@ -177,7 +178,7 @@ public class MethodParamsResolver {
     }
 
     private Object convertMultiple(Collection<?> src, Class<?> targetType) throws ParamConvertException {
-        TypeConverter converter = null;
+        ParamConverter converter = null;
         // List<T> results = new ArrayList<>(src.size());
         Object results = Array.newInstance(targetType, src.size());
         int index = 0;

@@ -2,7 +2,7 @@ package cn.imaq.autumn.rest.servlet;
 
 import cn.imaq.autumn.rest.core.RequestMappingModel;
 import cn.imaq.autumn.rest.core.RestContext;
-import cn.imaq.autumn.rest.exception.ParamResolveException;
+import cn.imaq.autumn.rest.message.MessageConverter;
 import cn.imaq.autumn.rest.param.resolver.MethodParamsResolver;
 import lombok.extern.slf4j.Slf4j;
 
@@ -12,9 +12,9 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
@@ -50,17 +50,24 @@ public class DispatcherServlet extends HttpServlet {
         }
         Method method = mapping.getMethod();
         String produces = mapping.getProduces();
-        if (produces.isEmpty()) {
-            produces = "text/html";
-        }
         try {
             Object[] params = paramsResolver.resolveAll(method, req, resp);
-            String result = String.valueOf(method.invoke(getInstance(method.getDeclaringClass()), params));
+            Object result = method.invoke(getInstance(method.getDeclaringClass()), params);
+            byte[] resultBytes;
+            if (result instanceof String) {
+                resultBytes = ((String) result).getBytes();
+            } else if (result instanceof byte[]) {
+                resultBytes = ((byte[]) result);
+            } else {
+                Class<? extends MessageConverter> converterClass = mapping.getConverter();
+                MessageConverter converter = getInstance(converterClass);
+                resultBytes = Objects.requireNonNull(converter).toBytes(result);
+                produces = converter.getContentType();
+            }
             resp.setContentType(produces);
-            resp.getOutputStream().print(result);
-        } catch (IllegalAccessException | InvocationTargetException e) {
+            resp.getOutputStream().write(resultBytes);
+        } catch (Exception e) {
             log.error("Error invoking method " + method + ": " + e);
-        } catch (ParamResolveException e) {
             throw new ServletException(e);
         }
     }

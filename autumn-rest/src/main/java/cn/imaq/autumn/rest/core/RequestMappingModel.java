@@ -1,6 +1,8 @@
 package cn.imaq.autumn.rest.core;
 
 import cn.imaq.autumn.rest.annotation.RequestMapping;
+import cn.imaq.autumn.rest.message.DefaultConverterDelegate;
+import cn.imaq.autumn.rest.message.MessageConverter;
 import cn.imaq.autumn.rest.util.PathUtil;
 import lombok.Data;
 
@@ -14,6 +16,8 @@ public class RequestMappingModel {
     private Set<RequestMethod> methods = Collections.emptySet();
     private Set<String> consumes = Collections.emptySet();
     private String produces;
+    private Class<? extends MessageConverter> converter;
+
     private Method method;
 
     private RequestMappingModel() {
@@ -29,6 +33,7 @@ public class RequestMappingModel {
             model.setConsumes(new HashSet<>(Arrays.asList(rm.consumes())));
         }
         model.setProduces(rm.produces());
+        model.setConverter(rm.converter());
         return model;
     }
 
@@ -48,6 +53,9 @@ public class RequestMappingModel {
         }
         if (!parent.getConsumes().isEmpty()) {
             this.consumes.retainAll(parent.getConsumes());
+        }
+        if (this.getConverter().equals(DefaultConverterDelegate.class)) {
+            this.converter = parent.converter;
         }
     }
 }
