@@ -92,8 +92,12 @@ public class AutumnRPCClient {
                     .build();
             byte[] payload = serialization.serializeRequest(request);
             byte[] response = httpClient.post(url, payload, serialization.contentType(), timeout);
-            AutumnRPCResponse rpcResponse = serialization.deserializeResponse(response, method.getReturnType());
+            Class<?> returnType = method.getReturnType();
+            AutumnRPCResponse rpcResponse = serialization.deserializeResponse(response, returnType);
             if (rpcResponse.getStatus() == STATUS_OK) {
+                if (returnType == void.class || returnType == Void.class) {
+                    return null;
+                }
                 return serialization.convertTypes(new Object[]{rpcResponse.getResult()}, new Type[]{method.getGenericReturnType()})[0];
             } else {
                 throw (Throwable) rpcResponse.getResult();
