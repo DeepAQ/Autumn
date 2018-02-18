@@ -11,11 +11,14 @@
 ## 子项目列表
 | 子项目 | 状态 | 简介 |
 | --- | --- | --- |
-| AutumnCore | 计划中 | IoC 容器与依赖注入 |
-| [AutumnHTTP](autumn-http/) | 能用 | HTTP 服务器 / Servlet 容器 |
-| AutumnREST | 开发中 | REST 服务框架 |
+| [AutumnCore](autumn-core/) | 开发中 | IoC 容器 / 依赖注入 |
+| [AutumnHTTP](autumn-http/) | 能用 | HTTP 服务器 / 客户端组件 |
+| [TomPuss](autumn-http/tompuss/) | 能用 | Web 服务器 / Servlet 容器 |
+| [AutumnREST](autumn-rest/) | 能用 | MVC 风格的 RESTful 服务框架 |
 | [AutumnRPC](autumn-rpc/) | 能用 | 跨语言(将来)的 HTTP RPC 框架 |
-| AutumnCache | 计划中 | 统一封装多种 KV 存储 |
+| AutumnAOP | 计划中 | 整合常用 AOP 框架 |
+| AutumnORM | 计划中 | 整合 MyBatis / Hibernate |
+| AutumnCache | 计划中 | 整合常用 KV 存储 |
 
 ## License
 Copyright 2017 DeepAQ
