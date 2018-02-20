@@ -6,12 +6,12 @@ import lombok.Data;
 
 @Data
 @Builder
-public class BeanInfo<T> {
+public class BeanInfo {
     private String name;
 
-    private Class<T> type;
+    private Class<?> type;
 
     private boolean singleton;
 
-    private BeanCreator<T> creator;
+    private BeanCreator creator;
 }

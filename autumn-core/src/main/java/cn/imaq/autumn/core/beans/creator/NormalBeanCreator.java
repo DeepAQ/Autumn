@@ -2,15 +2,15 @@ package cn.imaq.autumn.core.beans.creator;
 
 import cn.imaq.autumn.core.exception.BeanCreationException;
 
-public class NormalBeanCreator<T> implements BeanCreator<T> {
-    private Class<T> type;
+public class NormalBeanCreator implements BeanCreator {
+    private Class<?> type;
 
-    public NormalBeanCreator(Class<T> type) {
+    public NormalBeanCreator(Class<?> type) {
         this.type = type;
     }
 
     @Override
-    public T createBean() throws BeanCreationException {
+    public Object createBean() throws BeanCreationException {
         try {
             return type.newInstance();
         } catch (Exception e) {
