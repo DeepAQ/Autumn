@@ -5,6 +5,7 @@ apply from: '../maven-publish.gradle'
 
 dependencies {
     compileOnly 'org.projectlombok:lombok:1.16.18'
+    compile project(':autumn-core')
     compile 'javax.servlet:javax.servlet-api:3.1.0'
     compile 'log4j:log4j:1.2.17'
     compile 'org.slf4j:slf4j-log4j12:1.7.25'

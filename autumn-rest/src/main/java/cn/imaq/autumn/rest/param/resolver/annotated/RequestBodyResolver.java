@@ -12,8 +12,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.lang.reflect.Parameter;
 
-import static cn.imaq.autumn.rest.servlet.DispatcherServlet.REST_CONTEXT;
-
 public class RequestBodyResolver extends AnnotatedParamResolver<RequestBody> {
     @Override
     protected ParamValue resolve(Parameter param, RequestBody anno, HttpServletRequest request, HttpServletResponse response) {
@@ -23,7 +21,7 @@ public class RequestBodyResolver extends AnnotatedParamResolver<RequestBody> {
             if (paramType.isAssignableFrom(byte[].class) || paramType.isAssignableFrom(String.class)) {
                 return new SingleValue<>(bytes);
             } else {
-                RestContext restContext = (RestContext) request.getServletContext().getAttribute(REST_CONTEXT);
+                RestContext restContext = (RestContext) request.getServletContext().getAttribute(RestContext.ATTR);
                 if (restContext != null) {
                     MessageConverter converter = restContext.getInstance(anno.converter());
                     return new SingleValue<>(converter.fromBytes(bytes, param.getParameterizedType()));

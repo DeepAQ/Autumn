@@ -17,21 +17,19 @@ import java.util.Objects;
 
 @Slf4j
 public class DispatcherServlet extends HttpServlet {
-    public static final String REST_CONTEXT = RestContext.class.getName();
-
     private RestContext restContext;
     private MethodParamsResolver paramsResolver = new MethodParamsResolver();
 
     @Override
     public void init() throws ServletException {
         ServletContext context = this.getServletContext();
-        restContext = (RestContext) context.getAttribute(REST_CONTEXT);
+        restContext = (RestContext) context.getAttribute(RestContext.ATTR);
         if (restContext == null) {
             synchronized (context) {
-                restContext = (RestContext) context.getAttribute(REST_CONTEXT);
+                restContext = (RestContext) context.getAttribute(RestContext.ATTR);
                 if (restContext == null) {
                     restContext = RestContext.build();
-                    context.setAttribute(REST_CONTEXT, restContext);
+                    context.setAttribute(RestContext.ATTR, restContext);
                 }
             }
         }
@@ -49,7 +47,7 @@ public class DispatcherServlet extends HttpServlet {
         String produces = mapping.getProduces();
         try {
             Object[] params = paramsResolver.resolveAll(method, req, resp);
-            Object result = method.invoke(restContext.getInstance(method.getDeclaringClass()), params);
+            Object result = method.invoke(restContext.getApplicationContext().getBeanByType(method.getDeclaringClass()), params);
             byte[] resultBytes;
             if (result instanceof String) {
                 resultBytes = ((String) result).getBytes();
