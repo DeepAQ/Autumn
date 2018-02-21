@@ -10,20 +10,30 @@ public class AutumnwiredFieldPopulator extends AnnotatedFieldPopulator<Autumnwir
     @Override
     protected Object populate(AutumnContext context, Field field, Autumnwired anno) throws BeanPopulationException {
         Object result;
-        // try type first
+        String name = anno.name();
         Class<?> type = anno.type();
-        if (type == Object.class) {
-            type = field.getType();
+        // try type first
+        if (type != Object.class) {
+            result = context.getBeanByType(type, true);
+            if (result != null) {
+                return result;
+            }
         }
+        // try name
+        if (!name.isEmpty()) {
+            result = context.getBeanByName(name, true);
+            if (result != null) {
+                return result;
+            }
+        }
+        // default type
+        type = field.getType();
         result = context.getBeanByType(type, true);
         if (result != null) {
             return result;
         }
-        // try name
-        String name = anno.name();
-        if (name.isEmpty()) {
-            name = field.getName().toLowerCase();
-        }
+        // default name
+        name = field.getName().toLowerCase();
         result = context.getBeanByName(name, true);
         if (result != null) {
             return result;
