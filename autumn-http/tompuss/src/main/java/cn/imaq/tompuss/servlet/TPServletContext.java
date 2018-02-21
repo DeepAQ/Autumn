@@ -1,5 +1,6 @@
 package cn.imaq.tompuss.servlet;
 
+import cn.imaq.autumn.cpscan.AutumnClasspathScan;
 import cn.imaq.tompuss.core.TPEngine;
 import cn.imaq.tompuss.core.TPRequestDispatcher;
 import cn.imaq.tompuss.filter.TPFilterChain;
@@ -10,7 +11,7 @@ import cn.imaq.tompuss.util.TPMatchResult;
 import cn.imaq.tompuss.util.TPPathUtil;
 import cn.imaq.tompuss.util.TPUrlPattern;
 import cn.imaq.tompuss.util.TPXmlUtil;
-import io.github.lukehutch.fastclasspathscanner.FastClasspathScanner;
+import io.github.lukehutch.fastclasspathscanner.scanner.ScanResult;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.jasper.servlet.JspServlet;
@@ -65,29 +66,30 @@ public class TPServletContext implements ServletContext {
     @SuppressWarnings("unchecked")
     public synchronized void scanAnnotations() {
         log.info("Scanning annotations in classpath ...");
-        new FastClasspathScanner().matchClassesWithAnnotation(WebServlet.class, cls -> {
-            if (HttpServlet.class.isAssignableFrom(cls)) {
+        ScanResult result = AutumnClasspathScan.getScanResult();
+        result.getNamesOfClassesWithAnnotation(WebServlet.class).forEach(cn -> {
+            if (result.getClassNameToClassInfo().get(cn).hasSuperclass(HttpServlet.class.getName())) {
+                Class<? extends HttpServlet> cls = (Class<? extends HttpServlet>) result.classNameToClassRef(cn);
                 WebServlet ws = cls.getAnnotation(WebServlet.class);
                 TPServletRegistration registration = (TPServletRegistration) this.addServlet(
-                        ws.name().isEmpty() ? cls.getName() : ws.name(),
-                        (Class<? extends Servlet>) cls
-                );
+                        ws.name().isEmpty() ? cn : ws.name(), cls);
                 registration.loadAnnotation(ws);
             }
-        }).matchClassesWithAnnotation(WebFilter.class, cls -> {
-            if (HttpFilter.class.isAssignableFrom(cls)) {
+        });
+        result.getNamesOfClassesWithAnnotation(WebServlet.class).forEach(cn -> {
+            if (result.getClassNameToClassInfo().get(cn).hasSuperclass(HttpFilter.class.getName())) {
+                Class<? extends HttpFilter> cls = (Class<? extends HttpFilter>) result.classNameToClassRef(cn);
                 WebFilter wf = cls.getAnnotation(WebFilter.class);
                 TPFilterRegistration registration = (TPFilterRegistration) this.addFilter(
-                        wf.filterName().isEmpty() ? cls.getName() : wf.filterName(),
-                        (Class<? extends Filter>) cls
-                );
+                        wf.filterName().isEmpty() ? cn : wf.filterName(), cls);
                 registration.loadAnnotation(wf);
             }
-        }).matchClassesWithAnnotation(WebListener.class, cls -> {
-            if (EventListener.class.isAssignableFrom(cls)) {
-                this.addListener((Class<? extends EventListener>) cls);
+        });
+        result.getNamesOfClassesWithAnnotation(WebListener.class).forEach(cn -> {
+            if (result.getClassNameToClassInfo().get(cn).implementsInterface(EventListener.class.getName())) {
+                this.addListener((Class<? extends EventListener>) result.classNameToClassRef(cn));
             }
-        }).scan();
+        });
     }
 
     public synchronized void enableJsp() {

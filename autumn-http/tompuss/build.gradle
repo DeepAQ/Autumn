@@ -2,8 +2,8 @@ version '1.0-SNAPSHOT'
 
 dependencies {
     compile project(':autumn-http:autumn-http-server')
+    compile project(':autumn-classpath-scan')
     compile 'javax.servlet:javax.servlet-api:4.0.0'
-    compile 'io.github.lukehutch:fast-classpath-scanner:2.12.3'
     compile 'org.eclipse.jetty.toolchain:jetty-jsp-jdt:2.3.3'
     compile 'org.dom4j:dom4j:2.1.0'
 }

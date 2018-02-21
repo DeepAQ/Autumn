@@ -1,5 +1,6 @@
 package cn.imaq.autumn.rest.param.resolver;
 
+import cn.imaq.autumn.cpscan.AutumnClasspathScan;
 import cn.imaq.autumn.rest.annotation.param.JSON;
 import cn.imaq.autumn.rest.exception.ParamConvertException;
 import cn.imaq.autumn.rest.exception.ParamResolveException;
@@ -8,7 +9,7 @@ import cn.imaq.autumn.rest.param.converter.ParamConverter;
 import cn.imaq.autumn.rest.param.value.ParamValue;
 import com.fasterxml.jackson.core.TreeNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.github.lukehutch.fastclasspathscanner.FastClasspathScanner;
+import io.github.lukehutch.fastclasspathscanner.scanner.ScanResult;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.servlet.http.HttpServletRequest;
@@ -25,40 +26,48 @@ public class MethodParamsResolver {
     private static List<TypedParamResolver> typedResolvers = new ArrayList<>();
     private static Map<Class<?>, ParamConverter> typeConverters = new HashMap<>();
     private static CollectionConverter collectionConverter = new CollectionConverter();
-
-    static {
-        log.info("Initializing param resolvers and converters ...");
-        new FastClasspathScanner()
-                .matchSubclassesOf(AnnotatedParamResolver.class, cls -> {
-                    try {
-                        AnnotatedParamResolver<?> resolver = cls.newInstance();
-                        annotatedResolvers.put(resolver.getAnnotationClass(), resolver);
-                    } catch (Exception ignored) {
-                    }
-                })
-                .matchSubclassesOf(TypedParamResolver.class, cls -> {
-                    try {
-                        typedResolvers.add(cls.newInstance());
-                    } catch (Exception ignored) {
-                    }
-                })
-                .matchClassesImplementing(ParamConverter.class, cls -> {
-                    try {
-                        ParamConverter converter = cls.newInstance();
-                        for (Class targetType : converter.getTargetTypes()) {
-                            typeConverters.put(targetType, converter);
-                        }
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                })
-                .scan();
-    }
+    private static volatile boolean init = false;
 
     private Map<Parameter, ParamResolver> resolverCache = new ConcurrentHashMap<>();
     private ObjectMapper jsonMapper = new ObjectMapper();
 
+    private static void ensureInit() {
+        if (!init) {
+            synchronized (MethodParamsResolver.class) {
+                if (!init) {
+                    init = true;
+                    log.info("Initializing param resolvers and converters ...");
+                    ScanResult result = AutumnClasspathScan.getScanResult();
+                    result.getNamesOfSubclassesOf(AnnotatedParamResolver.class).forEach(cn -> {
+                        try {
+                            AnnotatedParamResolver<?> resolver = (AnnotatedParamResolver<?>) result.classNameToClassRef(cn).newInstance();
+                            annotatedResolvers.put(resolver.getAnnotationClass(), resolver);
+                        } catch (Exception ignored) {
+                        }
+                    });
+                    result.getNamesOfSubclassesOf(TypedParamResolver.class).forEach(cn -> {
+                        try {
+                            typedResolvers.add((TypedParamResolver<?>) result.classNameToClassRef(cn).newInstance());
+                        } catch (Exception ignored) {
+                        }
+                    });
+                    result.getNamesOfClassesImplementing(ParamConverter.class).forEach(cn -> {
+                        try {
+                            ParamConverter converter = (ParamConverter) result.classNameToClassRef(cn).newInstance();
+                            for (Class targetType : converter.getTargetTypes()) {
+                                typeConverters.put(targetType, converter);
+                            }
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    });
+                }
+            }
+        }
+    }
+
     public Object[] resolveAll(Method method, HttpServletRequest req, HttpServletResponse resp) throws ParamResolveException {
+        ensureInit();
         Parameter[] params = method.getParameters();
         Object[] rawValues = new Object[params.length];
         for (int i = 0; i < params.length; i++) {
