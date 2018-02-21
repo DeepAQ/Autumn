@@ -12,8 +12,12 @@ public class ComponentBeanScanner implements BeanScanner {
     public void process(FastClasspathScanner classpathScanner, AutumnContext context) {
         classpathScanner.matchClassesWithAnnotation(Component.class, cls -> {
             Component anno = cls.getAnnotation(Component.class);
+            String name = anno.name();
+            if (name.isEmpty()) {
+                name = cls.getSimpleName().toLowerCase();
+            }
             context.addBeanInfo(BeanInfo.builder()
-                    .name(anno.name())
+                    .name(name)
                     .type(cls)
                     .singleton(anno.singleton())
                     .creator(new NormalBeanCreator(cls))

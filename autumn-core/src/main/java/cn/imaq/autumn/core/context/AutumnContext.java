@@ -2,8 +2,10 @@ package cn.imaq.autumn.core.context;
 
 import cn.imaq.autumn.core.beans.BeanInfo;
 import cn.imaq.autumn.core.beans.creator.BeanCreator;
+import cn.imaq.autumn.core.beans.populator.BeanPopulators;
 import cn.imaq.autumn.core.beans.scanner.BeanScanners;
 import cn.imaq.autumn.core.exception.BeanCreationException;
+import cn.imaq.autumn.core.exception.BeanPopulationException;
 import io.github.lukehutch.fastclasspathscanner.FastClasspathScanner;
 import lombok.extern.slf4j.Slf4j;
 
@@ -22,6 +24,7 @@ public class AutumnContext {
     private Queue<BeanInfo> beanInfos = new ConcurrentLinkedQueue<>();
     private Map<String, BeanInfo> beansByName = new ConcurrentHashMap<>();
     private Map<Class<?>, BeanInfo> beansByType = new ConcurrentHashMap<>();
+    private Map<BeanInfo, Object> populatingBeans = new ConcurrentHashMap<>();
     private Map<BeanInfo, Object> singletons = new ConcurrentHashMap<>();
 
     private Map<String, Object> attributes = new ConcurrentHashMap<>();
@@ -64,44 +67,66 @@ public class AutumnContext {
     }
 
     public Object getBeanByName(String name) {
+        return getBeanByName(name, false);
+    }
+
+    public Object getBeanByName(String name, boolean populating) {
         BeanInfo info = findBeanInfoByName(name);
         if (info == null && parent != null) {
-            return parent.getBeanByName(name);
+            return parent.getBeanByName(name, populating);
         }
-        return getBeanByInfo(info);
+        return getBeanByInfo(info, populating);
     }
 
     public Object getBeanByType(Class<?> type) {
-        BeanInfo info = findBeanInfoByType(type);
-        if (info == null && parent != null) {
-            return parent.getBeanByType(type);
-        }
-        return getBeanByInfo(info);
+        return getBeanByType(type, false);
     }
 
-    private Object getBeanByInfo(BeanInfo info) {
+    public Object getBeanByType(Class<?> type, boolean populating) {
+        BeanInfo info = findBeanInfoByType(type);
+        if (info == null && parent != null) {
+            return parent.getBeanByType(type, populating);
+        }
+        return getBeanByInfo(info, populating);
+    }
+
+    private Object getBeanByInfo(BeanInfo info, boolean populating) {
         if (info == null) {
             return null;
         }
-        if (info.isSingleton() && singletons.containsKey(info)) {
-            return singletons.get(info);
+        if (populating && info.isSingleton() && populatingBeans.containsKey(info)) {
+            return populatingBeans.get(info);
+        }
+        if (info.isSingleton()) {
+            if (populating && populatingBeans.containsKey(info)) {
+                return populatingBeans.get(info);
+            } else if (singletons.containsKey(info)) {
+                return singletons.get(info);
+            }
         }
         try {
             return createAndPopulateBean(info);
         } catch (BeanCreationException e) {
             log.error(formatLog("error creating " + info + ": " + e));
-            return null;
+        } catch (BeanPopulationException e) {
+            log.error(formatLog("error populating " + info + ": " + e));
         }
+        return null;
     }
 
-    private Object createAndPopulateBean(BeanInfo info) throws BeanCreationException {
+    private Object createAndPopulateBean(BeanInfo info) throws BeanCreationException, BeanPopulationException {
         BeanCreator creator = info.getCreator();
         Object beanInstance = creator.createBean();
+        populatingBeans.put(info, beanInstance);
+        try {
+            BeanPopulators.populateBean(this, beanInstance);
+        } finally {
+            populatingBeans.remove(info);
+        }
         if (info.isSingleton()) {
             singletons.put(info, beanInstance);
         }
         return beanInstance;
-        // TODO populating
     }
 
     private BeanInfo findBeanInfoByName(String name) {
