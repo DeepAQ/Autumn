@@ -1,13 +1,13 @@
 package cn.imaq.autumn.rpc.server;
 
+import cn.imaq.autumn.core.context.AutumnContext;
 import cn.imaq.autumn.rpc.server.exception.AutumnHttpException;
 import cn.imaq.autumn.rpc.server.net.AbstractRPCHttpServer;
-import cn.imaq.autumn.rpc.server.net.RPCHttpServerFactory;
 import cn.imaq.autumn.rpc.server.net.AutumnRPCHandler;
-import cn.imaq.autumn.rpc.server.scanner.AutumnRPCScanner;
+import cn.imaq.autumn.rpc.server.net.RPCHttpServerFactory;
+import cn.imaq.autumn.rpc.server.net.ServiceMap;
 import cn.imaq.autumn.rpc.util.AutumnRPCBanner;
 import cn.imaq.autumn.rpc.util.PropertiesUtil;
-import io.github.lukehutch.fastclasspathscanner.FastClasspathScanner;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
@@ -37,20 +37,12 @@ public class AutumnRPCServer {
             } catch (IOException e) {
                 log.error("Error loading config: " + e.toString());
             }
-            AutumnRPCHandler handler = new AutumnRPCHandler(config);
             // Scan services with scanners
+            AutumnContext rpcContext = new AutumnContext("rpcContext");
+            AutumnRPCHandler handler = new AutumnRPCHandler(config, rpcContext);
+            rpcContext.setAttribute(ServiceMap.ATTR, handler.getServiceMap());
             log.warn("Scanning services to expose ...");
-            handler.getInstanceMap().clear();
-            new FastClasspathScanner().matchClassesImplementing(AutumnRPCScanner.class, scanner -> {
-                log.warn("Scanning with scanner " + scanner.getSimpleName());
-                FastClasspathScanner classpathScanner = new FastClasspathScanner();
-                try {
-                    scanner.newInstance().process(classpathScanner, handler.getInstanceMap());
-                    classpathScanner.scan();
-                } catch (InstantiationException | IllegalAccessException e) {
-                    log.error("Error instantiating scanner " + scanner.getSimpleName());
-                }
-            }).scan();
+            rpcContext.scanComponents();
             // Start HTTP server
             String host = config.getProperty("http.host", "0.0.0.0");
             int port = Integer.valueOf(config.getProperty("http.port", "8801"));

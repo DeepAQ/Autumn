@@ -1,5 +1,6 @@
 package cn.imaq.autumn.rpc.server.net;
 
+import cn.imaq.autumn.core.context.AutumnContext;
 import cn.imaq.autumn.rpc.exception.AutumnInvokeException;
 import cn.imaq.autumn.rpc.exception.AutumnSerializationException;
 import cn.imaq.autumn.rpc.net.AutumnRPCRequest;
@@ -11,6 +12,7 @@ import cn.imaq.autumn.rpc.server.invoker.AutumnInvokerFactory;
 import cn.imaq.autumn.rpc.server.invoker.AutumnMethod;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.InvocationTargetException;
@@ -24,22 +26,21 @@ public class AutumnRPCHandler implements RPCHttpHandler {
     private final byte[] INFO_400 = "<html><head><title>400 Bad Request</title></head><body><center><h1>400 Bad Request</h1></center><hr><center>AutumnRPC</center></body></html>".getBytes();
     private final byte[] INFO_500 = "<html><head><title>500 Internal Server Error</title></head><body><center><h1>500 Internal Server Error</h1></center><hr><center>AutumnRPC</center></body></html>".getBytes();
 
-    private final InstanceMap instanceMap = new InstanceMap();
+    @Getter
+    private final ServiceMap serviceMap = new ServiceMap();
+    private final AutumnContext context;
     private final Properties config;
     private final AutumnInvoker invoker;
     private final AutumnSerialization serialization;
 
-    public AutumnRPCHandler(Properties config) {
+    public AutumnRPCHandler(Properties config, AutumnContext context) {
         this.config = config;
+        this.context = context;
         // init
         this.invoker = AutumnInvokerFactory.getInvoker(config.getProperty("autumn.invoker"));
         log.info("Using invoker: " + this.invoker.getClass().getSimpleName());
         this.serialization = AutumnSerializationFactory.getSerialization(config.getProperty("autumn.serialization"));
         log.info("Using serialization: " + this.serialization.getClass().getSimpleName());
-    }
-
-    public InstanceMap getInstanceMap() {
-        return instanceMap;
     }
 
     @Override
@@ -56,7 +57,7 @@ public class AutumnRPCHandler implements RPCHttpHandler {
         String[] paths = request.getPath().split("/");
         if (paths.length >= 2) {
             String serviceName = paths[1];
-            Object instance = instanceMap.getInstance(serviceName);
+            Object instance = context.getBeanByType(serviceMap.getServiceClass(serviceName));
             if (instance != null) {
                 byte[] body = request.getBody();
                 try {
