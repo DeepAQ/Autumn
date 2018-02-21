@@ -18,7 +18,6 @@ import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
 public class MethodParamsResolver {
@@ -28,7 +27,6 @@ public class MethodParamsResolver {
     private static CollectionConverter collectionConverter = new CollectionConverter();
     private static volatile boolean init = false;
 
-    private Map<Parameter, ParamResolver> resolverCache = new ConcurrentHashMap<>();
     private ObjectMapper jsonMapper = new ObjectMapper();
 
     private static void ensureInit() {
@@ -73,28 +71,25 @@ public class MethodParamsResolver {
         for (int i = 0; i < params.length; i++) {
             Parameter param = params[i];
             // look for suitable resolver
-            ParamResolver resolver = resolverCache.get(param);
+            ParamResolver resolver = null;
+            // try annotated resolvers first
+            for (Class<? extends Annotation> annoClass : annotatedResolvers.keySet()) {
+                if (param.isAnnotationPresent(annoClass)) {
+                    resolver = annotatedResolvers.get(annoClass);
+                    break;
+                }
+            }
             if (resolver == null) {
-                // try annotated resolvers first
-                for (Annotation annotation : param.getAnnotations()) {
-                    if (annotatedResolvers.containsKey(annotation.annotationType())) {
-                        resolver = annotatedResolvers.get(annotation.annotationType());
+                Class<?> paramType = param.getType();
+                for (TypedParamResolver typedResolver : typedResolvers) {
+                    if (paramType.isAssignableFrom(typedResolver.getType())) {
+                        resolver = typedResolver;
                         break;
                     }
                 }
-                if (resolver == null) {
-                    Class<?> paramType = param.getType();
-                    for (TypedParamResolver typedResolver : typedResolvers) {
-                        if (paramType.isAssignableFrom(typedResolver.getType())) {
-                            resolver = typedResolver;
-                            break;
-                        }
-                    }
-                }
-                if (resolver == null) {
-                    throw new ParamResolveException("No suitable resolvers found for param " + param);
-                }
-                resolverCache.put(param, resolver);
+            }
+            if (resolver == null) {
+                throw new ParamResolveException("No suitable resolvers found for param " + param);
             }
             // resolve parameter
             ParamValue value = resolver.resolve(param, req, resp);
