@@ -2,8 +2,8 @@ package cn.imaq.autumn.core.beans.scanner;
 
 import cn.imaq.autumn.core.context.AutumnContext;
 import cn.imaq.autumn.cpscan.AutumnClasspathScan;
-import io.github.lukehutch.fastclasspathscanner.FastClasspathScanner;
 import io.github.lukehutch.fastclasspathscanner.scanner.ScanResult;
+import io.github.lukehutch.fastclasspathscanner.scanner.ScanSpec;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
@@ -13,7 +13,7 @@ import java.util.List;
 public class BeanScanners {
     private static volatile List<BeanScanner> scanners;
 
-    public static void processAll(FastClasspathScanner scanner, AutumnContext context) {
+    public static void processAll(ScanSpec spec, AutumnContext context) {
         if (scanners == null) {
             synchronized (BeanScanners.class) {
                 if (scanners == null) {
@@ -30,6 +30,6 @@ public class BeanScanners {
                 }
             }
         }
-        scanners.forEach(sc -> sc.process(scanner, context));
+        scanners.forEach(sc -> sc.process(spec, context));
     }
 }

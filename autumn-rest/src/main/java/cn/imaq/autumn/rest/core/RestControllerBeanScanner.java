@@ -6,7 +6,7 @@ import cn.imaq.autumn.core.beans.scanner.BeanScanner;
 import cn.imaq.autumn.core.context.AutumnContext;
 import cn.imaq.autumn.rest.annotation.RequestMapping;
 import cn.imaq.autumn.rest.annotation.RestController;
-import io.github.lukehutch.fastclasspathscanner.FastClasspathScanner;
+import io.github.lukehutch.fastclasspathscanner.scanner.ScanSpec;
 import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.Method;
@@ -14,10 +14,10 @@ import java.lang.reflect.Method;
 @Slf4j
 public class RestControllerBeanScanner implements BeanScanner {
     @Override
-    public void process(FastClasspathScanner classpathScanner, AutumnContext context) {
+    public void process(ScanSpec spec, AutumnContext context) {
         RestContext restContext = (RestContext) context.getAttribute(RestContext.ATTR);
         if (restContext != null) {
-            classpathScanner.matchClassesWithAnnotation(RestController.class, cls -> {
+            spec.matchClassesWithAnnotation(RestController.class, cls -> {
                 log.info("Found controller " + cls.getName());
                 RequestMappingModel parentMapping = null;
                 if (cls.isAnnotationPresent(RequestMapping.class)) {

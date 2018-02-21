@@ -6,7 +6,8 @@ import cn.imaq.autumn.core.beans.populator.BeanPopulators;
 import cn.imaq.autumn.core.beans.scanner.BeanScanners;
 import cn.imaq.autumn.core.exception.BeanCreationException;
 import cn.imaq.autumn.core.exception.BeanPopulationException;
-import io.github.lukehutch.fastclasspathscanner.FastClasspathScanner;
+import cn.imaq.autumn.cpscan.AutumnClasspathScan;
+import io.github.lukehutch.fastclasspathscanner.scanner.ScanSpec;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Arrays;
@@ -38,14 +39,14 @@ public class AutumnContext {
         this.parent = parent;
     }
 
-    public synchronized void scanComponents(String... spec) {
+    public synchronized void scanComponents(String... specArgs) {
         if (scanned) {
             return;
         }
-        FastClasspathScanner scanner = new FastClasspathScanner(spec);
-        BeanScanners.processAll(scanner, this);
-        log.info(formatLog("scanning components with spec " + Arrays.toString(spec)));
-        scanner.scan();
+        ScanSpec spec = new ScanSpec(specArgs, null);
+        BeanScanners.processAll(spec, this);
+        log.info(formatLog("scanning components with spec " + Arrays.toString(specArgs)));
+        AutumnClasspathScan.processSpec(spec);
         scanned = true;
     }
 
@@ -94,6 +95,15 @@ public class AutumnContext {
         if (info == null) {
             return null;
         }
+        if (info.isSingleton()) {
+            synchronized (info) {
+                return getBeanByInfoInternal(info, populating);
+            }
+        }
+        return getBeanByInfoInternal(info, populating);
+    }
+
+    private Object getBeanByInfoInternal(BeanInfo info, boolean populating) {
         if (populating && info.isSingleton() && populatingBeans.containsKey(info)) {
             return populatingBeans.get(info);
         }

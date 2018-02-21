@@ -4,13 +4,13 @@ import cn.imaq.autumn.core.annotation.Component;
 import cn.imaq.autumn.core.beans.BeanInfo;
 import cn.imaq.autumn.core.beans.creator.NormalBeanCreator;
 import cn.imaq.autumn.core.context.AutumnContext;
-import io.github.lukehutch.fastclasspathscanner.FastClasspathScanner;
+import io.github.lukehutch.fastclasspathscanner.scanner.ScanSpec;
 
 public class ComponentBeanScanner implements BeanScanner {
 
     @Override
-    public void process(FastClasspathScanner classpathScanner, AutumnContext context) {
-        classpathScanner.matchClassesWithAnnotation(Component.class, cls -> {
+    public void process(ScanSpec spec, AutumnContext context) {
+        spec.matchClassesWithAnnotation(Component.class, cls -> {
             Component anno = cls.getAnnotation(Component.class);
             String name = anno.name();
             if (name.isEmpty()) {
