@@ -1,11 +1,14 @@
-package cn.imaq.autumn.rest.core;
+package cn.imaq.autumn.rest.scanner;
 
 import cn.imaq.autumn.core.beans.BeanInfo;
 import cn.imaq.autumn.core.beans.creator.NormalBeanCreator;
 import cn.imaq.autumn.core.beans.scanner.BeanScanner;
 import cn.imaq.autumn.core.context.AutumnContext;
 import cn.imaq.autumn.rest.annotation.RequestMapping;
+import cn.imaq.autumn.rest.annotation.RequestMappings;
 import cn.imaq.autumn.rest.annotation.RestController;
+import cn.imaq.autumn.rest.core.RequestMappingModel;
+import cn.imaq.autumn.rest.core.RestContext;
 import io.github.lukehutch.fastclasspathscanner.scanner.ScanSpec;
 import lombok.extern.slf4j.Slf4j;
 
@@ -24,14 +27,12 @@ public class RestControllerBeanScanner implements BeanScanner {
                     parentMapping = RequestMappingModel.fromAnnotation(cls.getAnnotation(RequestMapping.class));
                 }
                 for (Method method : cls.getMethods()) {
-                    if (method.isAnnotationPresent(RequestMapping.class)) {
-                        RequestMappingModel mapping = RequestMappingModel.fromAnnotation(method.getAnnotation(RequestMapping.class));
-                        if (parentMapping != null) {
-                            mapping.combine(parentMapping);
+                    if (method.isAnnotationPresent(RequestMappings.class)) {
+                        for (RequestMapping mappingAnno : method.getAnnotation(RequestMappings.class).value()) {
+                            addMapping(restContext, mappingAnno, parentMapping, method);
                         }
-                        mapping.setMethod(method);
-                        restContext.addMapping(mapping);
-                        log.info("Mapped " + mapping.getPaths() + " to " + method);
+                    } else if (method.isAnnotationPresent(RequestMapping.class)) {
+                        addMapping(restContext, method.getAnnotation(RequestMapping.class), parentMapping, method);
                     }
                 }
                 context.addBeanInfo(BeanInfo.builder()
@@ -41,5 +42,15 @@ public class RestControllerBeanScanner implements BeanScanner {
                         .build());
             });
         }
+    }
+
+    private void addMapping(RestContext restContext, RequestMapping mappingAnno, RequestMappingModel parentMapping, Method method) {
+        RequestMappingModel mapping = RequestMappingModel.fromAnnotation(mappingAnno);
+        if (parentMapping != null) {
+            mapping.combine(parentMapping);
+        }
+        mapping.setMethod(method);
+        restContext.addMapping(mapping);
+        log.info("Mapped " + mapping.getPaths() + " to " + method);
     }
 }

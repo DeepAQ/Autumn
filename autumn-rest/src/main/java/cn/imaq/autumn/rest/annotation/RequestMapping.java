@@ -4,13 +4,11 @@ import cn.imaq.autumn.rest.core.RequestMethod;
 import cn.imaq.autumn.rest.message.DefaultConverterDelegate;
 import cn.imaq.autumn.rest.message.MessageConverter;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.lang.annotation.*;
 
 @Target({ElementType.TYPE, ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
+@Repeatable(RequestMappings.class)
 public @interface RequestMapping {
     String[] value();
 
