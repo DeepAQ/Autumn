@@ -8,7 +8,7 @@ import java.lang.annotation.Target;
 @Target({ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Component {
-    String name() default "";
+    String value() default "";
 
     boolean singleton() default true;
 }

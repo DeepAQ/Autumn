@@ -12,7 +12,7 @@ public class ComponentBeanScanner implements BeanScanner {
     public void process(ScanSpec spec, AutumnContext context) {
         spec.matchClassesWithAnnotation(Component.class, cls -> {
             Component anno = cls.getAnnotation(Component.class);
-            String name = anno.name();
+            String name = anno.value();
             if (name.isEmpty()) {
                 name = cls.getSimpleName().toLowerCase();
             }

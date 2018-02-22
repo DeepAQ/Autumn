@@ -1,7 +1,11 @@
 package cn.imaq.autumn.core.context;
 
 import cn.imaq.autumn.core.beans.BeanInfo;
+import cn.imaq.autumn.core.beans.BeanWrapper;
 import cn.imaq.autumn.core.beans.creator.BeanCreator;
+import cn.imaq.autumn.core.beans.processor.AfterBeanCreateProcessor;
+import cn.imaq.autumn.core.beans.processor.AfterBeanPopulateProcessor;
+import cn.imaq.autumn.core.beans.processor.BeanProcessors;
 import cn.imaq.autumn.core.beans.populator.BeanPopulators;
 import cn.imaq.autumn.core.beans.scanner.BeanScanners;
 import cn.imaq.autumn.core.exception.BeanCreationException;
@@ -126,13 +130,17 @@ public class AutumnContext {
 
     private Object createAndPopulateBean(BeanInfo info) throws BeanCreationException, BeanPopulationException {
         BeanCreator creator = info.getCreator();
-        Object beanInstance = creator.createBean();
+        BeanWrapper wrapper = new BeanWrapper(info, creator.createBean());
+        BeanProcessors.get(AfterBeanCreateProcessor.class).forEach(x -> x.process(wrapper));
+        Object beanInstance = wrapper.getBeanInstance();
         populatingBeans.put(info, beanInstance);
         try {
             BeanPopulators.populateBean(this, beanInstance);
+            BeanProcessors.get(AfterBeanPopulateProcessor.class).forEach(x -> x.process(wrapper));
         } finally {
             populatingBeans.remove(info);
         }
+        beanInstance = wrapper.getBeanInstance();
         if (info.isSingleton()) {
             singletons.put(info, beanInstance);
         }
