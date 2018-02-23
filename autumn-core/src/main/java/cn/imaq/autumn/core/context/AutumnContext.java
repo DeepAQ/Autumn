@@ -130,7 +130,7 @@ public class AutumnContext {
 
     private Object createAndPopulateBean(BeanInfo info) throws BeanCreationException, BeanPopulationException {
         BeanCreator creator = info.getCreator();
-        BeanWrapper wrapper = new BeanWrapper(info, creator.createBean());
+        BeanWrapper wrapper = new BeanWrapper(this, info, creator.createBean());
         BeanProcessors.get(AfterBeanCreateProcessor.class).forEach(x -> x.process(wrapper));
         Object beanInstance = wrapper.getBeanInstance();
         populatingBeans.put(info, beanInstance);
