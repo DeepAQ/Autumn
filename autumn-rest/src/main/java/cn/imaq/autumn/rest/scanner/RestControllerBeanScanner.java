@@ -22,24 +22,33 @@ public class RestControllerBeanScanner implements BeanScanner {
         if (restContext != null) {
             spec.matchClassesWithAnnotation(RestController.class, cls -> {
                 log.info("Found controller " + cls.getName());
-                RequestMappingModel parentMapping = null;
-                if (cls.isAnnotationPresent(RequestMapping.class)) {
-                    parentMapping = RequestMappingModel.fromAnnotation(cls.getAnnotation(RequestMapping.class));
-                }
-                for (Method method : cls.getMethods()) {
-                    if (method.isAnnotationPresent(RequestMappings.class)) {
-                        for (RequestMapping mappingAnno : method.getAnnotation(RequestMappings.class).value()) {
-                            addMapping(restContext, mappingAnno, parentMapping, method);
-                        }
-                    } else if (method.isAnnotationPresent(RequestMapping.class)) {
-                        addMapping(restContext, method.getAnnotation(RequestMapping.class), parentMapping, method);
-                    }
+                RestController anno = cls.getAnnotation(RestController.class);
+                String name = anno.value();
+                if (name.isEmpty()) {
+                    name = cls.getSimpleName().toLowerCase();
                 }
                 context.addBeanInfo(BeanInfo.builder()
+                        .name(name)
                         .type(cls)
                         .singleton(true)
                         .creator(new NormalBeanCreator(cls))
                         .build());
+
+                RequestMappingModel parentMapping = null;
+                if (cls.isAnnotationPresent(RequestMapping.class)) {
+                    parentMapping = RequestMappingModel.fromAnnotation(cls.getAnnotation(RequestMapping.class));
+                }
+                for (Method method : cls.getDeclaredMethods()) {
+                    if (method.isAnnotationPresent(RequestMappings.class)) {
+                        method.setAccessible(true);
+                        for (RequestMapping mappingAnno : method.getAnnotation(RequestMappings.class).value()) {
+                            addMapping(restContext, mappingAnno, parentMapping, method);
+                        }
+                    } else if (method.isAnnotationPresent(RequestMapping.class)) {
+                        method.setAccessible(true);
+                        addMapping(restContext, method.getAnnotation(RequestMapping.class), parentMapping, method);
+                    }
+                }
             });
         }
     }

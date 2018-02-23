@@ -13,21 +13,34 @@ public class HookModel {
 
     private List<JoinPoint> excludes;
 
-    public HookModel(String[] includes, String[] excludes) {
+    private Method hook;
+
+    public HookModel(String[] includes, String[] excludes, Method hook) {
         this.includes = Arrays.stream(includes).map(JoinPoint::new).collect(Collectors.toList());
         this.excludes = Arrays.stream(excludes).map(JoinPoint::new).collect(Collectors.toList());
+        this.hook = hook;
+    }
+
+    public boolean matches(Class<?> clazz) {
+        String className = clazz.getName();
+        for (JoinPoint includePoint : includes) {
+            if (includePoint.matchesClass(className)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public boolean matches(Method method) {
         String className = method.getDeclaringClass().getName();
         String methodName = method.getName();
         for (JoinPoint excludePoint : excludes) {
-            if (excludePoint.matches(className, methodName)) {
+            if (excludePoint.matchesMethod(className, methodName)) {
                 return false;
             }
         }
         for (JoinPoint includePoint : includes) {
-            if (includePoint.matches(className, methodName)) {
+            if (includePoint.matchesMethod(className, methodName)) {
                 return true;
             }
         }
@@ -63,22 +76,19 @@ public class HookModel {
             }
         }
 
-        boolean matches(String targetClassName, String targetMethodName) {
+        boolean matchesClass(String targetClassName) {
             if (classWildcard) {
-                if (!targetClassName.startsWith(this.className)) {
-                    return false;
-                }
-            } else if (!targetClassName.equals(this.className)) {
+                return targetClassName.startsWith(this.className);
+            } else return targetClassName.equals(this.className);
+        }
+
+        boolean matchesMethod(String targetClassName, String targetMethodName) {
+            if (!matchesClass(targetClassName)) {
                 return false;
             }
             if (methodWildcard) {
-                if (!targetMethodName.startsWith(this.methodName)) {
-                    return false;
-                }
-            } else if (!targetMethodName.equals(this.methodName)) {
-                return false;
-            }
-            return true;
+                return targetMethodName.startsWith(this.methodName);
+            } else return targetMethodName.equals(this.methodName);
         }
     }
 }

@@ -7,7 +7,6 @@ import cn.imaq.autumn.core.context.AutumnContext;
 import io.github.lukehutch.fastclasspathscanner.scanner.ScanSpec;
 
 public class ComponentBeanScanner implements BeanScanner {
-
     @Override
     public void process(ScanSpec spec, AutumnContext context) {
         spec.matchClassesWithAnnotation(Component.class, cls -> {
