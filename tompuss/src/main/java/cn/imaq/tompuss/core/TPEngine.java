@@ -33,10 +33,10 @@ public class TPEngine {
         }
         try {
             this.httpServer = new AutumnHttpServer(port, new TPDispatcher(this));
-            this.httpServer.start();
             for (TPServletContext context : contexts) {
                 context.startup();
             }
+            this.httpServer.start();
             log.info("TomPuss Engine started on port " + this.port);
         } catch (IOException e) {
             log.error("TomPuss Engine failed to start!", e);

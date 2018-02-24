@@ -65,7 +65,7 @@ public class TPServletContext implements ServletContext {
 
     @SuppressWarnings("unchecked")
     public synchronized void scanAnnotations() {
-        log.info("Scanning annotations in classpath ...");
+        log.info("Scanning annotations ...");
         ScanResult result = AutumnClasspathScan.getScanResult();
         result.getNamesOfClassesWithAnnotation(WebServlet.class).forEach(cn -> {
             if (result.getClassNameToClassInfo().get(cn).hasSuperclass(HttpServlet.class.getName())) {
