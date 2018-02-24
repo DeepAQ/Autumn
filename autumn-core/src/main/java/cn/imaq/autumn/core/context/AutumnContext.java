@@ -49,21 +49,21 @@ public class AutumnContext {
         }
         ScanSpec spec = new ScanSpec(specArgs, null);
         BeanScanners.processAll(spec, this);
-        log.info(formatLog("scanning components with spec " + Arrays.toString(specArgs)));
+        log.info(formatLog("scanning components with spec {}"), Arrays.toString(specArgs));
         AutumnClasspathScan.processSpec(spec);
         scanned = true;
     }
 
     public void addBeanInfo(BeanInfo info) {
-        log.info(formatLog("adding " + info));
+        log.info(formatLog("adding {}"), info);
         if (beansByType.containsKey(info.getType())) {
-            log.warn(formatLog("already has a bean of type " + info.getType().getName() + ", ignoring the new one"));
+            log.warn(formatLog("already has a bean of type {}, ignoring the new one"), info.getType().getName());
             return;
         }
         beansByType.put(info.getType(), info);
         if (info.getName() != null && !info.getName().isEmpty()) {
             if (beansByName.containsKey(info.getName())) {
-                log.warn(formatLog("already has a bean with name [" + info.getName() + "], ignoring the new one"));
+                log.warn(formatLog("already has a bean with name [{}], ignoring the new one"), info.getName());
                 return;
             }
             beansByName.put(info.getName(), info);
@@ -121,9 +121,9 @@ public class AutumnContext {
         try {
             return createAndPopulateBean(info);
         } catch (BeanCreationException e) {
-            log.error(formatLog("error creating " + info + ": " + e));
+            log.error(formatLog("error creating {}: {}"), info, String.valueOf(e));
         } catch (BeanPopulationException e) {
-            log.error(formatLog("error populating " + info + ": " + e));
+            log.error(formatLog("error populating {}: {}"), info, String.valueOf(e));
         }
         return null;
     }
@@ -157,7 +157,7 @@ public class AutumnContext {
             for (BeanInfo info : beanInfos) {
                 if (type.isAssignableFrom(info.getType())) {
                     if (result != null) {
-                        log.warn(formatLog("more than one bean found with type " + type.getName()));
+                        log.warn(formatLog("more than one bean found with type {}"), type.getName());
                         return null;
                     }
                     result = info;

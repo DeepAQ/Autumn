@@ -44,7 +44,7 @@ public class AutumnAIOHttpServer {
                                 try {
                                     session.processByteBuffer(buf);
                                 } catch (IOException e) {
-                                    log.warn("Failed to process buffer: " + e);
+                                    log.warn("Failed to process buffer: {}", String.valueOf(e));
                                 }
                                 buf.clear();
                                 attachment.read(buf, attachment, this);
@@ -52,14 +52,14 @@ public class AutumnAIOHttpServer {
                                 try {
                                     attachment.close();
                                 } catch (IOException e) {
-                                    log.warn("Failed to close channel: " + e);
+                                    log.warn("Failed to close channel: {}", String.valueOf(e));
                                 }
                             }
                         }
 
                         @Override
                         public void failed(Throwable exc, AsynchronousSocketChannel attachment) {
-                            log.warn("Failed to read: " + exc);
+                            log.warn("Failed to read: {}", String.valueOf(exc));
                             attachment.read(buf, attachment, this);
                         }
                     });
@@ -68,11 +68,11 @@ public class AutumnAIOHttpServer {
 
                 @Override
                 public void failed(Throwable exc, Object attachment) {
-                    log.warn("Failed to accept new connection: " + exc);
+                    log.warn("Failed to accept new connection: {}", String.valueOf(exc));
                     sChannel.accept(null, this);
                 }
             });
-            log.info("Started HTTP server on port " + port + " with " + NUM_WORKERS + " workers");
+            log.info("Started HTTP server on port {} with {} workers", port, NUM_WORKERS);
             try {
                 running.wait();
             } catch (InterruptedException ignored) {

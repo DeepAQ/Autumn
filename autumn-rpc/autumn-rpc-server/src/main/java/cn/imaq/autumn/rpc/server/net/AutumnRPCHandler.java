@@ -38,14 +38,14 @@ public class AutumnRPCHandler implements RPCHttpHandler {
         this.context = context;
         // init
         this.invoker = AutumnInvokerFactory.getInvoker(config.getProperty("autumn.invoker"));
-        log.info("Using invoker: " + this.invoker.getClass().getSimpleName());
+        log.info("Using invoker: {}", this.invoker.getClass().getSimpleName());
         this.serialization = AutumnSerializationFactory.getSerialization(config.getProperty("autumn.serialization"));
-        log.info("Using serialization: " + this.serialization.getClass().getSimpleName());
+        log.info("Using serialization {}", this.serialization.getClass().getSimpleName());
     }
 
     @Override
     public RPCHttpResponse handle(RPCHttpRequest request) {
-        log.debug("Received HTTP request: " + request.getMethod() + " " + request.getPath());
+        log.debug("Received HTTP request: {} {}", request.getMethod(), request.getPath());
         if (request.getPath().equals("/")) {
             try {
                 return ok("application/json", new ObjectMapper().writeValueAsBytes(config));
@@ -71,16 +71,16 @@ public class AutumnRPCHandler implements RPCHttpHandler {
                                 AutumnRPCResponse.builder().status(STATUS_OK).result(result).resultType(result.getClass()).build()
                         ));
                     } catch (AutumnInvokeException e) {
-                        log.error("Error invoking " + serviceName + "#" + rpcRequest.getMethodName() + ": " + e.getCause());
+                        log.error("Error invoking {}#{}: {}", serviceName, rpcRequest.getMethodName(), String.valueOf(e.getCause()));
                         return error();
                     } catch (InvocationTargetException e) {
-                        log.info(serviceName + "#" + rpcRequest.getMethodName() + " threw an exception: " + e.getCause());
+                        log.info("{}#{} threw an exception: {}", serviceName, rpcRequest.getMethodName(), e.getCause());
                         return ok(serialization.contentType(), serialization.serializeResponse(
                                 AutumnRPCResponse.builder().status(STATUS_EXCEPTION).result(e.getCause()).resultType(e.getCause().getClass()).build()
                         ));
                     }
                 } catch (AutumnSerializationException e) {
-                    log.error("Error parsing request: " + e.toString());
+                    log.error("Error parsing request: {}", e.toString());
                 }
             }
         }

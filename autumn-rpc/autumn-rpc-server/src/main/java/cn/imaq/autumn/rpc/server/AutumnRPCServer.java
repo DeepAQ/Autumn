@@ -35,7 +35,7 @@ public class AutumnRPCServer {
             try {
                 PropertiesUtil.load(config, DEFAULT_CONFIG, configFile);
             } catch (IOException e) {
-                log.error("Error loading config: " + e.toString());
+                log.error("Error loading config: {}", String.valueOf(e));
             }
             // Scan services with scanners
             AutumnContext rpcContext = new AutumnContext("rpcContext");
@@ -47,13 +47,13 @@ public class AutumnRPCServer {
             String host = config.getProperty("http.host", "0.0.0.0");
             int port = Integer.valueOf(config.getProperty("http.port", "8801"));
             httpServer = RPCHttpServerFactory.create(config.getProperty("http.server"), host, port, handler);
-            log.info("Using HTTP server: " + httpServer.getClass().getSimpleName());
+            log.info("Using HTTP server: {}", httpServer.getClass().getSimpleName());
             log.warn("Starting HTTP server ...");
             try {
                 httpServer.start();
                 log.warn("Bootstrap success");
             } catch (AutumnHttpException e) {
-                log.error("Error starting server: " + e);
+                log.error("Error starting server: {}", String.valueOf(e));
             }
         }
     }

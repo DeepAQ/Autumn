@@ -27,7 +27,7 @@ public class BeanPopulators {
                             AnnotatedFieldPopulator<?> populator = (AnnotatedFieldPopulator<?>) result.classNameToClassRef(cn).newInstance();
                             annotatedFieldPopulatorMap.put(populator.getAnnotationClass(), populator);
                         } catch (Exception e) {
-                            log.warn("Cannot init bean populator [" + cn + "]: " + e);
+                            log.warn("Cannot init bean populator [{}]: {}", cn, String.valueOf(e));
                         }
                     });
                     init = true;

@@ -39,7 +39,7 @@ public class TPServletRegistration extends TPRegistration<Servlet> implements Se
             synchronized (this) {
                 if (this.instance.getServletConfig() == null) {
                     // init
-                    log.info("Initiating Servlet " + this.name + "[" + this.instance.getClass().getName() + "]");
+                    log.info("Initiating Servlet {}[{}]", this.name, this.instance.getClass().getName());
                     ServletConfig config = new ServletConfig() {
                         @Override
                         public String getServletName() {
@@ -64,7 +64,7 @@ public class TPServletRegistration extends TPRegistration<Servlet> implements Se
                     try {
                         this.instance.init(config);
                     } catch (ServletException e) {
-                        log.error("Error initiating Servlet " + this.name + "[" + this.instance.getClass().getName() + "]", e);
+                        log.error("Error initiating Servlet {}[{}]: {}", this.name, this.instance.getClass().getName(), e);
                     }
                 }
             }

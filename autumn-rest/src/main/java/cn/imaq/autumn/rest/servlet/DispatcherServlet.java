@@ -62,7 +62,7 @@ public class DispatcherServlet extends HttpServlet {
             resp.setContentType(produces);
             resp.getOutputStream().write(resultBytes);
         } catch (Exception e) {
-            log.error("Error invoking method " + method + ": " + e);
+            log.error("Error invoking method {}: {}", method, String.valueOf(e));
             throw new ServletException(e);
         }
     }

@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class TPXmlUtil {
     public static void parseWebXml(TPServletContext context, File xmlFile) {
-        log.info("Loading XML config file " + xmlFile);
+        log.info("Loading XML config file {}", xmlFile);
         try {
             Element root = new SAXReader().read(xmlFile).getRootElement();
             for (Element element : root.elements()) {
@@ -95,7 +95,7 @@ public class TPXmlUtil {
                 }
             }
         } catch (Exception e) {
-            log.warn("Load XML config failed: " + e);
+            log.warn("Load XML config failed: {}", String.valueOf(e));
         }
     }
 }

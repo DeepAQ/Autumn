@@ -17,7 +17,7 @@ public class AopBeanProcessor implements AfterBeanPopulateProcessor {
         Class<?> type = bean.getBeanInfo().getType();
         List<HookModel> classHooks = AopContext.getFrom(bean.getContext()).getHooksForClass(type);
         if (!classHooks.isEmpty()) {
-            log.info("Creating proxy for " + bean.getBeanInstance().getClass().getName());
+            log.info("Creating proxy for {}", bean.getBeanInstance().getClass().getName());
             Enhancer enhancer = new Enhancer();
             enhancer.setSuperclass(type);
             enhancer.setCallback(new AopMethodInterceptor(classHooks, bean.getContext(), bean.getBeanInstance()));

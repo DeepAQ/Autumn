@@ -935,7 +935,7 @@ public class TPServletContext implements ServletContext {
         if (servletName == null || servletName.isEmpty()) {
             throw new IllegalArgumentException();
         }
-        log.info("Adding Servlet " + servletName + "[" + servlet.getClass().getName() + "]");
+        log.info("Adding Servlet {}[{}]", servletName, servlet.getClass().getName());
         TPServletRegistration registration = new TPServletRegistration(this, servletName, servlet);
         this.servletRegistrations.put(servletName, registration);
         return registration;
@@ -1203,7 +1203,7 @@ public class TPServletContext implements ServletContext {
         if (filterName == null || filterName.isEmpty()) {
             throw new IllegalArgumentException();
         }
-        log.info("Adding Filter " + filterName + "[" + filter.getClass().getName() + "]");
+        log.info("Adding Filter {}[{}]", filterName, filter.getClass().getName());
         TPFilterRegistration registration = new TPFilterRegistration(this, filterName, filter);
         this.filterRegistrations.put(filterName, registration);
         return registration;
@@ -1551,7 +1551,7 @@ public class TPServletContext implements ServletContext {
     @SuppressWarnings("unchecked")
     @Override
     public <T extends EventListener> void addListener(T t) {
-        log.info("Adding Listener " + t.getClass().getName());
+        log.info("Adding Listener {}", t.getClass().getName());
         for (Class<?> intf : t.getClass().getInterfaces()) {
             if (EventListener.class.isAssignableFrom(intf)) {
                 this.listeners.computeIfAbsent((Class<? extends EventListener>) intf, x -> new ConcurrentLinkedQueue<>()).add(t);

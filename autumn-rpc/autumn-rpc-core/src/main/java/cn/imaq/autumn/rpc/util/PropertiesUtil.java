@@ -9,11 +9,11 @@ import java.util.Properties;
 public class PropertiesUtil {
     public static void load(Properties properties, String defaultFile, String extendFile) throws IOException {
         if (defaultFile != null) {
-            log.info("Loading config from " + defaultFile);
+            log.info("Loading config from {}", defaultFile);
             properties.load(PropertiesUtil.class.getClassLoader().getResourceAsStream(defaultFile));
         }
         if (extendFile != null) {
-            log.info("Loading config from " + extendFile);
+            log.info("Loading config from {}", extendFile);
             properties.load(PropertiesUtil.class.getClassLoader().getResourceAsStream(extendFile));
         }
     }

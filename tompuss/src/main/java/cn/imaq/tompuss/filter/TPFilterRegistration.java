@@ -37,7 +37,7 @@ public class TPFilterRegistration extends TPRegistration<Filter> implements Filt
                 this.init = true;
             } else synchronized (this) {
                 if (!this.init) {
-                    log.info("Initiating Filter " + this.name + "[" + this.instance.getClass().getName() + "]");
+                    log.info("Initiating Filter {}[{}]", this.name, this.instance.getClass().getName());
                     FilterConfig config = new FilterConfig() {
                         @Override
                         public String getFilterName() {
@@ -63,7 +63,7 @@ public class TPFilterRegistration extends TPRegistration<Filter> implements Filt
                         this.instance.init(config);
                         this.init = true;
                     } catch (ServletException e) {
-                        log.error("Error initiating Filter " + this.name + "[" + this.instance.getClass().getName() + "]", e);
+                        log.error("Error initiating Filter {}[{}]: {}", this.name, this.instance.getClass().getName(), e);
                     }
                 }
             }

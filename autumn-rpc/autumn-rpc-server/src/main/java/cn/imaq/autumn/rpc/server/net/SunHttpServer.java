@@ -37,7 +37,7 @@ public class SunHttpServer extends AbstractRPCHttpServer {
                 os.close();
             });
         } catch (IOException e) {
-            log.error("Error creating HTTP server: " + e);
+            log.error("Error creating HTTP server: {}", String.valueOf(e));
         }
     }
 

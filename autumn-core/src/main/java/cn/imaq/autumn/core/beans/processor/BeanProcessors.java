@@ -28,7 +28,7 @@ public class BeanProcessors {
                                 }
                             }
                         } catch (Exception e) {
-                            log.warn("Cannot init bean processor [" + cn + "]: " + e);
+                            log.warn("Cannot init bean processor [{}]: {}", cn, String.valueOf(e));
                         }
                     });
                     init = true;

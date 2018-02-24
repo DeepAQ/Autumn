@@ -42,7 +42,7 @@ public class RestContext {
             instances.put(clazz, instance);
             return (T) instance;
         } catch (InstantiationException | IllegalAccessException e) {
-            log.error("Error instantiating " + clazz.getName() + ": " + e);
+            log.error("Error instantiating {}: {}", clazz.getName(), String.valueOf(e));
             return null;
         }
     }

@@ -21,7 +21,7 @@ public class RestControllerBeanScanner implements BeanScanner {
         RestContext restContext = (RestContext) context.getAttribute(RestContext.ATTR);
         if (restContext != null) {
             spec.matchClassesWithAnnotation(RestController.class, cls -> {
-                log.info("Found controller " + cls.getName());
+                log.info("Found controller {}", cls.getName());
                 RestController anno = cls.getAnnotation(RestController.class);
                 String name = anno.value();
                 if (name.isEmpty()) {
@@ -60,6 +60,6 @@ public class RestControllerBeanScanner implements BeanScanner {
         }
         mapping.setMethod(method);
         restContext.addMapping(mapping);
-        log.info("Mapped " + mapping.getPaths() + " to " + method);
+        log.info("Mapped {} to {}", mapping.getPaths(), method);
     }
 }

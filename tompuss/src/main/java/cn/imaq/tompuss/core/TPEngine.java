@@ -37,7 +37,7 @@ public class TPEngine {
                 context.startup();
             }
             this.httpServer.start();
-            log.info("TomPuss Engine started on port " + this.port);
+            log.info("TomPuss Engine started on port {}", this.port);
         } catch (IOException e) {
             log.error("TomPuss Engine failed to start!", e);
         }

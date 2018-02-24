@@ -41,29 +41,29 @@ public class AutumnRPCClient {
         try {
             PropertiesUtil.load(this.config, DEFAULT_CONFIG, configFile);
         } catch (IOException e) {
-            log.error("Error loading config: " + e);
+            log.error("Error loading config: {}", String.valueOf(e));
         }
         // auto config negotiation
         if (useAutoConfig) {
             log.info("Fetching config from server ...");
             try {
                 JsonNode configJson = new ObjectMapper().readTree(new URL("http://" + host + ":" + port));
-                log.info("Fetched " + configJson.size() + " config entries from server");
+                log.info("Fetched {} config entries from server", configJson.size());
                 for (Iterator<Map.Entry<String, JsonNode>> it = configJson.fields(); it.hasNext(); ) {
                     Map.Entry<String, JsonNode> entry = it.next();
                     this.config.setProperty(entry.getKey(), entry.getValue().textValue());
                 }
             } catch (IOException e) {
-                log.error("Auto config error: " + e);
+                log.error("Auto config error: {}", String.valueOf(e));
             }
         }
         // init fields
         this.httpClient = RPCHttpClientFactory.getHttpClient(config.getProperty("autumn.httpclient"));
-        log.info("Using HTTP client: " + httpClient.getClass().getSimpleName());
+        log.info("Using HTTP client: {}", httpClient.getClass().getSimpleName());
         this.proxy = AutumnProxyFactory.getProxy(config.getProperty("autumn.proxy"));
-        log.info("Using proxy: " + proxy.getClass().getSimpleName());
+        log.info("Using proxy: {}", proxy.getClass().getSimpleName());
         this.serialization = AutumnSerializationFactory.getSerialization(config.getProperty("autumn.serialization"));
-        log.info("Using serialization: " + serialization.getClass().getSimpleName());
+        log.info("Using serialization: {}", serialization.getClass().getSimpleName());
     }
 
     public AutumnRPCClient(String host, int port) {

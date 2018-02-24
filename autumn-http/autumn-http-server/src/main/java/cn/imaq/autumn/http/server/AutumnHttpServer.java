@@ -55,7 +55,7 @@ public class AutumnHttpServer {
                 boss.start();
                 cleaner = new IdleCleaner();
                 cleaner.start();
-                log.info("Started HTTP server on port " + port + " with " + NUM_WORKERS + " workers");
+                log.info("Started HTTP server on port {} with {} workers", port, NUM_WORKERS);
             }
         }
     }
@@ -170,7 +170,7 @@ public class AutumnHttpServer {
                         session.processByteBuffer(buf);
                     }
                 } catch (IOException e) {
-                    log.error("Got exception while processing request: " + e.getClass().getName());
+                    log.error("Got exception while processing request: {}", e.getClass().getName());
                     try {
                         cChannel.close();
                     } catch (IOException e1) {

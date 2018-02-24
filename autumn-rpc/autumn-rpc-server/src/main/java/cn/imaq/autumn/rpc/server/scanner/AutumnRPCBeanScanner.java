@@ -16,7 +16,7 @@ public class AutumnRPCBeanScanner implements BeanScanner {
         ServiceMap serviceMap = (ServiceMap) context.getAttribute(ServiceMap.ATTR);
         if (serviceMap != null) {
             spec.matchClassesWithAnnotation(AutumnRPCExpose.class, clz -> {
-                log.info("Exposing: " + clz.getName());
+                log.info("RPC Exposing: {}", clz.getName());
                 serviceMap.addService(clz);
                 for (Class intf : clz.getInterfaces()) {
                     serviceMap.addService(intf.getName(), clz);

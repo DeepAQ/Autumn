@@ -35,7 +35,7 @@ public class AspectBeanScanner implements BeanScanner {
                 if (method.isAnnotationPresent(Hook.class)) {
                     method.setAccessible(true);
                     Hook hookAnno = method.getAnnotation(Hook.class);
-                    log.info("Adding hook " + hookAnno);
+                    log.info("Adding hook {}", hookAnno);
                     aopContext.addHook(new HookModel(hookAnno.value(), hookAnno.exclude(), method));
                 }
             }

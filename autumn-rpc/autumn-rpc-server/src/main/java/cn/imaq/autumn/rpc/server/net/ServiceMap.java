@@ -16,9 +16,9 @@ public class ServiceMap {
     }
 
     public void addService(String serviceName, Class<?> serviceClass) {
-        log.info("Adding service {" + serviceName + " => " + serviceClass.getName() + "}");
+        log.info("Adding service {{} => {}}", serviceName, serviceClass.getName());
         if (map.put(serviceName, serviceClass) != null) {
-            log.warn(serviceName + " has multiple implements, replacing with " + serviceClass.getName());
+            log.warn("{} has multiple implements, replacing with {}", serviceName, serviceClass.getName());
         }
     }
 

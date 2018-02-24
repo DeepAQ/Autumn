@@ -24,7 +24,7 @@ public class BeanScanners {
                         try {
                             scanners.add((BeanScanner) result.classNameToClassRef(cn).newInstance());
                         } catch (Exception e) {
-                            log.warn("Cannot init bean scanner [" + cn + "], " + e);
+                            log.warn("Cannot init bean scanner [{}], {}", cn, String.valueOf(e));
                         }
                     });
                 }
