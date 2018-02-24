@@ -33,7 +33,6 @@ public class MethodParamsResolver {
         if (!init) {
             synchronized (MethodParamsResolver.class) {
                 if (!init) {
-                    init = true;
                     log.info("Initializing param resolvers and converters ...");
                     ScanResult result = AutumnClasspathScan.getScanResult();
                     result.getNamesOfSubclassesOf(AnnotatedParamResolver.class).forEach(cn -> {
@@ -59,6 +58,7 @@ public class MethodParamsResolver {
                             e.printStackTrace();
                         }
                     });
+                    init = true;
                 }
             }
         }

@@ -90,8 +90,9 @@ public class AutumnHttpServer {
                 channel.register(selector, op, attachment);
             } catch (ClosedChannelException e) {
                 log.warn("Attempt to register a closed channel", e);
+            } finally {
+                regLock.unlock();
             }
-            regLock.unlock();
         }
 
         abstract void process(SelectionKey key);

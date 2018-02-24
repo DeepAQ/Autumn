@@ -20,7 +20,6 @@ public class BeanPopulators {
         if (!init) {
             synchronized (BeanPopulators.class) {
                 if (!init) {
-                    init = true;
                     log.info("Init bean populators ...");
                     ScanResult result = AutumnClasspathScan.getScanResult();
                     result.getNamesOfSubclassesOf(AnnotatedFieldPopulator.class).forEach(cn -> {
@@ -31,6 +30,7 @@ public class BeanPopulators {
                             log.warn("Cannot init bean populator [" + cn + "]: " + e);
                         }
                     });
+                    init = true;
                 }
             }
         }

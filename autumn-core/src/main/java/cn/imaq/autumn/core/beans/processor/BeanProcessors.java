@@ -16,7 +16,6 @@ public class BeanProcessors {
         if (!init) {
             synchronized (BeanProcessors.class) {
                 if (!init) {
-                    init = true;
                     log.info("Init bean processors ...");
                     ScanResult result = AutumnClasspathScan.getScanResult();
                     result.getNamesOfClassesImplementing(BeanProcessor.class).forEach(cn -> {
@@ -32,6 +31,7 @@ public class BeanProcessors {
                             log.warn("Cannot init bean processor [" + cn + "]: " + e);
                         }
                     });
+                    init = true;
                 }
             }
         }
