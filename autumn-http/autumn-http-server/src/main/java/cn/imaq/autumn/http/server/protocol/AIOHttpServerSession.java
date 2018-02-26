@@ -77,18 +77,25 @@ public class AIOHttpServerSession extends AbstractHttpSession {
         StringBuilder sb = new StringBuilder();
         sb.append("HTTP/1.1 ").append(response.getStatus()).append(' ')
                 .append(AutumnHttpResponse.ResponseCodes.get(response.getStatus())).append("\r\n");
+        boolean sentContentType = false;
+        boolean sentContentLength = false;
         if (response.getHeaders() != null) {
             for (Map.Entry<String, List<String>> header : response.getHeaders().entrySet()) {
                 String key = header.getKey();
                 for (String value : header.getValue()) {
                     sb.append(key).append(": ").append(value).append("\r\n");
                 }
+                if (key.toLowerCase().equals("content-type")) {
+                    sentContentType = true;
+                } else if (key.toLowerCase().equals("content-length")) {
+                    sentContentLength = true;
+                }
             }
         }
-        if (response.getContentType() != null) {
+        if (!sentContentType && response.getContentType() != null) {
             sb.append("Content-Type: ").append(response.getContentType()).append("\r\n");
         }
-        if (response.getBody() != null) {
+        if (!sentContentLength && response.getBody() != null) {
             sb.append("Content-Length: ").append(response.getBody().length).append("\r\n");
         }
         CountDownLatch writeLatch = new CountDownLatch(1);
