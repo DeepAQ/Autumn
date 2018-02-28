@@ -14,7 +14,10 @@ public class AutumnClasspathScan {
             synchronized (AutumnClasspathScan.class) {
                 if (scanResult == null) {
                     log.info("Scanning classpath ...");
-                    scanResult = new FastClasspathScanner().scan();
+                    scanResult = new FastClasspathScanner()
+                            .enableFieldAnnotationIndexing()
+                            .enableMethodAnnotationIndexing()
+                            .scan();
                 }
             }
         }
