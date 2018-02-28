@@ -1,6 +1,7 @@
-package cn.imaq.autumn.rest.core;
+package cn.imaq.autumn.rest.model;
 
 import cn.imaq.autumn.rest.annotation.RequestMapping;
+import cn.imaq.autumn.rest.core.RequestMethod;
 import cn.imaq.autumn.rest.message.DefaultConverterDelegate;
 import cn.imaq.autumn.rest.message.MessageConverter;
 import cn.imaq.autumn.rest.util.PathUtil;

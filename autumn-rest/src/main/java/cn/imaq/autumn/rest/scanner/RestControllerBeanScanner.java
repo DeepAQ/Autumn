@@ -4,10 +4,13 @@ import cn.imaq.autumn.core.beans.BeanInfo;
 import cn.imaq.autumn.core.beans.creator.NormalBeanCreator;
 import cn.imaq.autumn.core.beans.scanner.BeanScanner;
 import cn.imaq.autumn.core.context.AutumnContext;
+import cn.imaq.autumn.rest.annotation.ExceptionHandler;
 import cn.imaq.autumn.rest.annotation.RequestMapping;
 import cn.imaq.autumn.rest.annotation.RequestMappings;
 import cn.imaq.autumn.rest.annotation.RestController;
-import cn.imaq.autumn.rest.core.RequestMappingModel;
+import cn.imaq.autumn.rest.model.ControllerAdviceModel;
+import cn.imaq.autumn.rest.model.ExceptionHandlerModel;
+import cn.imaq.autumn.rest.model.RequestMappingModel;
 import cn.imaq.autumn.rest.core.RestContext;
 import io.github.lukehutch.fastclasspathscanner.scanner.ScanSpec;
 import lombok.extern.slf4j.Slf4j;
@@ -47,6 +50,10 @@ public class RestControllerBeanScanner implements BeanScanner {
                     } else if (method.isAnnotationPresent(RequestMapping.class)) {
                         method.setAccessible(true);
                         addMapping(restContext, method.getAnnotation(RequestMapping.class), parentMapping, method);
+                    } else if (method.isAnnotationPresent(ExceptionHandler.class)) {
+                        method.setAccessible(true);
+                        ExceptionHandler eh = method.getAnnotation(ExceptionHandler.class);
+                        restContext.addExceptionHandler(new ExceptionHandlerModel(eh, new ControllerAdviceModel(cls.getName()), method));
                     }
                 }
             });

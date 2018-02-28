@@ -1,6 +1,8 @@
 package cn.imaq.autumn.rest.core;
 
 import cn.imaq.autumn.core.context.AutumnContext;
+import cn.imaq.autumn.rest.model.ExceptionHandlerModel;
+import cn.imaq.autumn.rest.model.RequestMappingModel;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -17,6 +19,7 @@ public class RestContext {
     @Getter
     private AutumnContext applicationContext;
     private List<RequestMappingModel> mappings = new ArrayList<>();
+    private List<ExceptionHandlerModel> exceptionHandlers = new ArrayList<>();
     private Map<Class<?>, Object> instances = new ConcurrentHashMap<>();
 
     private RestContext(AutumnContext applicationContext) {
@@ -51,7 +54,11 @@ public class RestContext {
         this.mappings.add(mappingModel);
     }
 
-    public RequestMappingModel matchRequest(HttpServletRequest req) {
+    public void addExceptionHandler(ExceptionHandlerModel exceptionHandlerModel) {
+        this.exceptionHandlers.add(exceptionHandlerModel);
+    }
+
+    public RequestMappingModel matchRequestMapping(HttpServletRequest req) {
         String realPath = req.getServletPath();
         String pathInfo = req.getPathInfo();
         if (pathInfo != null) {
@@ -66,6 +73,19 @@ public class RestContext {
                     continue;
                 }
                 return mapping;
+            }
+        }
+        return null;
+    }
+
+    public ExceptionHandlerModel matchExceptionHandler(Class<?> controllerClass, Class<? extends Throwable> throwableClass) {
+        for (ExceptionHandlerModel handler : exceptionHandlers) {
+            if (handler.getControllerAdvice().matches(controllerClass)) {
+                for (Class<? extends Throwable> thrClass : handler.getThrowableClasses()) {
+                    if (thrClass.isAssignableFrom(throwableClass)) {
+                        return handler;
+                    }
+                }
             }
         }
         return null;

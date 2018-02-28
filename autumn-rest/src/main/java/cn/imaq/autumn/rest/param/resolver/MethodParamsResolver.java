@@ -54,8 +54,7 @@ public class MethodParamsResolver {
                             for (Class targetType : converter.getTargetTypes()) {
                                 typeConverters.put(targetType, converter);
                             }
-                        } catch (Exception e) {
-                            e.printStackTrace();
+                        } catch (Exception ignored) {
                         }
                     });
                     init = true;
@@ -65,11 +64,20 @@ public class MethodParamsResolver {
     }
 
     public Object[] resolveAll(Method method, HttpServletRequest req, HttpServletResponse resp) throws ParamResolveException {
+        return resolveAllWithThrowable(method, req, resp, null);
+    }
+
+    public Object[] resolveAllWithThrowable(Method method, HttpServletRequest req, HttpServletResponse resp, Throwable throwable) throws ParamResolveException {
         ensureInit();
         Parameter[] params = method.getParameters();
         Object[] rawValues = new Object[params.length];
         for (int i = 0; i < params.length; i++) {
             Parameter param = params[i];
+            // process throwable
+            if (throwable != null && param.getType().isInstance(throwable)) {
+                rawValues[i] = throwable;
+                continue;
+            }
             // look for suitable resolver
             ParamResolver resolver = null;
             // try annotated resolvers first
