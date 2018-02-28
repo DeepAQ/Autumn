@@ -2,6 +2,7 @@ package cn.imaq.tompuss.servlet;
 
 import cn.imaq.autumn.http.protocol.AutumnHttpResponse;
 import cn.imaq.tompuss.io.TPOutputStream;
+import cn.imaq.tompuss.util.TPPathUtil;
 import lombok.Setter;
 
 import javax.servlet.ServletContext;
@@ -285,6 +286,9 @@ public class TPHttpServletResponse implements HttpServletResponse {
      */
     @Override
     public void sendRedirect(String location) throws IOException {
+        while (location.length() > 1 && location.endsWith("/")) {
+            location = location.substring(0, location.length() - 1);
+        }
         this.reset();
         this.setStatus(302);
         this.setHeader("Location", location);

@@ -76,7 +76,7 @@ public class TPServletContext implements ServletContext {
                 registration.loadAnnotation(ws);
             }
         });
-        result.getNamesOfClassesWithAnnotation(WebServlet.class).forEach(cn -> {
+        result.getNamesOfClassesWithAnnotation(WebFilter.class).forEach(cn -> {
             if (result.getClassNameToClassInfo().get(cn).hasSuperclass(HttpFilter.class.getName())) {
                 Class<? extends HttpFilter> cls = (Class<? extends HttpFilter>) result.classNameToClassRef(cn);
                 WebFilter wf = cls.getAnnotation(WebFilter.class);
@@ -86,7 +86,7 @@ public class TPServletContext implements ServletContext {
             }
         });
         result.getNamesOfClassesWithAnnotation(WebListener.class).forEach(cn -> {
-            if (result.getClassNameToClassInfo().get(cn).implementsInterface(EventListener.class.getName())) {
+            if (EventListener.class.isAssignableFrom(result.classNameToClassRef(cn))) {
                 this.addListener((Class<? extends EventListener>) result.classNameToClassRef(cn));
             }
         });

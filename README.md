@@ -1,5 +1,5 @@
 # Autumn
-> 如果 J2EE 不是水课，为什么不能自己造小轮替代 Spring？
+> 如果 J2EE 不是水课，为什么不能自己造小轮？
 
 ![Logo](rxj-autumn.png)
 
@@ -11,13 +11,13 @@
 ## 子项目列表
 | 子项目 | 状态 | 简介 |
 | --- | --- | --- |
-| [AutumnCore](autumn-core/) | 开发中 | IoC 容器 / 依赖注入 |
+| [AutumnCore](autumn-core/) | 能用 | IoC 容器 / 依赖注入 |
 | [AutumnHTTP](autumn-http/) | 能用 | HTTP 服务器 / 客户端组件 |
-| [TomPuss](autumn-http/tompuss/) | 能用 | Web 服务器 / Servlet 容器 |
+| [TomPuss](tompuss/) | 能用 | Web 服务器 / Servlet 容器 |
 | [AutumnREST](autumn-rest/) | 能用 | MVC 风格的 RESTful 服务框架 |
 | [AutumnRPC](autumn-rpc/) | 能用 | 跨语言(将来)的 HTTP RPC 框架 |
-| AutumnAOP | 计划中 | 整合常用 AOP 框架 |
-| AutumnORM | 计划中 | 整合 MyBatis / Hibernate |
+| [AutumnAOP](autumn-aop/) | 能用 | AOP 框架 |
+| Autumn-Integration | 计划中 | 整合 MyBatis / Hibernate |
 | AutumnCache | 计划中 | 整合常用 KV 存储 |
 
 ## License
