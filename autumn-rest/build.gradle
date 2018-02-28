@@ -1,4 +1,4 @@
-version '1.0-SNAPSHOT'
+version '0.2'
 description 'MVC-style Web framework for building RESTful applications'
 
 apply from: '../maven-publish.gradle'

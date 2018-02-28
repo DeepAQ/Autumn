@@ -1,4 +1,4 @@
-version '1.0-SNAPSHOT'
+version '0.3'
 description 'J2EE Web Server and Servlet container'
 
 apply from: '../maven-publish.gradle'
