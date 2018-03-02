@@ -1,0 +1,7 @@
+version '1.0-SNAPSHOT'
+description 'MyBatis integration for Autumn'
+
+dependencies {
+    compile project(':autumn-core')
+    compileOnly 'org.mybatis:mybatis:3.4.5'
+}
