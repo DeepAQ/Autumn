@@ -21,7 +21,12 @@ public class TPFilterRegistration extends TPRegistration<Filter> implements Filt
     }
 
     public void loadAnnotation(WebFilter wf) {
-        EnumSet<DispatcherType> dispatcherTypes = EnumSet.copyOf(Arrays.asList(wf.dispatcherTypes()));
+        EnumSet<DispatcherType> dispatcherTypes;
+        if (wf.dispatcherTypes().length > 0) {
+            dispatcherTypes = EnumSet.copyOf(Arrays.asList(wf.dispatcherTypes()));
+        } else {
+            dispatcherTypes = EnumSet.allOf(DispatcherType.class);
+        }
         this.addMappingForUrlPatterns(dispatcherTypes, true, wf.value());
         this.addMappingForUrlPatterns(dispatcherTypes, true, wf.urlPatterns());
         this.addMappingForServletNames(dispatcherTypes, true, wf.servletNames());

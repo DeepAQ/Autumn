@@ -10,6 +10,7 @@ import javax.servlet.FilterRegistration;
 import javax.servlet.ServletRegistration;
 import java.io.File;
 import java.util.EnumSet;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -71,11 +72,15 @@ public class TPXmlUtil {
                     case "filter-mapping":
                         FilterRegistration fReg = context.getFilterRegistration(element.elementTextTrim("filter-name"));
                         if (fReg != null) {
-                            EnumSet<DispatcherType> dispatcherTypes = EnumSet.copyOf(
-                                    element.elements("dispatcher").stream()
-                                            .map(e -> DispatcherType.valueOf(e.getTextTrim()))
-                                            .collect(Collectors.toSet())
-                            );
+                            Set<DispatcherType> dispatcherTypeSet = element.elements("dispatcher").stream()
+                                    .map(e -> DispatcherType.valueOf(e.getTextTrim()))
+                                    .collect(Collectors.toSet());
+                            EnumSet<DispatcherType> dispatcherTypes;
+                            if (dispatcherTypeSet.isEmpty()) {
+                                dispatcherTypes = EnumSet.allOf(DispatcherType.class);
+                            } else {
+                                dispatcherTypes = EnumSet.copyOf(dispatcherTypeSet);
+                            }
                             if (dispatcherTypes.isEmpty()) {
                                 dispatcherTypes = EnumSet.of(DispatcherType.REQUEST);
                             }
