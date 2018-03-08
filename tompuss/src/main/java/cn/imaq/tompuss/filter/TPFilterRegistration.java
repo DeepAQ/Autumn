@@ -38,7 +38,7 @@ public class TPFilterRegistration extends TPRegistration<Filter> implements Filt
 
     public Filter getFilterInstance() {
         if (!this.init) {
-            if (((GenericFilter) this.instance).getFilterConfig() != null) {
+            if ((this.instance instanceof GenericFilter) && (((GenericFilter) this.instance).getFilterConfig() != null)) {
                 this.init = true;
             } else synchronized (this) {
                 if (!this.init) {
