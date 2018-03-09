@@ -79,6 +79,6 @@ public class TPMultipartParser {
     }
 
     private enum State {
-        START, HEADER, BODY;
+        START, HEADER, BODY
     }
 }

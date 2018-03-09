@@ -21,10 +21,21 @@ public class TPFilterRegistration extends TPRegistration<Filter> implements Filt
     }
 
     public void loadAnnotation(WebFilter wf) {
-        EnumSet<DispatcherType> dispatcherTypes = EnumSet.copyOf(Arrays.asList(wf.dispatcherTypes()));
-        this.addMappingForUrlPatterns(dispatcherTypes, true, wf.value());
-        this.addMappingForUrlPatterns(dispatcherTypes, true, wf.urlPatterns());
-        this.addMappingForServletNames(dispatcherTypes, true, wf.servletNames());
+        EnumSet<DispatcherType> dispatcherTypes;
+        if (wf.dispatcherTypes().length > 0) {
+            dispatcherTypes = EnumSet.copyOf(Arrays.asList(wf.dispatcherTypes()));
+        } else {
+            dispatcherTypes = EnumSet.allOf(DispatcherType.class);
+        }
+        if (wf.value().length > 0) {
+            this.addMappingForUrlPatterns(dispatcherTypes, true, wf.value());
+        }
+        if (wf.urlPatterns().length > 0) {
+            this.addMappingForUrlPatterns(dispatcherTypes, true, wf.urlPatterns());
+        }
+        if (wf.servletNames().length > 0) {
+            this.addMappingForServletNames(dispatcherTypes, true, wf.servletNames());
+        }
         this.setAsyncSupported(wf.asyncSupported());
         for (WebInitParam initParam : wf.initParams()) {
             this.setInitParameter(initParam.name(), initParam.value());
@@ -33,7 +44,7 @@ public class TPFilterRegistration extends TPRegistration<Filter> implements Filt
 
     public Filter getFilterInstance() {
         if (!this.init) {
-            if (((GenericFilter) this.instance).getFilterConfig() != null) {
+            if ((this.instance instanceof GenericFilter) && (((GenericFilter) this.instance).getFilterConfig() != null)) {
                 this.init = true;
             } else synchronized (this) {
                 if (!this.init) {
@@ -100,6 +111,9 @@ public class TPFilterRegistration extends TPRegistration<Filter> implements Filt
      */
     @Override
     public void addMappingForServletNames(EnumSet<DispatcherType> dispatcherTypes, boolean isMatchAfter, String... servletNames) {
+        if (servletNames == null || servletNames.length == 0) {
+            throw new IllegalArgumentException();
+        }
         this.context.addFilterMapping(new TPFilterMapping.ByServlet(this, dispatcherTypes, servletNames), isMatchAfter);
         this.servletMappings.addAll(Arrays.asList(servletNames));
     }
@@ -149,6 +163,9 @@ public class TPFilterRegistration extends TPRegistration<Filter> implements Filt
      */
     @Override
     public void addMappingForUrlPatterns(EnumSet<DispatcherType> dispatcherTypes, boolean isMatchAfter, String... urlPatterns) {
+        if (urlPatterns == null || urlPatterns.length == 0) {
+            throw new IllegalArgumentException();
+        }
         this.context.addFilterMapping(new TPFilterMapping.ByUrlPattern(this, dispatcherTypes, urlPatterns), isMatchAfter);
         this.urlPatternMappings.addAll(Arrays.asList(urlPatterns));
     }

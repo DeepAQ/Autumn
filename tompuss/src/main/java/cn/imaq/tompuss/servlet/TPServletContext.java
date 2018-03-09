@@ -2,7 +2,9 @@ package cn.imaq.tompuss.servlet;
 
 import cn.imaq.autumn.cpscan.AutumnClasspathScan;
 import cn.imaq.tompuss.core.TPEngine;
-import cn.imaq.tompuss.core.TPRequestDispatcher;
+import cn.imaq.tompuss.dispatcher.TPNamedDispatcher;
+import cn.imaq.tompuss.dispatcher.TPPathDispatcher;
+import cn.imaq.tompuss.dispatcher.TPRequestDispatcher;
 import cn.imaq.tompuss.filter.TPFilterChain;
 import cn.imaq.tompuss.filter.TPFilterMapping;
 import cn.imaq.tompuss.filter.TPFilterRegistration;
@@ -32,6 +34,8 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 @Slf4j
 public class TPServletContext implements ServletContext {
+    public static final String DEFAULT_SERVLET = "default";
+
     @Getter
     private TPEngine engine;
     private String appName;
@@ -57,6 +61,7 @@ public class TPServletContext implements ServletContext {
         this.appName = appName;
         this.contextPath = TPPathUtil.transform(contextPath);
         this.resourceRoot = resourceRoot;
+        this.addServlet(DEFAULT_SERVLET, TPDefaultServlet.class);
     }
 
     public synchronized void loadConfigFile(String fileName) {
@@ -71,7 +76,7 @@ public class TPServletContext implements ServletContext {
             if (result.getClassNameToClassInfo().get(cn).hasSuperclass(HttpServlet.class.getName())) {
                 Class<? extends HttpServlet> cls = (Class<? extends HttpServlet>) result.classNameToClassRef(cn);
                 WebServlet ws = cls.getAnnotation(WebServlet.class);
-                TPServletRegistration registration = (TPServletRegistration) this.addServlet(
+                TPServletRegistration registration = this.addServlet(
                         ws.name().isEmpty() ? cn : ws.name(), cls);
                 registration.loadAnnotation(ws);
             }
@@ -80,7 +85,7 @@ public class TPServletContext implements ServletContext {
             if (result.getClassNameToClassInfo().get(cn).hasSuperclass(HttpFilter.class.getName())) {
                 Class<? extends HttpFilter> cls = (Class<? extends HttpFilter>) result.classNameToClassRef(cn);
                 WebFilter wf = cls.getAnnotation(WebFilter.class);
-                TPFilterRegistration registration = (TPFilterRegistration) this.addFilter(
+                TPFilterRegistration registration = this.addFilter(
                         wf.filterName().isEmpty() ? cn : wf.filterName(), cls);
                 registration.loadAnnotation(wf);
             }
@@ -468,8 +473,8 @@ public class TPServletContext implements ServletContext {
      * @see ServletContext#getContext
      */
     @Override
-    public RequestDispatcher getRequestDispatcher(String path) {
-        return new TPRequestDispatcher(this, path);
+    public TPRequestDispatcher getRequestDispatcher(String path) {
+        return new TPPathDispatcher(this, path);
     }
 
     /**
@@ -496,9 +501,16 @@ public class TPServletContext implements ServletContext {
      * @see ServletConfig#getServletName
      */
     @Override
-    public RequestDispatcher getNamedDispatcher(String name) {
-        // TODO dispatcher
-        return null;
+    public TPRequestDispatcher getNamedDispatcher(String name) {
+        TPServletRegistration servletRegistration = this.servletRegistrations.get(name);
+        if (servletRegistration == null) {
+            return null;
+        }
+        return new TPNamedDispatcher(this, servletRegistration);
+    }
+
+    public TPRequestDispatcher getDefaultDispatcher() {
+        return this.getNamedDispatcher(DEFAULT_SERVLET);
     }
 
     /**
@@ -889,7 +901,7 @@ public class TPServletContext implements ServletContext {
      * @since Servlet 3.0
      */
     @Override
-    public ServletRegistration.Dynamic addServlet(String servletName, String className) {
+    public TPServletRegistration addServlet(String servletName, String className) {
         try {
             Class<?> servletClass = Class.forName(className);
             return this.addServlet(servletName, (Class<? extends Servlet>) servletClass);
@@ -931,7 +943,7 @@ public class TPServletContext implements ServletContext {
      * @since Servlet 3.0
      */
     @Override
-    public ServletRegistration.Dynamic addServlet(String servletName, Servlet servlet) {
+    public TPServletRegistration addServlet(String servletName, Servlet servlet) {
         if (servletName == null || servletName.isEmpty()) {
             throw new IllegalArgumentException();
         }
@@ -982,7 +994,7 @@ public class TPServletContext implements ServletContext {
      * @since Servlet 3.0
      */
     @Override
-    public ServletRegistration.Dynamic addServlet(String servletName, Class<? extends Servlet> servletClass) {
+    public TPServletRegistration addServlet(String servletName, Class<? extends Servlet> servletClass) {
         try {
             return this.addServlet(servletName, this.createServlet(servletClass));
         } catch (ServletException e) {
@@ -1119,6 +1131,10 @@ public class TPServletContext implements ServletContext {
         return Collections.unmodifiableMap(this.servletRegistrations);
     }
 
+    public TPServletRegistration getDefaultServletRegistration() {
+        return this.servletRegistrations.get(DEFAULT_SERVLET);
+    }
+
     /**
      * Adds the filter with the given name and class name to this servlet
      * context.
@@ -1158,7 +1174,7 @@ public class TPServletContext implements ServletContext {
      * @since Servlet 3.0
      */
     @Override
-    public FilterRegistration.Dynamic addFilter(String filterName, String className) {
+    public TPFilterRegistration addFilter(String filterName, String className) {
         try {
             Class<?> filterClass = Class.forName(className);
             return this.addFilter(filterName, (Class<? extends Filter>) filterClass);
@@ -1199,7 +1215,7 @@ public class TPServletContext implements ServletContext {
      * @since Servlet 3.0
      */
     @Override
-    public FilterRegistration.Dynamic addFilter(String filterName, Filter filter) {
+    public TPFilterRegistration addFilter(String filterName, Filter filter) {
         if (filterName == null || filterName.isEmpty()) {
             throw new IllegalArgumentException();
         }
@@ -1245,7 +1261,7 @@ public class TPServletContext implements ServletContext {
      * @since Servlet 3.0
      */
     @Override
-    public FilterRegistration.Dynamic addFilter(String filterName, Class<? extends Filter> filterClass) {
+    public TPFilterRegistration addFilter(String filterName, Class<? extends Filter> filterClass) {
         try {
             return this.addFilter(filterName, this.createFilter(filterClass));
         } catch (ServletException e) {

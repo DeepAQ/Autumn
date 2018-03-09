@@ -38,7 +38,7 @@ public abstract class TPFilterMapping {
 
         @Override
         public boolean match(String path, String servletName) {
-            return this.servletNames.contains(servletName);
+            return servletName != null && this.servletNames.contains(servletName);
         }
     }
 
@@ -52,6 +52,9 @@ public abstract class TPFilterMapping {
 
         @Override
         public boolean match(String path, String servletName) {
+            if (path == null) {
+                return false;
+            }
             for (TPUrlPattern pattern : urlPatterns) {
                 if (pattern.getType() != TPUrlPattern.Type.DEFAULT && pattern.match(path).getPatternLength() >= 0) {
                     return true;

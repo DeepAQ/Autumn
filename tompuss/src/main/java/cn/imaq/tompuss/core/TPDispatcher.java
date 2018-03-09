@@ -11,6 +11,8 @@ import cn.imaq.tompuss.util.TPMatchResult;
 import cn.imaq.tompuss.util.TPNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 
+import javax.servlet.ServletRequestEvent;
+import javax.servlet.ServletRequestListener;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.io.Writer;
@@ -39,9 +41,10 @@ public class TPDispatcher implements AutumnHttpHandler {
         TPHttpExchange exchange = new TPHttpExchange();
         TPHttpServletRequest req = new TPHttpServletRequest(request, context, exchange);
         TPHttpServletResponse resp = new TPHttpServletResponse(context, exchange);
+        context.getListeners(ServletRequestListener.class).forEach(x -> x.requestInitialized(new ServletRequestEvent(context, req)));
         // Dispatch
         try {
-            ((TPRequestDispatcher) context.getRequestDispatcher(remainPath)).request(req, resp);
+            context.getRequestDispatcher(remainPath).request(req, resp);
         } catch (TPNotFoundException e) {
             return notFound();
         } catch (Throwable e) {
@@ -51,11 +54,12 @@ public class TPDispatcher implements AutumnHttpHandler {
         if (resp.getStatus() == 404) {
             TPHttpServletResponse resResp = new TPHttpServletResponse(context, exchange);
             try {
-                ((TPRequestDispatcher) context.getRequestDispatcher(remainPath)).dispatchResource(resResp);
+                context.getDefaultDispatcher().request(req, resResp);
                 resp = resResp;
             } catch (Exception ignored) {
             }
         }
+        context.getListeners(ServletRequestListener.class).forEach(x -> x.requestDestroyed(new ServletRequestEvent(context, req)));
         return resp.toAutumnHttpResponse();
     }
 
