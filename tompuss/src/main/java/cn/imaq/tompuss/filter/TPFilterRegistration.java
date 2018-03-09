@@ -27,9 +27,15 @@ public class TPFilterRegistration extends TPRegistration<Filter> implements Filt
         } else {
             dispatcherTypes = EnumSet.allOf(DispatcherType.class);
         }
-        this.addMappingForUrlPatterns(dispatcherTypes, true, wf.value());
-        this.addMappingForUrlPatterns(dispatcherTypes, true, wf.urlPatterns());
-        this.addMappingForServletNames(dispatcherTypes, true, wf.servletNames());
+        if (wf.value().length > 0) {
+            this.addMappingForUrlPatterns(dispatcherTypes, true, wf.value());
+        }
+        if (wf.urlPatterns().length > 0) {
+            this.addMappingForUrlPatterns(dispatcherTypes, true, wf.urlPatterns());
+        }
+        if (wf.servletNames().length > 0) {
+            this.addMappingForServletNames(dispatcherTypes, true, wf.servletNames());
+        }
         this.setAsyncSupported(wf.asyncSupported());
         for (WebInitParam initParam : wf.initParams()) {
             this.setInitParameter(initParam.name(), initParam.value());
@@ -105,6 +111,9 @@ public class TPFilterRegistration extends TPRegistration<Filter> implements Filt
      */
     @Override
     public void addMappingForServletNames(EnumSet<DispatcherType> dispatcherTypes, boolean isMatchAfter, String... servletNames) {
+        if (servletNames == null || servletNames.length == 0) {
+            throw new IllegalArgumentException();
+        }
         this.context.addFilterMapping(new TPFilterMapping.ByServlet(this, dispatcherTypes, servletNames), isMatchAfter);
         this.servletMappings.addAll(Arrays.asList(servletNames));
     }
@@ -154,6 +163,9 @@ public class TPFilterRegistration extends TPRegistration<Filter> implements Filt
      */
     @Override
     public void addMappingForUrlPatterns(EnumSet<DispatcherType> dispatcherTypes, boolean isMatchAfter, String... urlPatterns) {
+        if (urlPatterns == null || urlPatterns.length == 0) {
+            throw new IllegalArgumentException();
+        }
         this.context.addFilterMapping(new TPFilterMapping.ByUrlPattern(this, dispatcherTypes, urlPatterns), isMatchAfter);
         this.urlPatternMappings.addAll(Arrays.asList(urlPatterns));
     }
