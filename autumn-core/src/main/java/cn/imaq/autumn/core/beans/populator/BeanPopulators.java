@@ -25,7 +25,10 @@ public class BeanPopulators {
                     result.getNamesOfSubclassesOf(AnnotatedFieldPopulator.class).forEach(cn -> {
                         try {
                             AnnotatedFieldPopulator<?> populator = (AnnotatedFieldPopulator<?>) result.classNameToClassRef(cn).newInstance();
-                            annotatedFieldPopulatorMap.put(populator.getAnnotationClass(), populator);
+                            Class<? extends Annotation> annotationClass = populator.getAnnotationClass();
+                            if (annotationClass != null) {
+                                annotatedFieldPopulatorMap.put(annotationClass, populator);
+                            }
                         } catch (Exception e) {
                             log.warn("Cannot init bean populator [{}]: {}", cn, String.valueOf(e));
                         }

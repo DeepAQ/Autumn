@@ -38,7 +38,10 @@ public class MethodParamsResolver {
                     result.getNamesOfSubclassesOf(AnnotatedParamResolver.class).forEach(cn -> {
                         try {
                             AnnotatedParamResolver<?> resolver = (AnnotatedParamResolver<?>) result.classNameToClassRef(cn).newInstance();
-                            annotatedResolvers.put(resolver.getAnnotationClass(), resolver);
+                            Class<? extends Annotation> annotationClass = resolver.getAnnotationClass();
+                            if (annotationClass != null) {
+                                annotatedResolvers.put(resolver.getAnnotationClass(), resolver);
+                            }
                         } catch (Exception ignored) {
                         }
                     });
