@@ -1,4 +1,4 @@
-version '0.1'
+version '0.2'
 description 'IoC container for other Autumn components'
 
 apply from: '../maven-publish.gradle'
