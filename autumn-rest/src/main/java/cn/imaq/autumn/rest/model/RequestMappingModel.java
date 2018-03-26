@@ -49,11 +49,11 @@ public class RequestMappingModel {
             }
         }
         this.setPaths(newPaths);
-        if (!parent.getMethods().isEmpty()) {
-            this.methods.retainAll(parent.getMethods());
+        if (this.methods.isEmpty()) {
+            this.methods = parent.getMethods();
         }
-        if (!parent.getConsumes().isEmpty()) {
-            this.consumes.retainAll(parent.getConsumes());
+        if (this.consumes.isEmpty()) {
+            this.consumes = parent.getConsumes();
         }
         if (this.getConverter().equals(DefaultConverterDelegate.class)) {
             this.converter = parent.converter;
