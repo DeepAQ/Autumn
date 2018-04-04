@@ -68,7 +68,7 @@ public class AutumnRPCHandler implements RPCHttpHandler {
                                 rpcRequest.getParams(), serialization
                         );
                         return ok(serialization.contentType(), serialization.serializeResponse(
-                                AutumnRPCResponse.builder().status(STATUS_OK).result(result).resultType(result.getClass()).build()
+                                AutumnRPCResponse.builder().status(STATUS_OK).result(result).resultType(result == null ? null : result.getClass()).build()
                         ));
                     } catch (AutumnInvokeException e) {
                         log.error("Error invoking {}#{}: {}", serviceName, rpcRequest.getMethodName(), String.valueOf(e.getCause()));
