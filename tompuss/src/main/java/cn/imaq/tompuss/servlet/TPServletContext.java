@@ -73,26 +73,27 @@ public class TPServletContext implements ServletContext {
         log.info("Scanning annotations ...");
         ScanResult result = AutumnClasspathScan.getScanResult();
         result.getNamesOfClassesWithAnnotation(WebServlet.class).forEach(cn -> {
-            if (result.getClassNameToClassInfo().get(cn).hasSuperclass(HttpServlet.class.getName())) {
-                Class<? extends HttpServlet> cls = (Class<? extends HttpServlet>) result.classNameToClassRef(cn);
+            Class<?> cls = result.classNameToClassRef(cn);
+            if (HttpServlet.class.isAssignableFrom(cls)) {
                 WebServlet ws = cls.getAnnotation(WebServlet.class);
                 TPServletRegistration registration = this.addServlet(
-                        ws.name().isEmpty() ? cn : ws.name(), cls);
+                        ws.name().isEmpty() ? cn : ws.name(), (Class<? extends Servlet>) cls);
                 registration.loadAnnotation(ws);
             }
         });
         result.getNamesOfClassesWithAnnotation(WebFilter.class).forEach(cn -> {
-            if (result.getClassNameToClassInfo().get(cn).hasSuperclass(HttpFilter.class.getName())) {
-                Class<? extends HttpFilter> cls = (Class<? extends HttpFilter>) result.classNameToClassRef(cn);
+            Class<?> cls = result.classNameToClassRef(cn);
+            if (HttpFilter.class.isAssignableFrom(cls)) {
                 WebFilter wf = cls.getAnnotation(WebFilter.class);
                 TPFilterRegistration registration = this.addFilter(
-                        wf.filterName().isEmpty() ? cn : wf.filterName(), cls);
+                        wf.filterName().isEmpty() ? cn : wf.filterName(), (Class<? extends Filter>) cls);
                 registration.loadAnnotation(wf);
             }
         });
         result.getNamesOfClassesWithAnnotation(WebListener.class).forEach(cn -> {
-            if (EventListener.class.isAssignableFrom(result.classNameToClassRef(cn))) {
-                this.addListener((Class<? extends EventListener>) result.classNameToClassRef(cn));
+            Class<?> cls = result.classNameToClassRef(cn);
+            if (EventListener.class.isAssignableFrom(cls)) {
+                this.addListener((Class<? extends EventListener>) cls);
             }
         });
     }

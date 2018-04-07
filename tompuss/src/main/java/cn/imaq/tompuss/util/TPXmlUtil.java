@@ -84,14 +84,14 @@ public class TPXmlUtil {
                             if (dispatcherTypes.isEmpty()) {
                                 dispatcherTypes = EnumSet.of(DispatcherType.REQUEST);
                             }
-                            fReg.addMappingForServletNames(
-                                    dispatcherTypes, true,
-                                    element.elements("servlet-name").stream().map(Element::getTextTrim).toArray(String[]::new)
-                            );
-                            fReg.addMappingForUrlPatterns(
-                                    dispatcherTypes, true,
-                                    element.elements("url-pattern").stream().map(Element::getTextTrim).toArray(String[]::new)
-                            );
+                            String[] servletNames = element.elements("servlet-name").stream().map(Element::getTextTrim).toArray(String[]::new);
+                            String[] urlPatterns = element.elements("url-pattern").stream().map(Element::getTextTrim).toArray(String[]::new);
+                            if (servletNames.length > 0) {
+                                fReg.addMappingForServletNames(dispatcherTypes, true, servletNames);
+                            }
+                            if (urlPatterns.length > 0) {
+                                fReg.addMappingForUrlPatterns(dispatcherTypes, true, urlPatterns);
+                            }
                         }
                         break;
                     case "listener":
