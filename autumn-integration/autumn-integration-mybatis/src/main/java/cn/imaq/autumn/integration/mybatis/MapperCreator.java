@@ -5,6 +5,11 @@ import cn.imaq.autumn.core.context.AutumnContext;
 import cn.imaq.autumn.core.exception.BeanCreationException;
 import org.apache.ibatis.session.SqlSessionFactory;
 
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
+
 public class MapperCreator implements BeanCreator {
     private Class<?> mapperType;
 
@@ -22,7 +27,23 @@ public class MapperCreator implements BeanCreator {
             throw new BeanCreationException("Cannot get SqlSessionFactory from application context");
         }
         try {
-            return sqlSessionFactory.openSession().getMapper(mapperType);
+            return Proxy.newProxyInstance(Thread.currentThread().getContextClassLoader(), new Class<?>[]{mapperType}, new InvocationHandler() {
+                private ThreadLocal<Object> targetLocal = new ThreadLocal<>();
+
+                @Override
+                public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+                    Object target = targetLocal.get();
+                    if (target == null) {
+                        target = sqlSessionFactory.openSession(true).getMapper(mapperType);
+                        targetLocal.set(target);
+                    }
+                    try {
+                        return method.invoke(target, args);
+                    } catch (InvocationTargetException e) {
+                        throw e.getTargetException();
+                    }
+                }
+            });
         } catch (Exception e) {
             throw new BeanCreationException(e);
         }
