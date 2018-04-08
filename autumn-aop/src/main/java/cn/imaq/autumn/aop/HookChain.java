@@ -1,6 +1,7 @@
 package cn.imaq.autumn.aop;
 
 import cn.imaq.autumn.core.context.AutumnContext;
+import lombok.Getter;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -9,12 +10,16 @@ import java.util.Iterator;
 public class HookChain {
     private Iterator<HookModel> hookItr;
 
+    @Getter
     private AutumnContext context;
 
+    @Getter
     private Object target;
 
+    @Getter
     private Method realMethod;
 
+    @Getter
     private Object[] args;
 
     public HookChain(Iterator<HookModel> hookItr, AutumnContext context, Object target, Method realMethod, Object[] args) {
