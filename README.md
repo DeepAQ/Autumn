@@ -1,12 +1,12 @@
 # Autumn
-> 如果 J2EE 不是水课，为什么不能自己造小轮？
+> 我为什么要用 Spring？
 
 ![Logo](rxj-autumn.png)
 
 (Illustration by **LS**)
 
 ## 项目目的
-抛开 Spring 巨轮，自己编写一个轻量级 Java Web 框架供课程项目使用，以达到学(zhuang)习(bi)的目的。
+抛开 Spring 巨轮，自己编写一个应用于小型项目的轻量级 Java 应用开发框架，以达到学(zhuang)习(bi)的目的。
 
 ## 子项目列表
 | 子项目 | 状态 | 简介 |
@@ -17,8 +17,8 @@
 | [AutumnREST](autumn-rest/) | 能用 | MVC 风格的 RESTful 服务框架 |
 | [AutumnRPC](autumn-rpc/) | 能用 | 跨语言(将来)的 HTTP RPC 框架 |
 | [AutumnAOP](autumn-aop/) | 能用 | AOP 框架 |
-| Autumn-Integration | 计划中 | 整合 MyBatis / Hibernate |
-| AutumnCache | 计划中 | 整合常用 KV 存储 |
+| [Autumn-Integration-MyBatis](autumn-integration/autumn-integration-mybatis/) | 计划中 | 整合 MyBatis 框架 |
+| Autumn-Integration-Hibernate | 计划中 | 整合 Hibernate 框架 |
 
 ## License
 Copyright 2017 DeepAQ

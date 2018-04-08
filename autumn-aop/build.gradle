@@ -1,5 +1,5 @@
-version '0.1'
-description 'Aspect Oriented Programming support for Autumn core'
+version '0.1.1'
+description 'Aspect Oriented Programming support for Autumn'
 
 apply from: '../maven-publish.gradle'
 
