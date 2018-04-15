@@ -1,0 +1,6 @@
+subprojects {
+    apply from: '../../maven-publish.gradle'
+
+    dependencies {
+    }
+}

@@ -1,11 +1,10 @@
 version '1.0-SNAPSHOT'
 description 'Java EE Web Server and Servlet container'
 
-apply from: '../../maven-publish.gradle'
-
 dependencies {
     compile project(':autumn-http:autumn-http-server')
     compile project(':autumn-classpath-scan')
+    compile 'org.slf4j:slf4j-log4j12:1.7.25'
     compile 'javax.servlet:javax.servlet-api:4.0.0'
     compile 'org.eclipse.jetty.toolchain:jetty-jsp-jdt:2.3.3'
     compile 'org.dom4j:dom4j:2.1.0'
