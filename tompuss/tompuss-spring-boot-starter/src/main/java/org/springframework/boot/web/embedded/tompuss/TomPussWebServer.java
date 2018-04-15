@@ -1,6 +1,7 @@
 package org.springframework.boot.web.embedded.tompuss;
 
 import cn.imaq.tompuss.core.TPEngine;
+import cn.imaq.tompuss.util.TPBanner;
 import lombok.Getter;
 import org.springframework.boot.web.server.WebServer;
 import org.springframework.boot.web.server.WebServerException;
@@ -18,6 +19,7 @@ public class TomPussWebServer implements WebServer {
     @Override
     public void start() throws WebServerException {
         engine.setPort(this.port);
+        TPBanner.printBanner();
         engine.start();
     }
 
