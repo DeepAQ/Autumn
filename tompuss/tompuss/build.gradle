@@ -1,7 +1,7 @@
 version '1.0-SNAPSHOT'
-description 'J2EE Web Server and Servlet container'
+description 'Java EE Web Server and Servlet container'
 
-apply from: '../maven-publish.gradle'
+apply from: '../../maven-publish.gradle'
 
 dependencies {
     compile project(':autumn-http:autumn-http-server')
