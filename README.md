@@ -13,11 +13,12 @@
 | --- | --- | --- |
 | [AutumnCore](autumn-core/) | 能用 | IoC 容器 / 依赖注入 |
 | [AutumnHTTP](autumn-http/) | 能用 | HTTP 服务器 / 客户端组件 |
-| [TomPuss](tompuss/) | 能用 | Web 服务器 / Servlet 容器 |
+| [TomPuss](tompuss/tompuss/) | 能用 | Web 服务器 / Servlet 容器 |
+| [TomPuss for Spring Boot](tompuss/tompuss-spring-boot-starter/) | 能用 | 使用 TomPuss 运行 Spring Boot Web 应用 |
 | [AutumnREST](autumn-rest/) | 能用 | MVC 风格的 RESTful 服务框架 |
 | [AutumnRPC](autumn-rpc/) | 能用 | 跨语言(将来)的 HTTP RPC 框架 |
 | [AutumnAOP](autumn-aop/) | 能用 | AOP 框架 |
-| [Autumn-Integration-MyBatis](autumn-integration/autumn-integration-mybatis/) | 计划中 | 整合 MyBatis 框架 |
+| [Autumn-Integration-MyBatis](autumn-integration/autumn-integration-mybatis/) | 能用 | 整合 MyBatis 框架 |
 | Autumn-Integration-Hibernate | 计划中 | 整合 Hibernate 框架 |
 
 ## License

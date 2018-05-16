@@ -1,12 +1,6 @@
-version '0.3.3'
-description 'J2EE Web Server and Servlet container'
+subprojects {
+    apply from: '../../maven-publish.gradle'
 
-apply from: '../maven-publish.gradle'
-
-dependencies {
-    compile project(':autumn-http:autumn-http-server')
-    compile project(':autumn-classpath-scan')
-    compile 'javax.servlet:javax.servlet-api:4.0.0'
-    compile 'org.eclipse.jetty.toolchain:jetty-jsp-jdt:2.3.3'
-    compile 'org.dom4j:dom4j:2.1.0'
+    dependencies {
+    }
 }

@@ -107,6 +107,7 @@ public class TPServletContext implements ServletContext {
     public synchronized void startup() {
         log.info("Starting up context ...");
         if (!this.started) {
+            this.getListeners(ServletContextListener.class).forEach(x -> x.contextInitialized(new ServletContextEvent(this)));
             Map<Integer, List<TPServletRegistration>> servletStartupMap = new TreeMap<>();
             for (TPServletRegistration servletRegistration : this.servletRegistrations.values()) {
                 if (servletRegistration.getLoadOnStartup() >= 0) {
@@ -119,7 +120,6 @@ public class TPServletContext implements ServletContext {
                     servletRegistration.getServletInstance();
                 }
             }
-            this.getListeners(ServletContextListener.class).forEach(x -> x.contextInitialized(new ServletContextEvent(this)));
             this.started = true;
         }
     }

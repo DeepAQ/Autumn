@@ -1,0 +1,18 @@
+version '1.0-SNAPSHOT'
+description 'TomPuss starter pack for Spring Boot'
+
+configurations {
+    shadow
+    compile.exclude group:'org.slf4j', module: 'slf4j-log4j12'
+}
+
+dependencies {
+    compile project(':tompuss:tompuss')
+    compileOnly 'org.springframework.boot:spring-boot:2.0.0.RELEASE'
+    compileOnly 'org.springframework.boot:spring-boot-autoconfigure:2.0.0.RELEASE'
+    shadow 'javax.servlet:javax.servlet-api:4.0.0'
+}
+
+jar {
+    from configurations.shadow.collect { it.isDirectory() ? it : zipTree(it) }
+}

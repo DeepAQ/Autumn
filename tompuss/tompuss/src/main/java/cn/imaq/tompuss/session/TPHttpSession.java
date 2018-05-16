@@ -337,7 +337,7 @@ public class TPHttpSession implements HttpSession {
         if (this.timeout == 0) {
             return true;
         }
-        return (this.lastAccess + this.timeout * 1000 > System.currentTimeMillis());
+        return (this.lastAccess + this.timeout * 60000 > System.currentTimeMillis());
     }
 
     public void checkValid() {
