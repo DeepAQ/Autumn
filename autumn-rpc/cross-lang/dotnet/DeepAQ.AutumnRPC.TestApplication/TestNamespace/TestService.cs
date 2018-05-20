@@ -13,7 +13,7 @@ namespace DeepAQ.AutumnRPC.TestApplication.TestNamespace
 
         string testArray(object[] arr);
 
-        string testList(IList<MyObject> list);
+        IList<MyObject> testList(IList<MyObject> list);
 
         void testThrowException(string msg);
 

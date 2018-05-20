@@ -6,6 +6,8 @@ import org.springframework.boot.web.server.WebServer;
 import org.springframework.boot.web.servlet.ServletContextInitializer;
 import org.springframework.boot.web.servlet.server.AbstractServletWebServerFactory;
 
+import javax.servlet.ServletContextEvent;
+import javax.servlet.ServletContextListener;
 import javax.servlet.ServletException;
 import java.io.File;
 
@@ -23,12 +25,17 @@ public class TomPussServletWebServerFactory extends AbstractServletWebServerFact
         if (shouldRegisterJspServlet()) {
             context.enableJsp();
         }
-        for (ServletContextInitializer initializer : initializers) {
-            try {
-                initializer.onStartup(context);
-            } catch (ServletException e) {
-                e.printStackTrace();
+        context.addListener(new ServletContextListener() {
+            @Override
+            public void contextInitialized(ServletContextEvent sce) {
+                for (ServletContextInitializer initializer : initializers) {
+                    try {
+                        initializer.onStartup(context);
+                    } catch (ServletException e) {
+                        e.printStackTrace();
+                    }
+                }
             }
-        }
+        });
     }
 }
