@@ -3,14 +3,15 @@ package cn.imaq.autumn.http.server.protocol;
 import cn.imaq.autumn.http.protocol.AbstractHttpSession;
 import cn.imaq.autumn.http.protocol.AutumnHttpRequest;
 import cn.imaq.autumn.http.protocol.AutumnHttpResponse;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.channels.CompletionHandler;
 import java.util.*;
-import java.util.concurrent.CountDownLatch;
 
+@Slf4j
 public class AIOHttpServerSession extends AbstractHttpSession {
     private static final Set<String> VALID_METHODS = new HashSet<>();
 
@@ -20,16 +21,46 @@ public class AIOHttpServerSession extends AbstractHttpSession {
 
     private AutumnHttpHandler handler;
     private AsynchronousSocketChannel cChannel;
+    private ByteBuffer buf;
     private String method, path, protocol;
 
     public AIOHttpServerSession(AutumnHttpHandler handler, AsynchronousSocketChannel cChannel) {
         this.handler = handler;
         this.cChannel = cChannel;
+        this.buf = ByteBuffer.allocate(1024);
     }
 
-    public void checkIdle(int timeoutSec) throws IOException {
-        if (System.currentTimeMillis() - lastActive > timeoutSec * 1000) {
-            timeout();
+    public void tryRead() {
+        cChannel.read(buf, null, new CompletionHandler<Integer, Object>() {
+            @Override
+            public void completed(Integer result, Object attachment) {
+                if (result > 0) {
+                    buf.flip();
+                    try {
+                        processByteBuffer(buf);
+                    } catch (IOException e) {
+                        log.warn("Failed to process buffer: {}", String.valueOf(e));
+                        tryClose();
+                    }
+                    buf.clear();
+                } else {
+                    tryClose();
+                }
+            }
+
+            @Override
+            public void failed(Throwable exc, Object attachment) {
+                log.warn("Failed to read: {}", String.valueOf(exc));
+                tryClose();
+            }
+        });
+    }
+
+    public void tryClose() {
+        try {
+            cChannel.close();
+        } catch (IOException e) {
+            log.warn("Failed to close channel: {}", String.valueOf(e));
         }
     }
 
@@ -98,7 +129,6 @@ public class AIOHttpServerSession extends AbstractHttpSession {
         if (!sentContentLength && response.getBody() != null) {
             sb.append("Content-Length: ").append(response.getBody().length).append("\r\n");
         }
-        CountDownLatch writeLatch = new CountDownLatch(1);
         cChannel.write(ByteBuffer.wrap(sb.append("\r\n").toString().getBytes()), null, new CompletionHandler<Integer, Object>() {
             @Override
             public void completed(Integer result, Object attachment) {
@@ -106,27 +136,25 @@ public class AIOHttpServerSession extends AbstractHttpSession {
                     cChannel.write(ByteBuffer.wrap(response.getBody()), null, new CompletionHandler<Integer, Object>() {
                         @Override
                         public void completed(Integer result, Object attachment) {
-                            writeLatch.countDown();
+                            tryRead();
                         }
 
                         @Override
                         public void failed(Throwable exc, Object attachment) {
-                            writeLatch.countDown();
+                            log.warn("Failed to write body: {}", String.valueOf(exc));
+                            tryClose();
                         }
                     });
                 } else {
-                    writeLatch.countDown();
+                    tryRead();
                 }
             }
 
             @Override
             public void failed(Throwable exc, Object attachment) {
-                writeLatch.countDown();
+                log.warn("Failed to write headers: {}", String.valueOf(exc));
+                tryClose();
             }
         });
-        try {
-            writeLatch.await();
-        } catch (InterruptedException ignored) {
-        }
     }
 }
