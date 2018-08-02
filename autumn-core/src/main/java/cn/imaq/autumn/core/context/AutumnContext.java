@@ -3,10 +3,10 @@ package cn.imaq.autumn.core.context;
 import cn.imaq.autumn.core.beans.BeanInfo;
 import cn.imaq.autumn.core.beans.BeanWrapper;
 import cn.imaq.autumn.core.beans.creator.BeanCreator;
+import cn.imaq.autumn.core.beans.populator.BeanPopulators;
 import cn.imaq.autumn.core.beans.processor.AfterBeanCreateProcessor;
 import cn.imaq.autumn.core.beans.processor.AfterBeanPopulateProcessor;
 import cn.imaq.autumn.core.beans.processor.BeanProcessors;
-import cn.imaq.autumn.core.beans.populator.BeanPopulators;
 import cn.imaq.autumn.core.beans.scanner.BeanScanners;
 import cn.imaq.autumn.core.exception.BeanCreationException;
 import cn.imaq.autumn.core.exception.BeanPopulationException;
@@ -100,24 +100,24 @@ public class AutumnContext {
             return null;
         }
         if (info.isSingleton()) {
-            synchronized (info) {
-                return getBeanByInfoInternal(info, populating);
+            Object singletonBean = singletons.get(info);
+            if (singletonBean != null) {
+                return singletonBean;
+            } else if (populating) {
+                Object populatingBean = populatingBeans.get(info);
+                if (populatingBean != null) {
+                    return populatingBean;
+                }
+            } else {
+                synchronized (info) {
+                    return getNewBeanByInfo(info, populating);
+                }
             }
         }
-        return getBeanByInfoInternal(info, populating);
+        return getNewBeanByInfo(info, populating);
     }
 
-    private Object getBeanByInfoInternal(BeanInfo info, boolean populating) {
-        if (populating && info.isSingleton() && populatingBeans.containsKey(info)) {
-            return populatingBeans.get(info);
-        }
-        if (info.isSingleton()) {
-            if (populating && populatingBeans.containsKey(info)) {
-                return populatingBeans.get(info);
-            } else if (singletons.containsKey(info)) {
-                return singletons.get(info);
-            }
-        }
+    private Object getNewBeanByInfo(BeanInfo info, boolean populating) {
         try {
             return createAndPopulateBean(info);
         } catch (BeanCreationException e) {
