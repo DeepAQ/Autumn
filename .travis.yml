@@ -1,1 +1,7 @@
 language: java
+
+install:
+  - echo > maven-publish.gradle
+
+script:
+  - gradle assemble
