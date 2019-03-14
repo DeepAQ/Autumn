@@ -4,7 +4,7 @@ description 'MVC-style Web framework for building RESTful applications'
 apply from: '../maven-publish.gradle'
 
 dependencies {
-    compile project(':autumn-core')
-    compile 'javax.servlet:javax.servlet-api:3.1.0'
-    compile 'com.fasterxml.jackson.core:jackson-databind:2.9.4'
+    api project(':autumn-core')
+    compileOnly 'javax.servlet:javax.servlet-api:3.1.0'
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.9.8'
 }

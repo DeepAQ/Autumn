@@ -4,7 +4,7 @@ description 'IoC container for other Autumn components'
 apply from: '../maven-publish.gradle'
 
 dependencies {
+    api project(':autumn-classpath-scan')
     api 'javax.annotation:javax.annotation-api:1.3.2'
-    compile project(':autumn-classpath-scan')
-    compile 'org.slf4j:slf4j-log4j12:1.7.26'
+    implementation 'org.slf4j:slf4j-log4j12:1.7.26'
 }

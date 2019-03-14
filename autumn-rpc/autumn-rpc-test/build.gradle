@@ -1,6 +1,6 @@
 version '1.0-SNAPSHOT'
 
 dependencies {
-    compile project(":autumn-rpc:autumn-rpc-server")
-    compile project(":autumn-rpc:autumn-rpc-client")
+    implementation project(":autumn-rpc:autumn-rpc-server")
+    implementation project(":autumn-rpc:autumn-rpc-client")
 }

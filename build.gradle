@@ -15,7 +15,7 @@ subprojects {
     dependencies {
         compileOnly 'org.projectlombok:lombok:+'
         annotationProcessor 'org.projectlombok:lombok:+'
-        compile 'org.slf4j:slf4j-api:1.7.26'
-        testCompile 'junit:junit:4.12'
+        implementation 'org.slf4j:slf4j-api:1.7.26'
+        testImplementation 'junit:junit:4.12'
     }
 }

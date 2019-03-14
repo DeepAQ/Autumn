@@ -4,6 +4,6 @@ description 'Aspect Oriented Programming support for Autumn core'
 apply from: '../maven-publish.gradle'
 
 dependencies {
-    compile project(':autumn-core')
-    compile 'cglib:cglib:3.2.6'
+    api project(':autumn-core')
+    implementation 'cglib:cglib:3.2.10'
 }
