@@ -1,4 +1,10 @@
+dist: xenial
+
 language: java
+
+jdk:
+  - openjdk8
+  - openjdk11
 
 install:
   - echo > maven-publish.gradle
