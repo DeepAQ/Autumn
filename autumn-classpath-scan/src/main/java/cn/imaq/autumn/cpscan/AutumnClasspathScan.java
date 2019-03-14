@@ -1,30 +1,27 @@
 package cn.imaq.autumn.cpscan;
 
-import io.github.lukehutch.fastclasspathscanner.FastClasspathScanner;
-import io.github.lukehutch.fastclasspathscanner.scanner.ScanResult;
-import io.github.lukehutch.fastclasspathscanner.scanner.ScanSpec;
+import cn.imaq.autumn.cpscan.adapter.ClassGraphScanResultAdapter;
+import io.github.classgraph.ClassGraph;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class AutumnClasspathScan {
-    private static volatile ScanResult scanResult;
+    private static volatile ScanResult globalResult;
 
-    public static ScanResult getScanResult() {
-        if (scanResult == null) {
+    public static ScanResult getGlobalScanResult() {
+        if (globalResult == null) {
             synchronized (AutumnClasspathScan.class) {
-                if (scanResult == null) {
+                if (globalResult == null) {
                     log.info("Scanning classpath ...");
-                    scanResult = new FastClasspathScanner()
-                            .enableFieldAnnotationIndexing()
-                            .enableMethodAnnotationIndexing()
-                            .scan();
+                    globalResult = new ClassGraphScanResultAdapter(
+                            new ClassGraph()
+                                    .enableAllInfo()
+                                    .scan()
+                    );
                 }
             }
         }
-        return scanResult;
-    }
 
-    public static void processSpec(ScanSpec spec) {
-        spec.callMatchProcessors(getScanResult());
+        return globalResult;
     }
 }

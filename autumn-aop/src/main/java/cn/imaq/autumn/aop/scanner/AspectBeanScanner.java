@@ -8,7 +8,7 @@ import cn.imaq.autumn.core.beans.BeanInfo;
 import cn.imaq.autumn.core.beans.creator.NormalBeanCreator;
 import cn.imaq.autumn.core.beans.scanner.BeanScanner;
 import cn.imaq.autumn.core.context.AutumnContext;
-import io.github.lukehutch.fastclasspathscanner.scanner.ScanSpec;
+import cn.imaq.autumn.cpscan.ScanResult;
 import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.Method;
@@ -16,9 +16,9 @@ import java.lang.reflect.Method;
 @Slf4j
 public class AspectBeanScanner implements BeanScanner {
     @Override
-    public void process(ScanSpec spec, AutumnContext context) {
+    public void process(ScanResult result, AutumnContext context) {
         AopContext aopContext = AopContext.getFrom(context);
-        spec.matchClassesWithAnnotation(Aspect.class, cls -> {
+        result.getClassesWithAnnotation(Aspect.class).forEach(cls -> {
             Aspect anno = cls.getAnnotation(Aspect.class);
             String name = anno.value();
             if (name.isEmpty()) {

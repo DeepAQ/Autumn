@@ -3,13 +3,13 @@ package cn.imaq.autumn.integration.mybatis;
 import cn.imaq.autumn.core.beans.BeanInfo;
 import cn.imaq.autumn.core.beans.scanner.BeanScanner;
 import cn.imaq.autumn.core.context.AutumnContext;
-import io.github.lukehutch.fastclasspathscanner.scanner.ScanSpec;
+import cn.imaq.autumn.cpscan.ScanResult;
 import org.apache.ibatis.annotations.Mapper;
 
 public class MapperScanner implements BeanScanner {
     @Override
-    public void process(ScanSpec spec, AutumnContext context) {
-        spec.matchClassesWithAnnotation(Mapper.class, cls -> {
+    public void process(ScanResult result, AutumnContext context) {
+        result.getClassesWithAnnotation(Mapper.class).forEach(cls -> {
             if (cls.isInterface()) {
                 String name = cls.getSimpleName().toLowerCase();
                 context.addBeanInfo(BeanInfo.builder()

@@ -1,6 +1,7 @@
 package cn.imaq.autumn.rest.param.resolver;
 
 import cn.imaq.autumn.cpscan.AutumnClasspathScan;
+import cn.imaq.autumn.cpscan.ScanResult;
 import cn.imaq.autumn.rest.annotation.param.JSON;
 import cn.imaq.autumn.rest.exception.ParamConvertException;
 import cn.imaq.autumn.rest.exception.ParamResolveException;
@@ -9,7 +10,6 @@ import cn.imaq.autumn.rest.param.converter.ParamConverter;
 import cn.imaq.autumn.rest.param.value.ParamValue;
 import com.fasterxml.jackson.core.TreeNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.github.lukehutch.fastclasspathscanner.scanner.ScanResult;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.servlet.http.HttpServletRequest;
@@ -34,10 +34,10 @@ public class MethodParamsResolver {
             synchronized (MethodParamsResolver.class) {
                 if (!init) {
                     log.info("Initializing param resolvers and converters ...");
-                    ScanResult result = AutumnClasspathScan.getScanResult();
-                    result.getNamesOfSubclassesOf(AnnotatedParamResolver.class).forEach(cn -> {
+                    ScanResult result = AutumnClasspathScan.getGlobalScanResult();
+                    result.getSubClassesOf(AnnotatedParamResolver.class).forEach(c -> {
                         try {
-                            AnnotatedParamResolver<?> resolver = (AnnotatedParamResolver<?>) result.classNameToClassRef(cn).newInstance();
+                            AnnotatedParamResolver<?> resolver = (AnnotatedParamResolver<?>) c.newInstance();
                             Class<? extends Annotation> annotationClass = resolver.getAnnotationClass();
                             if (annotationClass != null) {
                                 annotatedResolvers.put(resolver.getAnnotationClass(), resolver);
@@ -45,15 +45,15 @@ public class MethodParamsResolver {
                         } catch (Exception ignored) {
                         }
                     });
-                    result.getNamesOfSubclassesOf(TypedParamResolver.class).forEach(cn -> {
+                    result.getSubClassesOf(TypedParamResolver.class).forEach(c -> {
                         try {
-                            typedResolvers.add((TypedParamResolver<?>) result.classNameToClassRef(cn).newInstance());
+                            typedResolvers.add((TypedParamResolver<?>) c.newInstance());
                         } catch (Exception ignored) {
                         }
                     });
-                    result.getNamesOfClassesImplementing(ParamConverter.class).forEach(cn -> {
+                    result.getClassesImplementing(ParamConverter.class).forEach(c -> {
                         try {
-                            ParamConverter converter = (ParamConverter) result.classNameToClassRef(cn).newInstance();
+                            ParamConverter converter = (ParamConverter) c.newInstance();
                             for (Class targetType : converter.getTargetTypes()) {
                                 typeConverters.put(targetType, converter);
                             }

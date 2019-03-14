@@ -1,7 +1,7 @@
 package cn.imaq.autumn.core.beans.processor;
 
 import cn.imaq.autumn.cpscan.AutumnClasspathScan;
-import io.github.lukehutch.fastclasspathscanner.scanner.ScanResult;
+import cn.imaq.autumn.cpscan.ScanResult;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.*;
@@ -17,10 +17,10 @@ public class BeanProcessors {
             synchronized (BeanProcessors.class) {
                 if (!init) {
                     log.info("Init bean processors ...");
-                    ScanResult result = AutumnClasspathScan.getScanResult();
-                    result.getNamesOfClassesImplementing(BeanProcessor.class).forEach(cn -> {
+                    ScanResult result = AutumnClasspathScan.getGlobalScanResult();
+                    result.getClassesImplementing(BeanProcessor.class).forEach(c -> {
                         try {
-                            Class<? extends BeanProcessor> processorClass = (Class<? extends BeanProcessor>) result.classNameToClassRef(cn);
+                            Class<? extends BeanProcessor> processorClass = (Class<? extends BeanProcessor>) c;
                             BeanProcessor processor = processorClass.newInstance();
                             for (Class<?> intf : processorClass.getInterfaces()) {
                                 if (BeanProcessor.class.isAssignableFrom(intf)) {
@@ -28,7 +28,7 @@ public class BeanProcessors {
                                 }
                             }
                         } catch (Exception e) {
-                            log.warn("Cannot init bean processor [{}]: {}", cn, String.valueOf(e));
+                            log.warn("Cannot init bean processor [{}]: {}", c, String.valueOf(e));
                         }
                     });
                     init = true;

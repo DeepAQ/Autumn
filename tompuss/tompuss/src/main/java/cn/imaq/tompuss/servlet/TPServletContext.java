@@ -1,6 +1,7 @@
 package cn.imaq.tompuss.servlet;
 
 import cn.imaq.autumn.cpscan.AutumnClasspathScan;
+import cn.imaq.autumn.cpscan.ScanResult;
 import cn.imaq.tompuss.core.TPEngine;
 import cn.imaq.tompuss.dispatcher.TPNamedDispatcher;
 import cn.imaq.tompuss.dispatcher.TPPathDispatcher;
@@ -13,7 +14,6 @@ import cn.imaq.tompuss.util.TPMatchResult;
 import cn.imaq.tompuss.util.TPPathUtil;
 import cn.imaq.tompuss.util.TPUrlPattern;
 import cn.imaq.tompuss.util.TPXmlUtil;
-import io.github.lukehutch.fastclasspathscanner.scanner.ScanResult;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.jasper.servlet.JspServlet;
@@ -71,27 +71,24 @@ public class TPServletContext implements ServletContext {
     @SuppressWarnings("unchecked")
     public synchronized void scanAnnotations() {
         log.info("Scanning annotations ...");
-        ScanResult result = AutumnClasspathScan.getScanResult();
-        result.getNamesOfClassesWithAnnotation(WebServlet.class).forEach(cn -> {
-            Class<?> cls = result.classNameToClassRef(cn);
+        ScanResult result = AutumnClasspathScan.getGlobalScanResult();
+        result.getClassesWithAnnotation(WebServlet.class).forEach(cls -> {
             if (HttpServlet.class.isAssignableFrom(cls)) {
                 WebServlet ws = cls.getAnnotation(WebServlet.class);
                 TPServletRegistration registration = this.addServlet(
-                        ws.name().isEmpty() ? cn : ws.name(), (Class<? extends Servlet>) cls);
+                        ws.name().isEmpty() ? cls.getName() : ws.name(), (Class<? extends Servlet>) cls);
                 registration.loadAnnotation(ws);
             }
         });
-        result.getNamesOfClassesWithAnnotation(WebFilter.class).forEach(cn -> {
-            Class<?> cls = result.classNameToClassRef(cn);
+        result.getClassesWithAnnotation(WebFilter.class).forEach(cls -> {
             if (HttpFilter.class.isAssignableFrom(cls)) {
                 WebFilter wf = cls.getAnnotation(WebFilter.class);
                 TPFilterRegistration registration = this.addFilter(
-                        wf.filterName().isEmpty() ? cn : wf.filterName(), (Class<? extends Filter>) cls);
+                        wf.filterName().isEmpty() ? cls.getName() : wf.filterName(), (Class<? extends Filter>) cls);
                 registration.loadAnnotation(wf);
             }
         });
-        result.getNamesOfClassesWithAnnotation(WebListener.class).forEach(cn -> {
-            Class<?> cls = result.classNameToClassRef(cn);
+        result.getClassesWithAnnotation(WebListener.class).forEach(cls -> {
             if (EventListener.class.isAssignableFrom(cls)) {
                 this.addListener((Class<? extends EventListener>) cls);
             }

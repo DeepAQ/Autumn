@@ -4,16 +4,13 @@ import cn.imaq.autumn.core.annotation.BeanFactory;
 import cn.imaq.autumn.core.beans.BeanInfo;
 import cn.imaq.autumn.core.beans.creator.BeanFactoryCreator;
 import cn.imaq.autumn.core.context.AutumnContext;
-import io.github.lukehutch.fastclasspathscanner.scanner.ScanSpec;
-
-import java.lang.reflect.Method;
+import cn.imaq.autumn.cpscan.ScanResult;
 
 public class BeanFactoryScanner implements BeanScanner {
     @Override
-    public void process(ScanSpec spec, AutumnContext context) {
-        spec.matchClassesWithMethodAnnotation(BeanFactory.class, (cls, executable) -> {
-            if (executable instanceof Method && executable.getParameterCount() == 0) {
-                Method method = ((Method) executable);
+    public void process(ScanResult result, AutumnContext context) {
+        result.getMethodsWithAnnotation(BeanFactory.class).forEach(method -> {
+            if (method.getParameterCount() == 0) {
                 BeanFactory anno = method.getAnnotation(BeanFactory.class);
                 String name = anno.value();
                 if (name.isEmpty()) {

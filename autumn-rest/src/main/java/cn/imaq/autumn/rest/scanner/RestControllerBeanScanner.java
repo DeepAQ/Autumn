@@ -4,15 +4,15 @@ import cn.imaq.autumn.core.beans.BeanInfo;
 import cn.imaq.autumn.core.beans.creator.NormalBeanCreator;
 import cn.imaq.autumn.core.beans.scanner.BeanScanner;
 import cn.imaq.autumn.core.context.AutumnContext;
+import cn.imaq.autumn.cpscan.ScanResult;
 import cn.imaq.autumn.rest.annotation.ExceptionHandler;
 import cn.imaq.autumn.rest.annotation.RequestMapping;
 import cn.imaq.autumn.rest.annotation.RequestMappings;
 import cn.imaq.autumn.rest.annotation.RestController;
+import cn.imaq.autumn.rest.core.RestContext;
 import cn.imaq.autumn.rest.model.ControllerAdviceModel;
 import cn.imaq.autumn.rest.model.ExceptionHandlerModel;
 import cn.imaq.autumn.rest.model.RequestMappingModel;
-import cn.imaq.autumn.rest.core.RestContext;
-import io.github.lukehutch.fastclasspathscanner.scanner.ScanSpec;
 import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.Method;
@@ -20,10 +20,10 @@ import java.lang.reflect.Method;
 @Slf4j
 public class RestControllerBeanScanner implements BeanScanner {
     @Override
-    public void process(ScanSpec spec, AutumnContext context) {
+    public void process(ScanResult result, AutumnContext context) {
         RestContext restContext = (RestContext) context.getAttribute(RestContext.ATTR);
         if (restContext != null) {
-            spec.matchClassesWithAnnotation(RestController.class, cls -> {
+            result.getClassesWithAnnotation(RestController.class).forEach(cls -> {
                 log.info("Found controller {}", cls.getName());
                 RestController anno = cls.getAnnotation(RestController.class);
                 String name = anno.value();

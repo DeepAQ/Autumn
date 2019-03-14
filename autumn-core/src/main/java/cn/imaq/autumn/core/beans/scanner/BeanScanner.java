@@ -1,8 +1,8 @@
 package cn.imaq.autumn.core.beans.scanner;
 
 import cn.imaq.autumn.core.context.AutumnContext;
-import io.github.lukehutch.fastclasspathscanner.scanner.ScanSpec;
+import cn.imaq.autumn.cpscan.ScanResult;
 
 public interface BeanScanner {
-    void process(ScanSpec spec, AutumnContext context);
+    void process(ScanResult result, AutumnContext context);
 }

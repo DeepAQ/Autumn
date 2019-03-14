@@ -3,7 +3,7 @@ package cn.imaq.autumn.core.beans.populator;
 import cn.imaq.autumn.core.context.AutumnContext;
 import cn.imaq.autumn.core.exception.BeanPopulationException;
 import cn.imaq.autumn.cpscan.AutumnClasspathScan;
-import io.github.lukehutch.fastclasspathscanner.scanner.ScanResult;
+import cn.imaq.autumn.cpscan.ScanResult;
 import lombok.extern.slf4j.Slf4j;
 
 import java.lang.annotation.Annotation;
@@ -21,18 +21,19 @@ public class BeanPopulators {
             synchronized (BeanPopulators.class) {
                 if (!init) {
                     log.info("Init bean populators ...");
-                    ScanResult result = AutumnClasspathScan.getScanResult();
-                    result.getNamesOfSubclassesOf(AnnotatedFieldPopulator.class).forEach(cn -> {
+                    ScanResult result = AutumnClasspathScan.getGlobalScanResult();
+                    result.getSubClassesOf(AnnotatedFieldPopulator.class).forEach(c -> {
                         try {
-                            AnnotatedFieldPopulator<?> populator = (AnnotatedFieldPopulator<?>) result.classNameToClassRef(cn).newInstance();
+                            AnnotatedFieldPopulator<?> populator = (AnnotatedFieldPopulator<?>) c.newInstance();
                             Class<? extends Annotation> annotationClass = populator.getAnnotationClass();
                             if (annotationClass != null) {
                                 annotatedFieldPopulatorMap.put(annotationClass, populator);
                             }
                         } catch (Exception e) {
-                            log.warn("Cannot init bean populator [{}]: {}", cn, String.valueOf(e));
+                            log.warn("Cannot init bean populator [{}]: {}", c, String.valueOf(e));
                         }
                     });
+
                     init = true;
                 }
             }

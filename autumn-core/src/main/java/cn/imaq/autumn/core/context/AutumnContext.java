@@ -11,10 +11,8 @@ import cn.imaq.autumn.core.beans.scanner.BeanScanners;
 import cn.imaq.autumn.core.exception.BeanCreationException;
 import cn.imaq.autumn.core.exception.BeanPopulationException;
 import cn.imaq.autumn.cpscan.AutumnClasspathScan;
-import io.github.lukehutch.fastclasspathscanner.scanner.ScanSpec;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.Arrays;
 import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
@@ -43,14 +41,13 @@ public class AutumnContext {
         this.parent = parent;
     }
 
-    public synchronized void scanComponents(String... specArgs) {
+    public synchronized void scanComponents() { // TODO specArgs
         if (scanned) {
             return;
         }
-        ScanSpec spec = new ScanSpec(specArgs, null);
-        BeanScanners.processAll(spec, this);
-        log.info(formatLog("scanning components with spec {}"), Arrays.toString(specArgs));
-        AutumnClasspathScan.processSpec(spec);
+
+        BeanScanners.processAll(AutumnClasspathScan.getGlobalScanResult(), this);
+        log.info(formatLog("scanning components ..."));
         scanned = true;
     }
 
