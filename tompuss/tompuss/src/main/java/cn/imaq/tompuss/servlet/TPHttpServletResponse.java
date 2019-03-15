@@ -462,7 +462,7 @@ public class TPHttpServletResponse implements HttpServletResponse {
      *
      * @param name the name of the response header whose value to return
      * @return the value of the response header with the given name,
-     * or <tt>null</tt> if no header with the given name has been set
+     * or {@code null}  if no header with the given name has been set
      * on this response
      * @since Servlet 3.0
      */

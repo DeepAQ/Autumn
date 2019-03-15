@@ -184,7 +184,7 @@ public class TPServletContext implements ServletContext {
      * <p>This method allows servlets to gain
      * access to the context for various parts of the server, and as
      * needed obtain {@link RequestDispatcher} objects from the context.
-     * The given path must be begin with <tt>/</tt>, is interpreted relative
+     * The given path must be begin with {@code /} , is interpreted relative
      * to the server's document root and is matched against the context
      * roots of other web applications hosted on this container.
      * <p>
@@ -300,12 +300,12 @@ public class TPServletContext implements ServletContext {
      * within the web application whose longest sub-path matches the
      * supplied path argument.
      * <p>
-     * <p>Paths indicating subdirectory paths end with a <tt>/</tt>.
+     * <p>Paths indicating subdirectory paths end with a {@code /} .
      * <p>
      * <p>The returned paths are all relative to the root of the web
-     * application, or relative to the <tt>/META-INF/resources</tt>
+     * application, or relative to the {@code /META-INF/resources}
      * directory of a JAR file inside the web application's
-     * <tt>/WEB-INF/lib</tt> directory, and have a leading <tt>/</tt>.
+     * {@code /WEB-INF/lib}  directory, and have a leading {@code /} .
      * <p>
      * <p>The returned set is not backed by the {@code ServletContext} object,
      * so changes in the returned set are not reflected in the
@@ -325,14 +325,14 @@ public class TPServletContext implements ServletContext {
      *   /WEB-INF/lib/catalog.jar!/META-INF/resources/catalog/moreOffers/books.html
      * }</pre>
      * <p>
-     * <tt>getResourcePaths("/")</tt> would return
-     * <tt>{"/welcome.html", "/catalog/", "/customer/", "/WEB-INF/"}</tt>,
-     * and <tt>getResourcePaths("/catalog/")</tt> would return
-     * <tt>{"/catalog/index.html", "/catalog/products.html",
-     * "/catalog/offers/", "/catalog/moreOffers/"}</tt>.
+     * {@code getResourcePaths("/")}  would return
+     * {@code {"/welcome.html", "/catalog/", "/customer/", "/WEB-INF/"}} ,
+     * and {@code getResourcePaths("/catalog/")}  would return
+     * {@code {"/catalog/index.html", "/catalog/products.html",
+     * "/catalog/offers/", "/catalog/moreOffers/"}} .
      *
      * @param path the partial path used to match the resources,
-     *             which must start with a <tt>/</tt>
+     *             which must start with a {@code /}
      * @return a Set containing the directory listing, or null if there
      * are no resources in the web application whose path
      * begins with the supplied path.
@@ -347,15 +347,15 @@ public class TPServletContext implements ServletContext {
     /**
      * Returns a URL to the resource that is mapped to the given path.
      * <p>
-     * <p>The path must begin with a <tt>/</tt> and is interpreted
+     * <p>The path must begin with a {@code /}  and is interpreted
      * as relative to the current context root,
-     * or relative to the <tt>/META-INF/resources</tt> directory
-     * of a JAR file inside the web application's <tt>/WEB-INF/lib</tt>
+     * or relative to the {@code /META-INF/resources}  directory
+     * of a JAR file inside the web application's {@code /WEB-INF/lib}
      * directory.
      * This method will first search the document root of the
      * web application for the requested resource, before searching
-     * any of the JAR files inside <tt>/WEB-INF/lib</tt>.
-     * The order in which the JAR files inside <tt>/WEB-INF/lib</tt>
+     * any of the JAR files inside {@code /WEB-INF/lib} .
+     * The order in which the JAR files inside {@code /WEB-INF/lib}
      * are searched is undefined.
      * <p>
      * <p>This method allows the servlet container to make a resource
@@ -451,7 +451,7 @@ public class TPServletContext implements ServletContext {
      * a request to the resource or to include the resource in a response.
      * The resource can be dynamic or static.
      * <p>
-     * <p>The pathname must begin with a <tt>/</tt> and is interpreted as
+     * <p>The pathname must begin with a {@code /}  and is interpreted as
      * relative to the current context root.  Use <code>getContext</code>
      * to obtain a <code>RequestDispatcher</code> for resources in foreign
      * contexts.
@@ -614,11 +614,11 @@ public class TPServletContext implements ServletContext {
      * Gets the <i>real</i> path corresponding to the given
      * <i>virtual</i> path.
      * <p>
-     * <p>For example, if <tt>path</tt> is equal to <tt>/index.html</tt>,
+     * <p>For example, if {@code path}  is equal to {@code /index.html} ,
      * this method will return the absolute file path on the server's
      * filesystem to which a request of the form
-     * <tt>http://&lt;host&gt;:&lt;port&gt;/&lt;contextPath&gt;/index.html</tt>
-     * would be mapped, where <tt>&lt;contextPath&gt;</tt> corresponds to the
+     * {@code http://&lt;host&gt;:&lt;port&gt;/&lt;contextPath&gt;/index.html}
+     * would be mapped, where {@code &lt;contextPath&gt;}  corresponds to the
      * context path of this ServletContext.
      * <p>
      * <p>The real path returned will be in a form
@@ -626,9 +626,9 @@ public class TPServletContext implements ServletContext {
      * which the servlet container is running, including the
      * proper path separators.
      * <p>
-     * <p>Resources inside the <tt>/META-INF/resources</tt>
+     * <p>Resources inside the {@code /META-INF/resources}
      * directories of JAR files bundled in the application's
-     * <tt>/WEB-INF/lib</tt> directory must be considered only if the
+     * {@code /WEB-INF/lib}  directory must be considered only if the
      * container has unpacked them from their containing JAR file, in
      * which case the path to the unpacked location must be returned.
      * <p>
@@ -638,7 +638,7 @@ public class TPServletContext implements ServletContext {
      *
      * @param path the <i>virtual</i> path to be translated to a
      *             <i>real</i> path
-     * @return the <i>real</i> path, or <tt>null</tt> if the
+     * @return the <i>real</i> path, or {@code null}  if the
      * translation cannot be performed
      */
     @Override
@@ -862,31 +862,31 @@ public class TPServletContext implements ServletContext {
      * <p>The registered servlet may be further configured via the returned
      * {@link ServletRegistration} object.
      * <p>
-     * <p>The specified <tt>className</tt> will be loaded using the
+     * <p>The specified {@code className}  will be loaded using the
      * classloader associated with the application represented by this
      * ServletContext.
      * <p>
      * <p>If this ServletContext already contains a preliminary
-     * ServletRegistration for a servlet with the given <tt>servletName</tt>,
-     * it will be completed (by assigning the given <tt>className</tt> to it)
+     * ServletRegistration for a servlet with the given {@code servletName} ,
+     * it will be completed (by assigning the given {@code className}  to it)
      * and returned.
      * <p>
-     * <p>This method introspects the class with the given <tt>className</tt>
+     * <p>This method introspects the class with the given {@code className}
      * for the {@link ServletSecurity},
      * {@link MultipartConfig},
-     * <tt>javax.annotation.security.RunAs</tt>, and
-     * <tt>javax.annotation.security.DeclareRoles</tt> annotations.
+     * {@code javax.annotation.security.RunAs} , and
+     * {@code javax.annotation.security.DeclareRoles}  annotations.
      * In addition, this method supports resource injection if the
-     * class with the given <tt>className</tt> represents a Managed Bean.
+     * class with the given {@code className}  represents a Managed Bean.
      * See the Java EE platform and JSR 299 specifications for additional
      * details about Managed Beans and resource injection.
      *
      * @param servletName the name of the servlet
      * @param className   the fully qualified class name of the servlet
      * @return a ServletRegistration object that may be used to further
-     * configure the registered servlet, or <tt>null</tt> if this
+     * configure the registered servlet, or {@code null}  if this
      * ServletContext already contains a complete ServletRegistration for
-     * a servlet with the given <tt>servletName</tt>
+     * a servlet with the given {@code servletName}
      * @throws IllegalStateException         if this ServletContext has already
      *                                       been initialized
      * @throws IllegalArgumentException      if <code>servletName</code> is null
@@ -910,22 +910,22 @@ public class TPServletContext implements ServletContext {
 
     /**
      * Registers the given servlet instance with this ServletContext
-     * under the given <tt>servletName</tt>.
+     * under the given {@code servletName} .
      * <p>
      * <p>The registered servlet may be further configured via the returned
      * {@link ServletRegistration} object.
      * <p>
      * <p>If this ServletContext already contains a preliminary
-     * ServletRegistration for a servlet with the given <tt>servletName</tt>,
+     * ServletRegistration for a servlet with the given {@code servletName} ,
      * it will be completed (by assigning the class name of the given servlet
      * instance to it) and returned.
      *
      * @param servletName the name of the servlet
      * @param servlet     the servlet instance to register
      * @return a ServletRegistration object that may be used to further
-     * configure the given servlet, or <tt>null</tt> if this
+     * configure the given servlet, or {@code null}  if this
      * ServletContext already contains a complete ServletRegistration for a
-     * servlet with the given <tt>servletName</tt> or if the same servlet
+     * servlet with the given {@code servletName}  or if the same servlet
      * instance has already been registered with this or another
      * ServletContext in the same container
      * @throws IllegalStateException         if this ServletContext has already
@@ -959,17 +959,17 @@ public class TPServletContext implements ServletContext {
      * {@link ServletRegistration} object.
      * <p>
      * <p>If this ServletContext already contains a preliminary
-     * ServletRegistration for a servlet with the given <tt>servletName</tt>,
+     * ServletRegistration for a servlet with the given {@code servletName} ,
      * it will be completed (by assigning the name of the given
-     * <tt>servletClass</tt> to it) and returned.
+     * {@code servletClass}  to it) and returned.
      * <p>
-     * <p>This method introspects the given <tt>servletClass</tt> for
+     * <p>This method introspects the given {@code servletClass}  for
      * the {@link ServletSecurity},
      * {@link MultipartConfig},
-     * <tt>javax.annotation.security.RunAs</tt>, and
-     * <tt>javax.annotation.security.DeclareRoles</tt> annotations.
+     * {@code javax.annotation.security.RunAs} , and
+     * {@code javax.annotation.security.DeclareRoles}  annotations.
      * In addition, this method supports resource injection if the
-     * given <tt>servletClass</tt> represents a Managed Bean.
+     * given {@code servletClass}  represents a Managed Bean.
      * See the Java EE platform and JSR 299 specifications for additional
      * details about Managed Beans and resource injection.
      *
@@ -977,9 +977,9 @@ public class TPServletContext implements ServletContext {
      * @param servletClass the class object from which the servlet will be
      *                     instantiated
      * @return a ServletRegistration object that may be used to further
-     * configure the registered servlet, or <tt>null</tt> if this
+     * configure the registered servlet, or {@code null}  if this
      * ServletContext already contains a complete ServletRegistration for
-     * the given <tt>servletName</tt>
+     * the given {@code servletName}
      * @throws IllegalStateException         if this ServletContext has already
      *                                       been initialized
      * @throws IllegalArgumentException      if <code>servletName</code> is null
@@ -1011,17 +1011,17 @@ public class TPServletContext implements ServletContext {
      * {@link ServletRegistration} object.
      * <p>
      * <p>If this ServletContext already contains a preliminary
-     * ServletRegistration for a servlet with the given <tt>servletName</tt>,
-     * it will be completed (by assigning the given <tt>jspFile</tt> to it)
+     * ServletRegistration for a servlet with the given {@code servletName} ,
+     * it will be completed (by assigning the given {@code jspFile}  to it)
      * and returned.
      *
      * @param servletName the name of the servlet
      * @param jspFile     the full path to a JSP file within the web application
      *                    beginning with a `/'.
      * @return a ServletRegistration object that may be used to further
-     * configure the registered servlet, or <tt>null</tt> if this
+     * configure the registered servlet, or {@code null}  if this
      * ServletContext already contains a complete ServletRegistration for
-     * a servlet with the given <tt>servletName</tt>
+     * a servlet with the given {@code servletName}
      * @throws IllegalStateException         if this ServletContext has already
      *                                       been initialized
      * @throws IllegalArgumentException      if <code>servletName</code> is null
@@ -1049,20 +1049,20 @@ public class TPServletContext implements ServletContext {
      * <p>The given Servlet class must define a zero argument constructor,
      * which is used to instantiate it.
      * <p>
-     * <p>This method introspects the given <tt>clazz</tt> for
+     * <p>This method introspects the given {@code clazz}  for
      * the following annotations:
      * {@link ServletSecurity},
      * {@link MultipartConfig},
-     * <tt>javax.annotation.security.RunAs</tt>, and
-     * <tt>javax.annotation.security.DeclareRoles</tt>.
+     * {@code javax.annotation.security.RunAs} , and
+     * {@code javax.annotation.security.DeclareRoles} .
      * In addition, this method supports resource injection if the
-     * given <tt>clazz</tt> represents a Managed Bean.
+     * given {@code clazz}  represents a Managed Bean.
      * See the Java EE platform and JSR 299 specifications for additional
      * details about Managed Beans and resource injection.
      *
      * @param clazz the Servlet class to instantiate
      * @return the new Servlet instance
-     * @throws ServletException              if the given <tt>clazz</tt> fails to be
+     * @throws ServletException              if the given {@code clazz}  fails to be
      *                                       instantiated
      * @throws UnsupportedOperationException if this ServletContext was
      *                                       passed to the {@link ServletContextListener#contextInitialized} method
@@ -1082,11 +1082,11 @@ public class TPServletContext implements ServletContext {
 
     /**
      * Gets the ServletRegistration corresponding to the servlet with the
-     * given <tt>servletName</tt>.
+     * given {@code servletName} .
      *
      * @param servletName the name of a servlet
      * @return the (complete or preliminary) ServletRegistration for the
-     * servlet with the given <tt>servletName</tt>, or null if no
+     * servlet with the given {@code servletName} , or null if no
      * ServletRegistration exists under that name
      * @throws UnsupportedOperationException if this ServletContext was
      *                                       passed to the {@link ServletContextListener#contextInitialized} method
@@ -1108,7 +1108,7 @@ public class TPServletContext implements ServletContext {
      * <p>The returned Map includes the ServletRegistration objects
      * corresponding to all declared and annotated servlets, as well as the
      * ServletRegistration objects corresponding to all servlets that have
-     * been added via one of the <tt>addServlet</tt> and <tt>addJspFile</tt>
+     * been added via one of the {@code addServlet}  and {@code addJspFile}
      * methods.
      * <p>
      * <p>If permitted, any changes to the returned Map must not affect this
@@ -1140,26 +1140,26 @@ public class TPServletContext implements ServletContext {
      * <p>The registered filter may be further configured via the returned
      * {@link FilterRegistration} object.
      * <p>
-     * <p>The specified <tt>className</tt> will be loaded using the
+     * <p>The specified {@code className}  will be loaded using the
      * classloader associated with the application represented by this
      * ServletContext.
      * <p>
      * <p>If this ServletContext already contains a preliminary
-     * FilterRegistration for a filter with the given <tt>filterName</tt>,
-     * it will be completed (by assigning the given <tt>className</tt> to it)
+     * FilterRegistration for a filter with the given {@code filterName} ,
+     * it will be completed (by assigning the given {@code className}  to it)
      * and returned.
      * <p>
      * <p>This method supports resource injection if the class with the
-     * given <tt>className</tt> represents a Managed Bean.
+     * given {@code className}  represents a Managed Bean.
      * See the Java EE platform and JSR 299 specifications for additional
      * details about Managed Beans and resource injection.
      *
      * @param filterName the name of the filter
      * @param className  the fully qualified class name of the filter
      * @return a FilterRegistration object that may be used to further
-     * configure the registered filter, or <tt>null</tt> if this
+     * configure the registered filter, or {@code null}  if this
      * ServletContext already contains a complete FilterRegistration for
-     * a filter with the given <tt>filterName</tt>
+     * a filter with the given {@code filterName}
      * @throws IllegalStateException         if this ServletContext has already
      *                                       been initialized
      * @throws IllegalArgumentException      if <code>filterName</code> is null or
@@ -1183,22 +1183,22 @@ public class TPServletContext implements ServletContext {
 
     /**
      * Registers the given filter instance with this ServletContext
-     * under the given <tt>filterName</tt>.
+     * under the given {@code filterName} .
      * <p>
      * <p>The registered filter may be further configured via the returned
      * {@link FilterRegistration} object.
      * <p>
      * <p>If this ServletContext already contains a preliminary
-     * FilterRegistration for a filter with the given <tt>filterName</tt>,
+     * FilterRegistration for a filter with the given {@code filterName} ,
      * it will be completed (by assigning the class name of the given filter
      * instance to it) and returned.
      *
      * @param filterName the name of the filter
      * @param filter     the filter instance to register
      * @return a FilterRegistration object that may be used to further
-     * configure the given filter, or <tt>null</tt> if this
+     * configure the given filter, or {@code null}  if this
      * ServletContext already contains a complete FilterRegistration for a
-     * filter with the given <tt>filterName</tt> or if the same filter
+     * filter with the given {@code filterName}  or if the same filter
      * instance has already been registered with this or another
      * ServletContext in the same container
      * @throws IllegalStateException         if this ServletContext has already
@@ -1231,12 +1231,12 @@ public class TPServletContext implements ServletContext {
      * {@link FilterRegistration} object.
      * <p>
      * <p>If this ServletContext already contains a preliminary
-     * FilterRegistration for a filter with the given <tt>filterName</tt>,
+     * FilterRegistration for a filter with the given {@code filterName} ,
      * it will be completed (by assigning the name of the given
-     * <tt>filterClass</tt> to it) and returned.
+     * {@code filterClass}  to it) and returned.
      * <p>
      * <p>This method supports resource injection if the given
-     * <tt>filterClass</tt> represents a Managed Bean.
+     * {@code filterClass}  represents a Managed Bean.
      * See the Java EE platform and JSR 299 specifications for additional
      * details about Managed Beans and resource injection.
      *
@@ -1244,9 +1244,9 @@ public class TPServletContext implements ServletContext {
      * @param filterClass the class object from which the filter will be
      *                    instantiated
      * @return a FilterRegistration object that may be used to further
-     * configure the registered filter, or <tt>null</tt> if this
+     * configure the registered filter, or {@code null}  if this
      * ServletContext already contains a complete FilterRegistration for a
-     * filter with the given <tt>filterName</tt>
+     * filter with the given {@code filterName}
      * @throws IllegalStateException         if this ServletContext has already
      *                                       been initialized
      * @throws IllegalArgumentException      if <code>filterName</code> is null or
@@ -1286,13 +1286,13 @@ public class TPServletContext implements ServletContext {
      * which is used to instantiate it.
      * <p>
      * <p>This method supports resource injection if the given
-     * <tt>clazz</tt> represents a Managed Bean.
+     * {@code clazz}  represents a Managed Bean.
      * See the Java EE platform and JSR 299 specifications for additional
      * details about Managed Beans and resource injection.
      *
      * @param clazz the Filter class to instantiate
      * @return the new Filter instance
-     * @throws ServletException              if the given <tt>clazz</tt> fails to be
+     * @throws ServletException              if the given {@code clazz}  fails to be
      *                                       instantiated
      * @throws UnsupportedOperationException if this ServletContext was
      *                                       passed to the {@link ServletContextListener#contextInitialized} method
@@ -1312,11 +1312,11 @@ public class TPServletContext implements ServletContext {
 
     /**
      * Gets the FilterRegistration corresponding to the filter with the
-     * given <tt>filterName</tt>.
+     * given {@code filterName} .
      *
      * @param filterName the name of a filter
      * @return the (complete or preliminary) FilterRegistration for the
-     * filter with the given <tt>filterName</tt>, or null if no
+     * filter with the given {@code filterName} , or null if no
      * FilterRegistration exists under that name
      * @throws UnsupportedOperationException if this ServletContext was
      *                                       passed to the {@link ServletContextListener#contextInitialized} method
@@ -1338,7 +1338,7 @@ public class TPServletContext implements ServletContext {
      * <p>The returned Map includes the FilterRegistration objects
      * corresponding to all declared and annotated filters, as well as the
      * FilterRegistration objects corresponding to all filters that have
-     * been added via one of the <tt>addFilter</tt> methods.
+     * been added via one of the {@code addFilter}  methods.
      * <p>
      * <p>Any changes to the returned Map must not affect this
      * ServletContext.
@@ -1361,14 +1361,14 @@ public class TPServletContext implements ServletContext {
     /**
      * Gets the {@link SessionCookieConfig} object through which various
      * properties of the session tracking cookies created on behalf of this
-     * <tt>ServletContext</tt> may be configured.
+     * {@code ServletContext}  may be configured.
      * <p>
      * <p>Repeated invocations of this method will return the same
-     * <tt>SessionCookieConfig</tt> instance.
+     * {@code SessionCookieConfig}  instance.
      *
-     * @return the <tt>SessionCookieConfig</tt> object through which
+     * @return the {@code SessionCookieConfig}  object through which
      * various properties of the session tracking cookies created on
-     * behalf of this <tt>ServletContext</tt> may be configured
+     * behalf of this {@code ServletContext}  may be configured
      * @throws UnsupportedOperationException if this ServletContext was
      *                                       passed to the {@link ServletContextListener#contextInitialized} method
      *                                       of a {@link ServletContextListener} that was neither declared in
@@ -1384,14 +1384,14 @@ public class TPServletContext implements ServletContext {
 
     /**
      * Sets the session tracking modes that are to become effective for this
-     * <tt>ServletContext</tt>.
+     * {@code ServletContext} .
      * <p>
-     * <p>The given <tt>sessionTrackingModes</tt> replaces any
+     * <p>The given {@code sessionTrackingModes}  replaces any
      * session tracking modes set by a previous invocation of this
-     * method on this <tt>ServletContext</tt>.
+     * method on this {@code ServletContext} .
      *
      * @param sessionTrackingModes the set of session tracking modes to
-     *                             become effective for this <tt>ServletContext</tt>
+     *                             become effective for this {@code ServletContext}
      * @throws IllegalStateException         if this ServletContext has already
      *                                       been initialized
      * @throws UnsupportedOperationException if this ServletContext was
@@ -1399,10 +1399,10 @@ public class TPServletContext implements ServletContext {
      *                                       of a {@link ServletContextListener} that was neither declared in
      *                                       <code>web.xml</code> or <code>web-fragment.xml</code>, nor annotated
      *                                       with {@link WebListener}
-     * @throws IllegalArgumentException      if <tt>sessionTrackingModes</tt>
-     *                                       specifies a combination of <tt>SessionTrackingMode.SSL</tt> with a
-     *                                       session tracking mode other than <tt>SessionTrackingMode.SSL</tt>,
-     *                                       or if <tt>sessionTrackingModes</tt> specifies a session tracking mode
+     * @throws IllegalArgumentException      if {@code sessionTrackingModes}
+     *                                       specifies a combination of {@code SessionTrackingMode.SSL}  with a
+     *                                       session tracking mode other than {@code SessionTrackingMode.SSL} ,
+     *                                       or if {@code sessionTrackingModes}  specifies a session tracking mode
      *                                       that is not supported by the servlet container
      * @since Servlet 3.0
      */
@@ -1413,14 +1413,14 @@ public class TPServletContext implements ServletContext {
 
     /**
      * Gets the session tracking modes that are supported by default for this
-     * <tt>ServletContext</tt>.
+     * {@code ServletContext} .
      * <p>
      * <p>The returned set is not backed by the {@code ServletContext} object,
      * so changes in the returned set are not reflected in the
      * {@code ServletContext} object, and vice-versa.</p>
      *
      * @return set of the session tracking modes supported by default for
-     * this <tt>ServletContext</tt>
+     * this {@code ServletContext}
      * @throws UnsupportedOperationException if this ServletContext was
      *                                       passed to the {@link ServletContextListener#contextInitialized} method
      *                                       of a {@link ServletContextListener} that was neither declared in
@@ -1435,7 +1435,7 @@ public class TPServletContext implements ServletContext {
 
     /**
      * Gets the session tracking modes that are in effect for this
-     * <tt>ServletContext</tt>.
+     * {@code ServletContext} .
      * <p>
      * <p>The session tracking modes in effect are those provided to
      * {@link #setSessionTrackingModes setSessionTrackingModes}.
@@ -1445,7 +1445,7 @@ public class TPServletContext implements ServletContext {
      * {@code ServletContext} object, and vice-versa.</p>
      *
      * @return set of the session tracking modes in effect for this
-     * <tt>ServletContext</tt>
+     * {@code ServletContext}
      * @throws UnsupportedOperationException if this ServletContext was
      *                                       passed to the {@link ServletContextListener#contextInitialized} method
      *                                       of a {@link ServletContextListener} that was neither declared in
@@ -1493,7 +1493,7 @@ public class TPServletContext implements ServletContext {
      * listeners of that interface.
      * <p>
      * <p>This method supports resource injection if the class with the
-     * given <tt>className</tt> represents a Managed Bean.
+     * given {@code className}  represents a Managed Bean.
      * See the Java EE platform and JSR 299 specifications for additional
      * details about Managed Beans and resource injection.
      *
@@ -1576,7 +1576,7 @@ public class TPServletContext implements ServletContext {
     /**
      * Adds a listener of the given class type to this ServletContext.
      * <p>
-     * <p>The given <tt>listenerClass</tt> must implement one or more of the
+     * <p>The given {@code listenerClass}  must implement one or more of the
      * following interfaces:
      * <ul>
      * <li>{@link ServletContextAttributeListener}
@@ -1589,11 +1589,11 @@ public class TPServletContext implements ServletContext {
      * <p>
      * <p>If this ServletContext was passed to
      * {@link ServletContainerInitializer#onStartup}, then the given
-     * <tt>listenerClass</tt> may also implement
+     * {@code listenerClass}  may also implement
      * {@link ServletContextListener}, in addition to the interfaces listed
      * above.
      * <p>
-     * <p>If the given <tt>listenerClass</tt> implements a listener
+     * <p>If the given {@code listenerClass}  implements a listener
      * interface whose invocation order corresponds to the declaration order
      * (i.e., if it implements {@link ServletRequestListener},
      * {@link ServletContextListener}, or
@@ -1602,12 +1602,12 @@ public class TPServletContext implements ServletContext {
      * of listeners of that interface.
      * <p>
      * <p>This method supports resource injection if the given
-     * <tt>listenerClass</tt> represents a Managed Bean.
+     * {@code listenerClass}  represents a Managed Bean.
      * See the Java EE platform and JSR 299 specifications for additional
      * details about Managed Beans and resource injection.
      *
      * @param listenerClass the listener class to be instantiated
-     * @throws IllegalArgumentException      if the given <tt>listenerClass</tt>
+     * @throws IllegalArgumentException      if the given {@code listenerClass}
      *                                       does not implement any of the above interfaces, or if it implements
      *                                       {@link ServletContextListener} and this ServletContext was not passed
      *                                       to {@link ServletContainerInitializer#onStartup}
@@ -1650,13 +1650,13 @@ public class TPServletContext implements ServletContext {
      * constructor, which is used to instantiate it.
      * <p>
      * <p>This method supports resource injection if the given
-     * <tt>clazz</tt> represents a Managed Bean.
+     * {@code clazz}  represents a Managed Bean.
      * See the Java EE platform and JSR 299 specifications for additional
      * details about Managed Beans and resource injection.
      *
      * @param clazz the EventListener class to instantiate
      * @return the new EventListener instance
-     * @throws ServletException              if the given <tt>clazz</tt> fails to be
+     * @throws ServletException              if the given {@code clazz}  fails to be
      *                                       instantiated
      * @throws UnsupportedOperationException if this ServletContext was
      *                                       passed to the {@link ServletContextListener#contextInitialized} method
@@ -1798,10 +1798,10 @@ public class TPServletContext implements ServletContext {
 
     /**
      * Gets the session timeout in minutes that are supported by default for
-     * this <tt>ServletContext</tt>.
+     * this {@code ServletContext} .
      *
      * @return the session timeout in minutes that are supported by default for
-     * this <tt>ServletContext</tt>
+     * this {@code ServletContext}
      * @throws UnsupportedOperationException if this ServletContext was
      *                                       passed to the {@link ServletContextListener#contextInitialized} method
      *                                       of a {@link ServletContextListener} that was neither declared in
@@ -1834,13 +1834,13 @@ public class TPServletContext implements ServletContext {
 
     /**
      * Gets the request character encoding that are supported by default for
-     * this <tt>ServletContext</tt>. This method returns null if no request
+     * this {@code ServletContext} . This method returns null if no request
      * encoding character encoding has been specified in deployment descriptor
      * or container specific configuration (for all web applications in the
      * container).
      *
      * @return the request character encoding that are supported by default for
-     * this <tt>ServletContext</tt>
+     * this {@code ServletContext}
      * @throws UnsupportedOperationException if this ServletContext was
      *                                       passed to the {@link ServletContextListener#contextInitialized} method
      *                                       of a {@link ServletContextListener} that was neither declared in
@@ -1873,13 +1873,13 @@ public class TPServletContext implements ServletContext {
 
     /**
      * Gets the response character encoding that are supported by default for
-     * this <tt>ServletContext</tt>. This method returns null if no response
+     * this {@code ServletContext} . This method returns null if no response
      * encoding character encoding has been specified in deployment descriptor
      * or container specific configuration (for all web applications in the
      * container).
      *
      * @return the request character encoding that are supported by default for
-     * this <tt>ServletContext</tt>
+     * this {@code ServletContext}
      * @throws UnsupportedOperationException if this ServletContext was
      *                                       passed to the {@link ServletContextListener#contextInitialized} method
      *                                       of a {@link ServletContextListener} that was neither declared in

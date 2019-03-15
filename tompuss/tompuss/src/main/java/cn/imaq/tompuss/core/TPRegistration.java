@@ -81,7 +81,7 @@ public abstract class TPRegistration<T> implements Registration.Dynamic {
      * @throws IllegalStateException    if the ServletContext from which this
      *                                  Registration was obtained has already been initialized
      * @throws IllegalArgumentException if the given name or value is
-     *                                  <tt>null</tt>
+     *                                  {@code null}
      */
     @Override
     public boolean setInitParameter(String name, String value) {
@@ -100,7 +100,7 @@ public abstract class TPRegistration<T> implements Registration.Dynamic {
      * @param name the name of the initialization parameter whose value is
      *             requested
      * @return the value of the initialization parameter with the given
-     * name, or <tt>null</tt> if no initialization parameter with the given
+     * name, or {@code null}  if no initialization parameter with the given
      * name exists
      */
     @Override
@@ -118,7 +118,7 @@ public abstract class TPRegistration<T> implements Registration.Dynamic {
      * If that method would return false for any of the
      * initialization parameters in the given map, no updates will be
      * performed, and false will be returned. Likewise, if the map contains
-     * an initialization parameter with a <tt>null</tt> name or value, no
+     * an initialization parameter with a {@code null}  name or value, no
      * updates will be performed, and an IllegalArgumentException will be
      * thrown.
      * <p>
@@ -132,7 +132,7 @@ public abstract class TPRegistration<T> implements Registration.Dynamic {
      * @throws IllegalStateException    if the ServletContext from which this
      *                                  Registration was obtained has already been initialized
      * @throws IllegalArgumentException if the given map contains an
-     *                                  initialization parameter with a <tt>null</tt> name or value
+     *                                  initialization parameter with a {@code null}  name or value
      */
     @Override
     public Set<String> setInitParameters(Map<String, String> initParameters) {

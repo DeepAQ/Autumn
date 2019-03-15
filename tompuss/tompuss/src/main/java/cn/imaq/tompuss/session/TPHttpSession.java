@@ -99,7 +99,7 @@ public class TPHttpSession implements HttpSession {
      * Specifies the time, in seconds, between client requests before the
      * servlet container will invalidate this session.
      * <p>
-     * <p>An <tt>interval</tt> value of zero or less indicates that the
+     * <p>An {@code interval}  value of zero or less indicates that the
      * session should never timeout.
      *
      * @param interval An integer specifying the number

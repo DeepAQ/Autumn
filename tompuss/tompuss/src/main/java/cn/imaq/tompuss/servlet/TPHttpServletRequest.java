@@ -456,9 +456,10 @@ public class TPHttpServletRequest implements HttpServletRequest {
      * The web container does not decode this String.
      * For example:
      * <p>
-     * <table summary="Examples of Returned Values">
-     * <tr align=left><th>First line of HTTP request      </th>
-     * <th>     Returned Value</th>
+     * <table>
+     * <caption>Examples of Returned Values</caption>
+     * <tr><th>First line of HTTP request</th>
+     * <th>Returned Value</th>
      * <tr><td>POST /some/path.html HTTP/1.1<td><td>/some/path.html
      * <tr><td>GET http://foo.bar/a.html HTTP/1.0
      * <td><td>/a.html
@@ -1410,7 +1411,7 @@ public class TPHttpServletRequest implements HttpServletRequest {
 
     /**
      * @param path the path for which the real path is to be returned.
-     * @return the <i>real</i> path, or <tt>null</tt> if the
+     * @return the <i>real</i> path, or {@code null}  if the
      * translation cannot be performed.
      * @deprecated As of Version 2.1 of the Java Servlet API,
      * use {@link ServletContext#getRealPath} instead.
@@ -1622,7 +1623,7 @@ public class TPHttpServletRequest implements HttpServletRequest {
      * {@link #startAsync} or
      * {@link #startAsync(ServletRequest, ServletResponse)} on it.
      * <p>
-     * <p>This method returns <tt>false</tt> if this request was
+     * <p>This method returns {@code false}  if this request was
      * put into asynchronous mode, but has since been dispatched using
      * one of the {@link AsyncContext#dispatch} methods or released
      * from asynchronous mode via a call to {@link AsyncContext#complete}.

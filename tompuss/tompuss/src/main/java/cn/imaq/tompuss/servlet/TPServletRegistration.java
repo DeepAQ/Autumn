@@ -76,7 +76,7 @@ public class TPServletRegistration extends TPRegistration<Servlet> implements Se
      * Sets the <code>loadOnStartup</code> priority on the Servlet
      * represented by this dynamic ServletRegistration.
      * <p>
-     * <p>A <tt>loadOnStartup</tt> value of greater than or equal to
+     * <p>A {@code loadOnStartup}  value of greater than or equal to
      * zero indicates to the container the initialization priority of
      * the Servlet. In this case, the container must instantiate and
      * initialize the Servlet during the initialization phase of the
@@ -85,10 +85,10 @@ public class TPServletRegistration extends TPRegistration<Servlet> implements Se
      * at their {@link ServletContextListener#contextInitialized}
      * method.
      * <p>
-     * <p>If <tt>loadOnStartup</tt> is a negative integer, the container
+     * <p>If {@code loadOnStartup}  is a negative integer, the container
      * is free to instantiate and initialize the Servlet lazily.
      * <p>
-     * <p>The default value for <tt>loadOnStartup</tt> is <code>-1</code>.
+     * <p>The default value for {@code loadOnStartup}  is <code>-1</code>.
      * <p>
      * <p>A call to this method overrides any previous setting.
      *
@@ -141,7 +141,7 @@ public class TPServletRegistration extends TPRegistration<Servlet> implements Se
      * the exact target of a <code>security-constraint</code> that was
      * established via the portable deployment descriptor. This method
      * has no effect on the patterns included in the returned set
-     * @throws IllegalArgumentException if <tt>constraint</tt> is null
+     * @throws IllegalArgumentException if {@code constraint}  is null
      * @throws IllegalStateException    if the {@link ServletContext} from
      *                                  which this <code>ServletRegistration</code> was obtained has
      *                                  already been initialized
@@ -164,7 +164,7 @@ public class TPServletRegistration extends TPRegistration<Servlet> implements Se
      *
      * @param multipartConfig the {@link MultipartConfigElement} to be
      *                        applied to the patterns mapped to the registration
-     * @throws IllegalArgumentException if <tt>multipartConfig</tt> is
+     * @throws IllegalArgumentException if {@code multipartConfig}  is
      *                                  null
      * @throws IllegalStateException    if the {@link ServletContext} from
      *                                  which this ServletRegistration was obtained has already been
@@ -183,7 +183,7 @@ public class TPServletRegistration extends TPRegistration<Servlet> implements Se
      * <code>ServletRegistration</code>.
      *
      * @param roleName the name of the <code>runAs</code> role
-     * @throws IllegalArgumentException if <tt>roleName</tt> is null
+     * @throws IllegalArgumentException if {@code roleName}  is null
      * @throws IllegalStateException    if the {@link ServletContext} from
      *                                  which this ServletRegistration was obtained has already been
      *                                  initialized
@@ -213,7 +213,7 @@ public class TPServletRegistration extends TPRegistration<Servlet> implements Se
      * @param urlPatterns the URL patterns of the servlet mapping
      * @return the (possibly empty) Set of URL patterns that are already
      * mapped to a different Servlet
-     * @throws IllegalArgumentException if <tt>urlPatterns</tt> is null
+     * @throws IllegalArgumentException if {@code urlPatterns}  is null
      *                                  or empty
      * @throws IllegalStateException    if the ServletContext from which this
      *                                  ServletRegistration was obtained has already been initialized

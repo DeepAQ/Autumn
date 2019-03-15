@@ -89,7 +89,7 @@ public class TPFilterRegistration extends TPRegistration<Filter> implements Filt
      * <p>Filter mappings are matched in the order in which they were
      * added.
      * <p>
-     * <p>Depending on the value of the <tt>isMatchAfter</tt> parameter, the
+     * <p>Depending on the value of the {@code isMatchAfter}  parameter, the
      * given filter mapping will be considered after or before any
      * <i>declared</i> filter mappings of the ServletContext from which this
      * FilterRegistration was obtained.
@@ -98,13 +98,13 @@ public class TPFilterRegistration extends TPRegistration<Filter> implements Filt
      * adds to the effects of the former.
      *
      * @param dispatcherTypes the dispatcher types of the filter mapping,
-     *                        or null if the default <tt>DispatcherType.REQUEST</tt> is to be used
+     *                        or null if the default {@code DispatcherType.REQUEST}  is to be used
      * @param isMatchAfter    true if the given filter mapping should be matched
      *                        after any declared filter mappings, and false if it is supposed to
      *                        be matched before any declared filter mappings of the ServletContext
      *                        from which this FilterRegistration was obtained
      * @param servletNames    the servlet names of the filter mapping
-     * @throws IllegalArgumentException if <tt>servletNames</tt> is null or
+     * @throws IllegalArgumentException if {@code servletNames}  is null or
      *                                  empty
      * @throws IllegalStateException    if the ServletContext from which this
      *                                  FilterRegistration was obtained has already been initialized
@@ -141,7 +141,7 @@ public class TPFilterRegistration extends TPRegistration<Filter> implements Filt
      * <p>Filter mappings are matched in the order in which they were
      * added.
      * <p>
-     * <p>Depending on the value of the <tt>isMatchAfter</tt> parameter, the
+     * <p>Depending on the value of the {@code isMatchAfter}  parameter, the
      * given filter mapping will be considered after or before any
      * <i>declared</i> filter mappings of the ServletContext from which
      * this FilterRegistration was obtained.
@@ -150,13 +150,13 @@ public class TPFilterRegistration extends TPRegistration<Filter> implements Filt
      * adds to the effects of the former.
      *
      * @param dispatcherTypes the dispatcher types of the filter mapping,
-     *                        or null if the default <tt>DispatcherType.REQUEST</tt> is to be used
+     *                        or null if the default {@code DispatcherType.REQUEST}  is to be used
      * @param isMatchAfter    true if the given filter mapping should be matched
      *                        after any declared filter mappings, and false if it is supposed to
      *                        be matched before any declared filter mappings of the ServletContext
      *                        from which this FilterRegistration was obtained
      * @param urlPatterns     the url patterns of the filter mapping
-     * @throws IllegalArgumentException if <tt>urlPatterns</tt> is null or
+     * @throws IllegalArgumentException if {@code urlPatterns}  is null or
      *                                  empty
      * @throws IllegalStateException    if the ServletContext from which this
      *                                  FilterRegistration was obtained has already been initialized
