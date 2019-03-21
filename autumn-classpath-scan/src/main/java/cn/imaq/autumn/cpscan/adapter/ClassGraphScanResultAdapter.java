@@ -1,6 +1,7 @@
 package cn.imaq.autumn.cpscan.adapter;
 
 import cn.imaq.autumn.cpscan.ScanResult;
+import io.github.classgraph.ClassInfo;
 import io.github.classgraph.FieldInfo;
 import io.github.classgraph.MethodInfo;
 
@@ -29,7 +30,9 @@ public class ClassGraphScanResultAdapter implements ScanResult {
 
     @Override
     public List<Class<?>> getClassesImplementing(Class<?> interfaze) {
-        return cgResult.getClassesImplementing(interfaze.getName()).loadClasses();
+        return cgResult.getClassesImplementing(interfaze.getName())
+                .filter(ClassInfo::isStandardClass)
+                .loadClasses();
     }
 
     @Override
