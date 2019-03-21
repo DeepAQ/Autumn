@@ -96,21 +96,33 @@ public class AutumnContext {
         if (info == null) {
             return null;
         }
+
         if (info.isSingleton()) {
             Object singletonBean = singletons.get(info);
             if (singletonBean != null) {
                 return singletonBean;
-            } else if (populating) {
+            }
+            if (populating) {
                 Object populatingBean = populatingBeans.get(info);
                 if (populatingBean != null) {
                     return populatingBean;
                 }
-            } else {
-                synchronized (info) {
-                    return getNewBeanByInfo(info, populating);
+            }
+            synchronized (info) {
+                singletonBean = singletons.get(info);
+                if (singletonBean != null) {
+                    return singletonBean;
                 }
+                if (populating) {
+                    Object populatingBean = populatingBeans.get(info);
+                    if (populatingBean != null) {
+                        return populatingBean;
+                    }
+                }
+                return getNewBeanByInfo(info, populating);
             }
         }
+
         return getNewBeanByInfo(info, populating);
     }
 
