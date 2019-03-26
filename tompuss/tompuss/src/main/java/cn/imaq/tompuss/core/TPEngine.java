@@ -31,6 +31,7 @@ public class TPEngine {
         if (this.httpServer != null) {
             this.httpServer.stop();
         }
+
         try {
             this.httpServer = new AutumnHttpServer(port, new TPDispatcher(this));
             for (TPServletContext context : contexts) {
@@ -45,7 +46,9 @@ public class TPEngine {
 
     public synchronized void stop() {
         log.info("Stopping TomPuss Engine ...");
-        this.httpServer.stop();
+        if (this.httpServer != null) {
+            this.httpServer.stop();
+        }
     }
 
     public TPServletContext newWebApp(String appName, String contextPath, File resourceRoot) {
