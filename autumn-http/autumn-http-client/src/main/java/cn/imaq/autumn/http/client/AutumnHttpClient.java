@@ -6,6 +6,7 @@ import cn.imaq.autumn.http.protocol.AutumnHttpResponse;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Collections;
 import java.util.HashMap;
@@ -40,10 +41,18 @@ public class AutumnHttpClient {
 
     public static AutumnHttpResponse request(String method, String urlStr, String contentType, byte[] body, int timeoutMillis) throws IOException {
         URL url = new URL(urlStr);
+        if (!"http".equals(url.getProtocol())) {
+            throw new MalformedURLException("Only http protocol is supported");
+        }
+
         String path = url.getPath();
         if (path.isEmpty()) {
             path = "/";
         }
+        if (url.getQuery() != null) {
+            path = path + "?" + url.getQuery();
+        }
+
         Map<String, List<String>> headers = new HashMap<>();
         headers.put("Host", Collections.singletonList(url.getHost()));
         if (contentType != null) {
