@@ -17,5 +17,6 @@ subprojects {
         annotationProcessor 'org.projectlombok:lombok:+'
         implementation 'org.slf4j:slf4j-api:1.7.26'
         testImplementation 'junit:junit:4.12'
+        testImplementation 'org.testng:testng:6.14.3'
     }
 }

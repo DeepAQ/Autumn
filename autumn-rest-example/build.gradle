@@ -1,0 +1,9 @@
+version '1.0-SNAPSHOT'
+description 'Example and test cases for AutumnREST'
+
+dependencies {
+    implementation project(':autumn-rest')
+    implementation project(':autumn-aop')
+    implementation project(':tompuss:tompuss')
+    testImplementation project(':autumn-http:autumn-http-client')
+}
