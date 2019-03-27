@@ -3,6 +3,7 @@ package cn.imaq.autumn.rest.core;
 import cn.imaq.autumn.core.context.AutumnContext;
 import cn.imaq.autumn.rest.model.ExceptionHandlerModel;
 import cn.imaq.autumn.rest.model.RequestMappingModel;
+import cn.imaq.autumn.rest.util.PathUtil;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -59,13 +60,9 @@ public class RestContext {
     }
 
     public RequestMappingModel matchRequestMapping(HttpServletRequest req) {
-        String realPath = req.getServletPath();
-        String pathInfo = req.getPathInfo();
-        if (pathInfo != null) {
-            realPath += pathInfo;
-        }
+        String pathInfo = PathUtil.transform(req.getPathInfo());
         for (RequestMappingModel mapping : mappings) {
-            if (mapping.getPaths().contains(realPath)) {
+            if (mapping.getPaths().contains(pathInfo)) {
                 if (!mapping.getMethods().isEmpty() && !mapping.getMethods().contains(RequestMethod.valueOf(req.getMethod()))) {
                     continue;
                 }
