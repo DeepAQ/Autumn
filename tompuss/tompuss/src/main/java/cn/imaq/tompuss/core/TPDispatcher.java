@@ -9,6 +9,7 @@ import cn.imaq.tompuss.servlet.TPHttpServletResponse;
 import cn.imaq.tompuss.servlet.TPServletContext;
 import cn.imaq.tompuss.util.TPMatchResult;
 import cn.imaq.tompuss.util.TPNotFoundException;
+import cn.imaq.tompuss.util.TPPathUtil;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.servlet.ServletRequestEvent;
@@ -29,7 +30,7 @@ public class TPDispatcher implements AutumnHttpHandler {
 
     @Override
     public AutumnHttpResponse handle(AutumnHttpRequest request) {
-        String path = request.getPath().split("\\?", 2)[0];
+        String path = TPPathUtil.transform(request.getPath().split("\\?", 2)[0]);
         // Match context
         TPMatchResult<TPServletContext> contextMatch = engine.matchContextByPath(path);
         if (contextMatch == null) {

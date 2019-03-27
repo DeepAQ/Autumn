@@ -5,6 +5,7 @@ import cn.imaq.tompuss.servlet.TPHttpServletRequest;
 import cn.imaq.tompuss.servlet.TPServletContext;
 import cn.imaq.tompuss.servlet.TPServletRegistration;
 import cn.imaq.tompuss.util.TPMatchResult;
+import cn.imaq.tompuss.util.TPNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.servlet.Servlet;
@@ -12,7 +13,6 @@ import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 @Slf4j
@@ -33,12 +33,11 @@ public class TPPathDispatcher extends TPRequestDispatcher {
         if (servletMatch != null) {
             servlet = servletMatch.getObject().getServletInstance();
         }
-        if (servlet == null || !(servlet instanceof HttpServlet)) {
+        if (!(servlet instanceof HttpServlet)) {
             servlet = context.getDefaultServletRegistration().getServletInstance();
         }
-        if (servlet == null || !(servlet instanceof HttpServlet)) {
-            ((HttpServletResponse) response).sendError(404);
-            return;
+        if (!(servlet instanceof HttpServlet)) {
+            throw new TPNotFoundException();
         }
         // Match Filters
         TPFilterChain filterChain = context.matchFilters(path, servlet, request.getDispatcherType());

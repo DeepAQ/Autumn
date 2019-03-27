@@ -18,12 +18,12 @@ public class TPUrlPattern {
         } else if (path.startsWith("*.")) {
             this.type = Type.SUFFIX;
             this.pattern = path.substring(1);
-        } else if (path.equals("/") || path.isEmpty()) {
+        } else if (path.equals("/")) {
             this.type = Type.DEFAULT;
             this.pattern = "";
         } else {
             this.type = Type.EXACT;
-            this.pattern = path;
+            this.pattern = TPPathUtil.transform(path);
         }
     }
 
@@ -36,7 +36,7 @@ public class TPUrlPattern {
                 matched = this.pattern;
                 break;
             case PREFIX:
-                matches = path.startsWith(this.pattern);
+                matches = this.pattern.equals(path) || path.startsWith(this.pattern + "/");
                 matched = this.pattern;
                 break;
             case SUFFIX:
@@ -45,6 +45,7 @@ public class TPUrlPattern {
                 break;
             case DEFAULT:
                 matches = true;
+                matched = path;
                 break;
         }
         if (matches) {
