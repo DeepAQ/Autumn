@@ -11,7 +11,7 @@ public class TestConfig {
 
     @BeforeSuite
     public void startServer() {
-        this.tomPuss = new TomPuss(8081, new File(getClass().getResource("/").getFile() + "/../resources/"));
+        this.tomPuss = new TomPuss(8081, new File(getClass().getResource("/WEB-INF").getFile() + "/../"));
         this.tomPuss.start();
     }
 
