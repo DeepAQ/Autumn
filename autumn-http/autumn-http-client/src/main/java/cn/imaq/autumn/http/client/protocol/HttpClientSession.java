@@ -31,7 +31,11 @@ public class HttpClientSession extends AbstractHttpSession {
         String[] words = line.split(" ", 3);
         if (words.length == 3 && words[0].startsWith("HTTP")) {
             protocol = words[0];
-            responseCode = Integer.parseInt(words[1]);
+            try {
+                responseCode = Integer.parseInt(words[1]);
+            } catch (NumberFormatException e) {
+                return false;
+            }
             return true;
         }
         return false;

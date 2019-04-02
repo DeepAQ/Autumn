@@ -18,7 +18,7 @@ public class AutumnHttpClient {
     private static final ThreadLocal<Map<InetSocketAddress, HttpConnection>> localConnections = new ThreadLocal<>();
     private static final Pattern httpUrlPattern = Pattern.compile("^http://(.+?)[/(.*)]$", Pattern.CASE_INSENSITIVE);
 
-    private static HttpConnection getConnection(InetSocketAddress address) {
+    private static HttpConnection getConnection(InetSocketAddress address) throws IOException {
         Map<InetSocketAddress, HttpConnection> connectionMap = localConnections.get();
         if (connectionMap == null) {
             connectionMap = new HashMap<>();
@@ -30,13 +30,14 @@ public class AutumnHttpClient {
             return conn;
         }
         // open new connection
-        try {
-            conn = new HttpConnection(address);
-            connectionMap.put(address, conn);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        conn = new HttpConnection(address);
+        connectionMap.put(address, conn);
         return conn;
+    }
+
+    public static AutumnHttpResponse request(AutumnHttpRequest request, InetSocketAddress dest, int timeoutMillis) throws IOException {
+        HttpConnection connection = getConnection(dest);
+        return connection.writeThenRead(request.toRequestString().getBytes(), timeoutMillis);
     }
 
     public static AutumnHttpResponse request(String method, String urlStr, String contentType, byte[] body, int timeoutMillis) throws IOException {
@@ -67,8 +68,7 @@ public class AutumnHttpClient {
                 .build();
         int port = url.getPort() > 0 ? url.getPort() : 80;
         InetSocketAddress socketAddress = new InetSocketAddress(url.getHost(), port);
-        HttpConnection connection = getConnection(socketAddress);
-        return connection.writeThenRead(request.toRequestString().getBytes(), timeoutMillis);
+        return request(request, socketAddress, timeoutMillis);
     }
 
     public static AutumnHttpResponse get(String urlStr, int timeoutMillis) throws IOException {
