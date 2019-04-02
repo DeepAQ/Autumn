@@ -35,6 +35,8 @@ public class HttpConnection {
         while (true) {
             int count = selector.select(timeoutMillis);
             if (count <= 0) {
+                channel.close();
+                selector.close();
                 throw new IOException("Read timed out: " + channel.getRemoteAddress());
             }
             Iterator<SelectionKey> keyIter = selector.selectedKeys().iterator();
