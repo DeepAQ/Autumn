@@ -17,6 +17,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.nio.charset.StandardCharsets;
 
 @Slf4j
 public class DispatcherServlet extends HttpServlet {
@@ -87,7 +88,7 @@ public class DispatcherServlet extends HttpServlet {
             throw e.getCause();
         }
         if (result instanceof String) {
-            body = ((String) result).getBytes();
+            body = ((String) result).getBytes(StandardCharsets.UTF_8);
         } else if (result instanceof byte[]) {
             body = ((byte[]) result);
         } else {
