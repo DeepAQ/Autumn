@@ -46,10 +46,11 @@ public class HookChain implements MethodInvocation {
 
     @Override
     public Object proceed() throws Throwable {
+        if (hookItr.hasNext()) {
+            return invokeHook(hookItr.next().getHook());
+        }
+
         try {
-            if (hookItr.hasNext()) {
-                return invokeHook(hookItr.next().getHook());
-            }
             return realMethod.invoke(target, args);
         } catch (InvocationTargetException e) {
             throw e.getCause();
