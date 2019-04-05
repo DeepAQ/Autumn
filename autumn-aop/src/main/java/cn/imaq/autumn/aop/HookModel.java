@@ -1,94 +1,48 @@
 package cn.imaq.autumn.aop;
 
-import lombok.Data;
+import lombok.Getter;
+import org.aopalliance.aop.Advice;
+import org.aopalliance.intercept.Joinpoint;
+import org.aspectj.weaver.tools.*;
 
 import java.lang.reflect.Method;
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Collectors;
+import java.util.HashSet;
+import java.util.Set;
 
-@Data
-public class HookModel {
-    private List<JoinPoint> includes;
+public class HookModel implements Advice {
+    private static final Set<PointcutPrimitive> SUPPORTED_PRIMITIVES = new HashSet<PointcutPrimitive>() {{
+        add(PointcutPrimitive.EXECUTION);
+        add(PointcutPrimitive.WITHIN);
+        add(PointcutPrimitive.ARGS);
+        add(PointcutPrimitive.AT_ANNOTATION);
+        add(PointcutPrimitive.AT_WITHIN);
+        add(PointcutPrimitive.AT_ARGS);
+    }};
 
-    private List<JoinPoint> excludes;
+    private PointcutExpression pointcutExpression;
 
+    @Getter
     private Method hook;
 
-    public HookModel(String[] includes, String[] excludes, Method hook) {
-        this.includes = Arrays.stream(includes).map(JoinPoint::new).collect(Collectors.toList());
-        this.excludes = Arrays.stream(excludes).map(JoinPoint::new).collect(Collectors.toList());
-        this.hook = hook;
+    public HookModel(String expression, Method hook) {
+        Class<?>[] paramTypes = hook.getParameterTypes();
+        if (paramTypes.length == 0 || (paramTypes.length == 1 && Joinpoint.class.isAssignableFrom(paramTypes[0]))) {
+            this.hook = hook;
+        } else {
+            throw new IllegalArgumentException("Hook method [" + hook + "] should have no parameters or one Joinpoint parameter");
+        }
+
+        this.pointcutExpression = PointcutParser
+                .getPointcutParserSupportingSpecifiedPrimitivesAndUsingContextClassloaderForResolution(SUPPORTED_PRIMITIVES)
+                .parsePointcutExpression(expression, hook.getDeclaringClass(), new PointcutParameter[0]);
     }
 
     public boolean matches(Class<?> clazz) {
-        String className = clazz.getName();
-        for (JoinPoint includePoint : includes) {
-            if (includePoint.matchesClass(className)) {
-                return true;
-            }
-        }
-        return false;
+        return pointcutExpression.couldMatchJoinPointsInType(clazz);
     }
 
     public boolean matches(Method method) {
-        String className = method.getDeclaringClass().getName();
-        String methodName = method.getName();
-        for (JoinPoint excludePoint : excludes) {
-            if (excludePoint.matchesMethod(className, methodName)) {
-                return false;
-            }
-        }
-        for (JoinPoint includePoint : includes) {
-            if (includePoint.matchesMethod(className, methodName)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    @Data
-    private class JoinPoint {
-        private String className;
-
-        private boolean classWildcard = false;
-
-        private String methodName;
-
-        private boolean methodWildcard = false;
-
-        JoinPoint(String desc) {
-            String[] classAndMethod = desc.split("#");
-            className = classAndMethod[0];
-            if (className.endsWith("*")) {
-                className = className.substring(0, className.length() - 1);
-                classWildcard = true;
-            }
-            if (classAndMethod.length >= 2) {
-                methodName = classAndMethod[1];
-                if (methodName.endsWith("*")) {
-                    methodName = methodName.substring(0, methodName.length() - 1);
-                    methodWildcard = true;
-                }
-            } else {
-                methodName = "";
-                methodWildcard = true;
-            }
-        }
-
-        boolean matchesClass(String targetClassName) {
-            if (classWildcard) {
-                return targetClassName.startsWith(this.className);
-            } else return targetClassName.equals(this.className);
-        }
-
-        boolean matchesMethod(String targetClassName, String targetMethodName) {
-            if (!matchesClass(targetClassName)) {
-                return false;
-            }
-            if (methodWildcard) {
-                return targetMethodName.startsWith(this.methodName);
-            } else return targetMethodName.equals(this.methodName);
-        }
+        ShadowMatch match = pointcutExpression.matchesMethodExecution(method);
+        return match.alwaysMatches();
     }
 }

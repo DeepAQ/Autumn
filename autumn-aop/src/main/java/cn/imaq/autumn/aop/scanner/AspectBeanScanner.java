@@ -36,7 +36,7 @@ public class AspectBeanScanner implements BeanScanner {
                     method.setAccessible(true);
                     Hook hookAnno = method.getAnnotation(Hook.class);
                     log.info("Adding hook {}", hookAnno);
-                    aopContext.addHook(new HookModel(hookAnno.value(), hookAnno.exclude(), method));
+                    aopContext.addHook(new HookModel(hookAnno.value(), method));
                 }
             }
         });

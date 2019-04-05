@@ -1,13 +1,17 @@
 package cn.imaq.autumn.aop;
 
 import cn.imaq.autumn.core.context.AutumnContext;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import org.aopalliance.intercept.MethodInvocation;
 
+import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Iterator;
 
-public class HookChain {
+@AllArgsConstructor
+public class HookChain implements MethodInvocation {
     private Iterator<HookModel> hookItr;
 
     @Getter
@@ -16,20 +20,31 @@ public class HookChain {
     @Getter
     private Object target;
 
-    @Getter
     private Method realMethod;
 
-    @Getter
     private Object[] args;
 
-    public HookChain(Iterator<HookModel> hookItr, AutumnContext context, Object target, Method realMethod, Object[] args) {
-        this.hookItr = hookItr;
-        this.context = context;
-        this.target = target;
-        this.realMethod = realMethod;
-        this.args = args;
+    @Override
+    public Object getThis() {
+        return this;
     }
 
+    @Override
+    public AccessibleObject getStaticPart() {
+        return this.realMethod;
+    }
+
+    @Override
+    public Method getMethod() {
+        return this.realMethod;
+    }
+
+    @Override
+    public Object[] getArguments() {
+        return this.args;
+    }
+
+    @Override
     public Object proceed() throws Throwable {
         try {
             if (hookItr.hasNext()) {
