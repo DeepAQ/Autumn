@@ -4,5 +4,5 @@ description 'Classpath scanner wrapper for other Autumn components'
 apply from: '../maven-publish.gradle'
 
 dependencies {
-    implementation 'io.github.classgraph:classgraph:4.8.10'
+    implementation 'io.github.classgraph:classgraph:4.8.24'
 }
