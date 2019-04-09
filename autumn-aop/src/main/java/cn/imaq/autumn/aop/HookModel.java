@@ -3,11 +3,16 @@ package cn.imaq.autumn.aop;
 import lombok.Getter;
 import org.aopalliance.aop.Advice;
 import org.aopalliance.intercept.Joinpoint;
-import org.aspectj.weaver.tools.*;
+import org.aspectj.weaver.tools.PointcutExpression;
+import org.aspectj.weaver.tools.PointcutParameter;
+import org.aspectj.weaver.tools.PointcutParser;
+import org.aspectj.weaver.tools.PointcutPrimitive;
 
 import java.lang.reflect.Method;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class HookModel implements Advice {
     private static final Set<PointcutPrimitive> SUPPORTED_PRIMITIVES = new HashSet<PointcutPrimitive>() {{
@@ -20,6 +25,8 @@ public class HookModel implements Advice {
     }};
 
     private PointcutExpression pointcutExpression;
+
+    private Map<Method, Boolean> methodMatchCache = new ConcurrentHashMap<>();
 
     @Getter
     private Method hook;
@@ -42,7 +49,6 @@ public class HookModel implements Advice {
     }
 
     public boolean matches(Method method) {
-        ShadowMatch match = pointcutExpression.matchesMethodExecution(method);
-        return match.alwaysMatches();
+        return methodMatchCache.computeIfAbsent(method, m -> pointcutExpression.matchesMethodExecution(m).alwaysMatches());
     }
 }
