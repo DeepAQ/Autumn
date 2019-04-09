@@ -1,15 +1,15 @@
 package cn.imaq.autumn.aop.scanner;
 
 import cn.imaq.autumn.aop.AopContext;
-import cn.imaq.autumn.aop.HookModel;
+import cn.imaq.autumn.aop.advice.AroundAdvice;
 import cn.imaq.autumn.aop.annotation.Aspect;
-import cn.imaq.autumn.aop.annotation.Hook;
 import cn.imaq.autumn.core.beans.BeanInfo;
 import cn.imaq.autumn.core.beans.creator.NormalBeanCreator;
 import cn.imaq.autumn.core.beans.scanner.BeanScanner;
 import cn.imaq.autumn.core.context.AutumnContext;
 import cn.imaq.autumn.cpscan.ScanResult;
 import lombok.extern.slf4j.Slf4j;
+import org.aspectj.lang.annotation.Around;
 
 import java.lang.reflect.Method;
 
@@ -32,11 +32,11 @@ public class AspectBeanScanner implements BeanScanner {
                     .build());
 
             for (Method method : cls.getDeclaredMethods()) {
-                if (method.isAnnotationPresent(Hook.class)) {
+                if (method.isAnnotationPresent(Around.class)) {
                     method.setAccessible(true);
-                    Hook hookAnno = method.getAnnotation(Hook.class);
-                    log.info("Adding hook {}", hookAnno);
-                    aopContext.addHook(new HookModel(hookAnno.value(), method));
+                    Around aroundAnno = method.getAnnotation(Around.class);
+                    log.info("Adding around advice {}", aroundAnno);
+                    aopContext.addAdvice(new AroundAdvice(context, aroundAnno.value(), method));
                 }
             }
         });

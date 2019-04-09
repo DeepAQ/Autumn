@@ -1,31 +1,27 @@
 package cn.imaq.autumn.aop.callback;
 
-import cn.imaq.autumn.aop.HookChain;
-import cn.imaq.autumn.aop.HookModel;
-import cn.imaq.autumn.core.context.AutumnContext;
+import cn.imaq.autumn.aop.AopMethodInvocation;
+import cn.imaq.autumn.aop.advice.Advice;
 import net.sf.cglib.proxy.MethodInterceptor;
 import net.sf.cglib.proxy.MethodProxy;
 
 import java.lang.reflect.Method;
+import java.util.Iterator;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class AopMethodInterceptor implements MethodInterceptor {
-    private List<HookModel> classHooks;
-
-    private AutumnContext context;
+    private List<Advice> classAdvice;
 
     private Object target;
 
-    public AopMethodInterceptor(List<HookModel> classHooks, AutumnContext context, Object target) {
-        this.classHooks = classHooks;
-        this.context = context;
+    public AopMethodInterceptor(List<Advice> classAdvice, Object target) {
+        this.classAdvice = classAdvice;
         this.target = target;
     }
 
     @Override
     public Object intercept(Object obj, Method method, Object[] args, MethodProxy proxy) throws Throwable {
-        List<HookModel> methodHooks = classHooks.stream().filter(hm -> hm.matches(method)).collect(Collectors.toList());
-        return new HookChain(methodHooks.iterator(), context, target, method, args).proceed();
+        Iterator<Advice> methodAdviceItr = classAdvice.stream().filter(hm -> hm.matches(method)).iterator();
+        return new AopMethodInvocation(methodAdviceItr, target, method, args).proceed();
     }
 }

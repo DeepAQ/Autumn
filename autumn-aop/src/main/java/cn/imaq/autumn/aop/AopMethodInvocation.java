@@ -1,6 +1,6 @@
 package cn.imaq.autumn.aop;
 
-import cn.imaq.autumn.core.context.AutumnContext;
+import cn.imaq.autumn.aop.advice.Advice;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.aopalliance.intercept.MethodInvocation;
@@ -11,11 +11,8 @@ import java.lang.reflect.Method;
 import java.util.Iterator;
 
 @AllArgsConstructor
-public class HookChain implements MethodInvocation {
-    private Iterator<HookModel> hookItr;
-
-    @Getter
-    private AutumnContext context;
+public class AopMethodInvocation implements MethodInvocation {
+    private Iterator<Advice> adviceItr;
 
     @Getter
     private Object target;
@@ -46,23 +43,14 @@ public class HookChain implements MethodInvocation {
 
     @Override
     public Object proceed() throws Throwable {
-        if (hookItr.hasNext()) {
-            return invokeHook(hookItr.next().getHook());
+        if (adviceItr.hasNext()) {
+            return adviceItr.next().invoke(this);
         }
 
         try {
             return realMethod.invoke(target, args);
         } catch (InvocationTargetException e) {
             throw e.getCause();
-        }
-    }
-
-    private Object invokeHook(Method hook) throws InvocationTargetException, IllegalAccessException {
-        if (hook.getParameterCount() > 0) {
-            return hook.invoke(context.getBeanByType(hook.getDeclaringClass()), this);
-        } else {
-            hook.invoke(context.getBeanByType(hook.getDeclaringClass()));
-            return realMethod.invoke(target, args);
         }
     }
 }

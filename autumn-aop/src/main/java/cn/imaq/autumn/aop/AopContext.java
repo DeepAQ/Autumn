@@ -1,5 +1,6 @@
 package cn.imaq.autumn.aop;
 
+import cn.imaq.autumn.aop.advice.Advice;
 import cn.imaq.autumn.core.context.AutumnContext;
 
 import java.util.List;
@@ -10,7 +11,7 @@ import java.util.stream.Collectors;
 public class AopContext {
     public static final String ATTR = AopContext.class.getName();
 
-    private Queue<HookModel> hooks = new ConcurrentLinkedQueue<>();
+    private Queue<Advice> advice = new ConcurrentLinkedQueue<>();
 
     private AopContext() {
     }
@@ -29,11 +30,11 @@ public class AopContext {
         return aopContext;
     }
 
-    public void addHook(HookModel model) {
-        hooks.add(model);
+    public void addAdvice(Advice model) {
+        advice.add(model);
     }
 
-    public List<HookModel> getHooksForClass(Class<?> clazz) {
-        return hooks.stream().filter(hm -> hm.matches(clazz)).collect(Collectors.toList());
+    public List<Advice> getAdviceForClass(Class<?> clazz) {
+        return advice.stream().filter(a -> a.matches(clazz)).collect(Collectors.toList());
     }
 }
