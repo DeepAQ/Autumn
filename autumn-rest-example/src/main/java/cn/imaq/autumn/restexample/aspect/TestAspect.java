@@ -5,6 +5,7 @@ import cn.imaq.autumn.aop.annotation.Hook;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.aopalliance.intercept.Joinpoint;
+import org.aspectj.lang.annotation.Pointcut;
 
 @Aspect
 @Slf4j
@@ -12,7 +13,11 @@ public class TestAspect {
     @Getter
     private static int hook1Executes, hook2Executes;
 
-    @Hook("execution(* cn.imaq.autumn.restexample.controller..*(..))")
+    @Pointcut("execution(* cn.imaq.autumn.restexample.controller..*(..))")
+    private void controllerMethods() {
+    }
+
+    @Hook("controllerMethods()")
     public Object hook1(Joinpoint jp) throws Throwable {
         hook1Executes++;
         log.info("1 Before {}", jp.getStaticPart());
@@ -28,7 +33,7 @@ public class TestAspect {
         return ret;
     }
 
-    @Hook("within(cn.imaq.autumn.restexample.controller..*)")
+    @Hook("controllerMethods()")
     public Object hook2(Joinpoint jp) throws Throwable {
         hook2Executes++;
         log.info("2 Before {}", jp.getStaticPart());

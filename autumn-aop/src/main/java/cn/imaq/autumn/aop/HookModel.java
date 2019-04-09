@@ -2,7 +2,6 @@ package cn.imaq.autumn.aop;
 
 import lombok.Getter;
 import org.aopalliance.aop.Advice;
-import org.aopalliance.intercept.Joinpoint;
 import org.aspectj.weaver.tools.PointcutExpression;
 import org.aspectj.weaver.tools.PointcutParameter;
 import org.aspectj.weaver.tools.PointcutParser;
@@ -22,6 +21,7 @@ public class HookModel implements Advice {
         add(PointcutPrimitive.AT_ANNOTATION);
         add(PointcutPrimitive.AT_WITHIN);
         add(PointcutPrimitive.AT_ARGS);
+        add(PointcutPrimitive.REFERENCE);
     }};
 
     private PointcutExpression pointcutExpression;
@@ -33,7 +33,7 @@ public class HookModel implements Advice {
 
     public HookModel(String expression, Method hook) {
         Class<?>[] paramTypes = hook.getParameterTypes();
-        if (paramTypes.length == 0 || (paramTypes.length == 1 && Joinpoint.class.isAssignableFrom(paramTypes[0]))) {
+        if (paramTypes.length == 0 || (paramTypes.length == 1 && paramTypes[0].isAssignableFrom(HookChain.class))) {
             this.hook = hook;
         } else {
             throw new IllegalArgumentException("Hook method [" + hook + "] should have no parameters or one Joinpoint parameter");
