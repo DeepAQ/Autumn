@@ -2,7 +2,7 @@ package cn.imaq.autumn.aop.processor;
 
 import cn.imaq.autumn.aop.AopContext;
 import cn.imaq.autumn.aop.advice.Advice;
-import cn.imaq.autumn.aop.callback.AopMethodInterceptor;
+import cn.imaq.autumn.aop.callback.AopProxyCallback;
 import cn.imaq.autumn.core.beans.BeanWrapper;
 import cn.imaq.autumn.core.beans.processor.AfterBeanPopulateProcessor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,7 +20,7 @@ public class AopBeanProcessor implements AfterBeanPopulateProcessor {
             log.info("Creating proxy for {}", bean.getBeanInstance().getClass().getName());
             Enhancer enhancer = new Enhancer();
             enhancer.setSuperclass(type);
-            enhancer.setCallback(new AopMethodInterceptor(classAdvice, bean.getBeanInstance()));
+            enhancer.setCallback(new AopProxyCallback(classAdvice, bean.getBeanInstance()));
             bean.setBeanInstance(enhancer.create());
         }
     }

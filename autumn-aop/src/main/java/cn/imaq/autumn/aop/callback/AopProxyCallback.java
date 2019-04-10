@@ -1,6 +1,6 @@
 package cn.imaq.autumn.aop.callback;
 
-import cn.imaq.autumn.aop.AopMethodInvocation;
+import cn.imaq.autumn.aop.invocation.AopMethodInvocation;
 import cn.imaq.autumn.aop.advice.Advice;
 import net.sf.cglib.proxy.MethodInterceptor;
 import net.sf.cglib.proxy.MethodProxy;
@@ -9,12 +9,12 @@ import java.lang.reflect.Method;
 import java.util.Iterator;
 import java.util.List;
 
-public class AopMethodInterceptor implements MethodInterceptor {
+public class AopProxyCallback implements MethodInterceptor {
     private List<Advice> classAdvice;
 
     private Object target;
 
-    public AopMethodInterceptor(List<Advice> classAdvice, Object target) {
+    public AopProxyCallback(List<Advice> classAdvice, Object target) {
         this.classAdvice = classAdvice;
         this.target = target;
     }

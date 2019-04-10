@@ -1,6 +1,7 @@
 package cn.imaq.autumn.aop.advice;
 
 import cn.imaq.autumn.aop.exception.AopInvocationException;
+import cn.imaq.autumn.aop.invocation.AopMethodInvocation;
 import cn.imaq.autumn.core.context.AutumnContext;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
@@ -39,6 +40,11 @@ public abstract class Advice implements MethodInterceptor {
     private boolean isStaticMethod;
 
     public Advice(AutumnContext autumnContext, String expression, Method adviceMethod) {
+        Class<?>[] paramTypes = adviceMethod.getParameterTypes();
+        if (!(paramTypes.length == 0 || (paramTypes.length == 1 && paramTypes[0].isAssignableFrom(AopMethodInvocation.class)))) {
+            throw new IllegalArgumentException("Advice method [" + adviceMethod + "] should have no paramaters or one Joinpoint parameter");
+        }
+
         this.autumnContext = autumnContext;
         this.pointcutExpression = PointcutParser
                 .getPointcutParserSupportingSpecifiedPrimitivesAndUsingContextClassloaderForResolution(SUPPORTED_PRIMITIVES)
@@ -57,7 +63,14 @@ public abstract class Advice implements MethodInterceptor {
 
     public abstract Object invoke(MethodInvocation invocation) throws Throwable;
 
-    protected Object invokeAdvice(Object... args) throws Throwable {
+    protected Object invokeAdvice(MethodInvocation invocation) throws Throwable {
+        Object[] args;
+        if (adviceMethod.getParameterCount() == 0) {
+            args = new Object[0];
+        } else {
+            args = new Object[]{invocation};
+        }
+
         try {
             if (isStaticMethod) {
                 return adviceMethod.invoke(null, args);

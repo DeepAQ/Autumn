@@ -1,8 +1,7 @@
-package cn.imaq.autumn.aop;
+package cn.imaq.autumn.aop.invocation;
 
 import cn.imaq.autumn.aop.advice.Advice;
 import lombok.AllArgsConstructor;
-import lombok.Getter;
 import org.aopalliance.intercept.MethodInvocation;
 
 import java.lang.reflect.AccessibleObject;
@@ -14,7 +13,6 @@ import java.util.Iterator;
 public class AopMethodInvocation implements MethodInvocation {
     private Iterator<Advice> adviceItr;
 
-    @Getter
     private Object target;
 
     private Method realMethod;

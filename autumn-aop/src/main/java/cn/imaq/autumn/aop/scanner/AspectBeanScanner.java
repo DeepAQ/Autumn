@@ -35,7 +35,7 @@ public class AspectBeanScanner implements BeanScanner {
                 if (method.isAnnotationPresent(Around.class)) {
                     method.setAccessible(true);
                     Around aroundAnno = method.getAnnotation(Around.class);
-                    log.info("Adding around advice {}", aroundAnno);
+                    log.info("Adding around advice {} {}", aroundAnno, method);
                     aopContext.addAdvice(new AroundAdvice(context, aroundAnno.value(), method));
                 }
             }
