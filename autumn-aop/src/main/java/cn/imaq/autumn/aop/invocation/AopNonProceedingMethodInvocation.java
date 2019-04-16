@@ -8,7 +8,7 @@ import java.lang.reflect.Method;
 
 @AllArgsConstructor
 public class AopNonProceedingMethodInvocation implements MethodInvocation {
-    private AopMethodInvocation invocation;
+    private MethodInvocation invocation;
 
     @Override
     public Object getThis() {

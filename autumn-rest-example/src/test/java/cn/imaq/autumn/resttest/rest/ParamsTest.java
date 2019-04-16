@@ -1,4 +1,4 @@
-package cn.imaq.autumn.resttest;
+package cn.imaq.autumn.resttest.rest;
 
 import cn.imaq.autumn.http.client.AutumnHttpClient;
 import cn.imaq.autumn.http.protocol.AutumnHttpRequest;

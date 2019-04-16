@@ -1,6 +1,7 @@
-package cn.imaq.autumn.resttest;
+package cn.imaq.autumn.resttest.rest;
 
 import cn.imaq.autumn.http.protocol.AutumnHttpResponse;
+import cn.imaq.autumn.resttest.TestUtils;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 

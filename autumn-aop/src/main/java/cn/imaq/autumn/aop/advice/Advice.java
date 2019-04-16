@@ -1,7 +1,6 @@
 package cn.imaq.autumn.aop.advice;
 
 import cn.imaq.autumn.aop.exception.AopInvocationException;
-import cn.imaq.autumn.aop.invocation.AopMethodInvocation;
 import cn.imaq.autumn.core.context.AutumnContext;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
@@ -13,6 +12,7 @@ import org.aspectj.weaver.tools.PointcutPrimitive;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.lang.reflect.Parameter;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -40,11 +40,6 @@ public abstract class Advice implements MethodInterceptor {
     private boolean isStaticMethod;
 
     public Advice(AutumnContext autumnContext, String expression, Method adviceMethod) {
-        Class<?>[] paramTypes = adviceMethod.getParameterTypes();
-        if (!(paramTypes.length == 0 || (paramTypes.length == 1 && paramTypes[0].isAssignableFrom(AopMethodInvocation.class)))) {
-            throw new IllegalArgumentException("Advice method [" + adviceMethod + "] should have no paramaters or one Joinpoint parameter");
-        }
-
         this.autumnContext = autumnContext;
         this.pointcutExpression = PointcutParser
                 .getPointcutParserSupportingSpecifiedPrimitivesAndUsingContextClassloaderForResolution(SUPPORTED_PRIMITIVES)
@@ -64,11 +59,18 @@ public abstract class Advice implements MethodInterceptor {
     public abstract Object invoke(MethodInvocation invocation) throws Throwable;
 
     protected Object invokeAdvice(MethodInvocation invocation) throws Throwable {
-        Object[] args;
-        if (adviceMethod.getParameterCount() == 0) {
-            args = new Object[0];
-        } else {
-            args = new Object[]{invocation};
+        return invokeAdvice(invocation, null, -1);
+    }
+
+    protected Object invokeAdvice(MethodInvocation invocation, Object extArg, int extArgIndex) throws Throwable {
+        Parameter[] params = adviceMethod.getParameters();
+        Object[] args = new Object[params.length];
+        for (int i = 0; i < args.length; i++) {
+            if (i == extArgIndex) {
+                args[i] = extArg;
+            } else if (params[i].getType().isAssignableFrom(invocation.getClass())) {
+                args[i] = invocation;
+            }
         }
 
         try {
