@@ -1,19 +1,19 @@
-package cn.imaq.autumn.rpc.server.invoker;
+package cn.imaq.autumn.rpc.server.invoke;
 
-import cn.imaq.autumn.rpc.exception.AutumnInvokeException;
-import cn.imaq.autumn.rpc.exception.AutumnSerializationException;
-import cn.imaq.autumn.rpc.serialization.AutumnSerialization;
+import cn.imaq.autumn.rpc.exception.RPCInvokeException;
+import cn.imaq.autumn.rpc.exception.RPCSerializationException;
+import cn.imaq.autumn.rpc.serialization.RPCSerialization;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class ReflectionInvoker implements AutumnInvoker {
-    private Map<AutumnMethod, Method> methodCache = new ConcurrentHashMap<>();
+public class ReflectionInvoker implements RPCMethodInvoker {
+    private Map<RPCMethod, Method> methodCache = new ConcurrentHashMap<>();
 
     @Override
-    public Object invoke(Object instance, AutumnMethod method, Object[] params, AutumnSerialization serialization) throws AutumnInvokeException, InvocationTargetException {
+    public Object invoke(Object instance, RPCMethod method, Object[] params, RPCSerialization serialization) throws RPCInvokeException, InvocationTargetException {
         try {
             Method realMethod = methodCache.get(method);
             if (realMethod == null) {
@@ -34,8 +34,8 @@ public class ReflectionInvoker implements AutumnInvoker {
             }
             params = serialization.convertTypes(params, realMethod.getGenericParameterTypes());
             return realMethod.invoke(instance, params);
-        } catch (NoSuchMethodException | IllegalAccessException | AutumnSerializationException e) {
-            throw new AutumnInvokeException(e);
+        } catch (NoSuchMethodException | IllegalAccessException | RPCSerializationException e) {
+            throw new RPCInvokeException(e);
         }
     }
 }

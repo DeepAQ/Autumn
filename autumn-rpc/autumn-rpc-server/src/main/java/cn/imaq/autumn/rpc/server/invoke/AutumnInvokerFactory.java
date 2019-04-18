@@ -1,11 +1,11 @@
-package cn.imaq.autumn.rpc.server.invoker;
+package cn.imaq.autumn.rpc.server.invoke;
 
 public class AutumnInvokerFactory {
-    private static AutumnInvoker defaultInvoker() {
+    private static RPCMethodInvoker defaultInvoker() {
         return new ReflectionInvoker();
     }
 
-    public static AutumnInvoker getInvoker(String type) {
+    public static RPCMethodInvoker getInvoker(String type) {
         if (type == null) {
             return defaultInvoker();
         }

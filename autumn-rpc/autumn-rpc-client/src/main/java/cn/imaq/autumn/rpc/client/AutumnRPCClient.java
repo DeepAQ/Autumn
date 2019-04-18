@@ -6,8 +6,8 @@ import cn.imaq.autumn.rpc.client.proxy.AutumnProxy;
 import cn.imaq.autumn.rpc.client.proxy.AutumnProxyFactory;
 import cn.imaq.autumn.rpc.net.AutumnRPCRequest;
 import cn.imaq.autumn.rpc.net.AutumnRPCResponse;
-import cn.imaq.autumn.rpc.serialization.AutumnSerialization;
 import cn.imaq.autumn.rpc.serialization.AutumnSerializationFactory;
+import cn.imaq.autumn.rpc.serialization.RPCSerialization;
 import cn.imaq.autumn.rpc.util.PropertiesUtil;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -32,7 +32,7 @@ public class AutumnRPCClient {
 
     private RPCHttpClient httpClient;
     private AutumnProxy proxy;
-    private AutumnSerialization serialization;
+    private RPCSerialization serialization;
 
     public AutumnRPCClient(String host, int port, String configFile, boolean useAutoConfig) {
         this.host = host;

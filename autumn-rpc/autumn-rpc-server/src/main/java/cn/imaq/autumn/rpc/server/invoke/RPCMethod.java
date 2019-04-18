@@ -1,16 +1,16 @@
-package cn.imaq.autumn.rpc.server.invoker;
+package cn.imaq.autumn.rpc.server.invoke;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
 @Data
 @AllArgsConstructor
-public class AutumnMethod {
-    private Class type;
+public class RPCMethod {
+    private Class<?> type;
 
     private String name;
 
     private Integer paramCount;
 
-    private Class[] paramTypes;
+    private Class<?>[] paramTypes;
 }

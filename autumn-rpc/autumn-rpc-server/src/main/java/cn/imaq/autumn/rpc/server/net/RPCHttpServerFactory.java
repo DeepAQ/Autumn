@@ -12,8 +12,6 @@ public class RPCHttpServerFactory {
         switch (type) {
             case "autumn":
                 return new AutumnHttpServer(host, port, handler);
-            case "rapidoid":
-                return new RapidoidHttpServer(host, port, handler);
             case "sun":
                 return new SunHttpServer(host, port, handler);
             default:

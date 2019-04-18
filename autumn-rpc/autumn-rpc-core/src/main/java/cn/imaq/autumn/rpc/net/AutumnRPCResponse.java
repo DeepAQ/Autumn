@@ -15,5 +15,5 @@ public class AutumnRPCResponse implements Serializable {
 
     private Object result;
 
-    private Class resultType;
+    private Class<?> resultType;
 }

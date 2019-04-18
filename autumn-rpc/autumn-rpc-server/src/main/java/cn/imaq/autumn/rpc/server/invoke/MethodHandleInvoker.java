@@ -1,8 +1,8 @@
-package cn.imaq.autumn.rpc.server.invoker;
+package cn.imaq.autumn.rpc.server.invoke;
 
-import cn.imaq.autumn.rpc.exception.AutumnInvokeException;
-import cn.imaq.autumn.rpc.exception.AutumnSerializationException;
-import cn.imaq.autumn.rpc.serialization.AutumnSerialization;
+import cn.imaq.autumn.rpc.exception.RPCInvokeException;
+import cn.imaq.autumn.rpc.exception.RPCSerializationException;
+import cn.imaq.autumn.rpc.serialization.RPCSerialization;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
@@ -12,12 +12,12 @@ import java.lang.reflect.Type;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class MethodHandleInvoker implements AutumnInvoker {
-    private Map<AutumnMethod, MethodHandle> handleCache = new ConcurrentHashMap<>();
-    private Map<AutumnMethod, Type[]> typeCache = new ConcurrentHashMap<>();
+public class MethodHandleInvoker implements RPCMethodInvoker {
+    private Map<RPCMethod, MethodHandle> handleCache = new ConcurrentHashMap<>();
+    private Map<RPCMethod, Type[]> typeCache = new ConcurrentHashMap<>();
 
     @Override
-    public Object invoke(Object instance, AutumnMethod method, Object[] params, AutumnSerialization serialization) throws AutumnInvokeException, InvocationTargetException {
+    public Object invoke(Object instance, RPCMethod method, Object[] params, RPCSerialization serialization) throws RPCInvokeException, InvocationTargetException {
         try {
             MethodHandle handle = handleCache.get(method);
             Type[] paramTypes = typeCache.get(method);
@@ -37,8 +37,8 @@ public class MethodHandleInvoker implements AutumnInvoker {
                     }
                 }
                 handle = MethodHandles.lookup().unreflect(realMethod);
-                handleCache.put(method, handle);
                 paramTypes = realMethod.getGenericParameterTypes();
+                handleCache.put(method, handle);
                 typeCache.put(method, paramTypes);
             }
             params = serialization.convertTypes(params, paramTypes);
@@ -46,8 +46,8 @@ public class MethodHandleInvoker implements AutumnInvoker {
             newParams[0] = instance;
             System.arraycopy(params, 0, newParams, 1, params.length);
             return handle.invokeWithArguments(newParams);
-        } catch (NoSuchMethodException | IllegalAccessException | AutumnSerializationException e) {
-            throw new AutumnInvokeException(e);
+        } catch (NoSuchMethodException | IllegalAccessException | RPCSerializationException e) {
+            throw new RPCInvokeException(e);
         } catch (Throwable t) {
             throw new InvocationTargetException(t);
         }

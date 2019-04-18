@@ -5,7 +5,6 @@ import cn.imaq.autumn.rpc.server.exception.AutumnHttpException;
 import cn.imaq.autumn.rpc.server.net.AbstractRPCHttpServer;
 import cn.imaq.autumn.rpc.server.net.AutumnRPCHandler;
 import cn.imaq.autumn.rpc.server.net.RPCHttpServerFactory;
-import cn.imaq.autumn.rpc.server.net.ServiceMap;
 import cn.imaq.autumn.rpc.util.AutumnRPCBanner;
 import cn.imaq.autumn.rpc.util.PropertiesUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -38,9 +37,8 @@ public class AutumnRPCServer {
                 log.error("Error loading config: {}", String.valueOf(e));
             }
             // Scan services with scanners
-            AutumnContext rpcContext = new AutumnContext("rpcContext");
+            AutumnContext rpcContext = new AutumnContext("AutumnRPCContext");
             AutumnRPCHandler handler = new AutumnRPCHandler(config, rpcContext);
-            rpcContext.setAttribute(ServiceMap.ATTR, handler.getServiceMap());
             log.warn("Scanning services to expose ...");
             rpcContext.scanComponents();
             // Start HTTP server
@@ -51,7 +49,7 @@ public class AutumnRPCServer {
             log.warn("Starting HTTP server ...");
             try {
                 httpServer.start();
-                log.warn("Bootstrap success");
+                log.warn("Bootstrap finished");
             } catch (AutumnHttpException e) {
                 log.error("Error starting server: {}", String.valueOf(e));
             }
