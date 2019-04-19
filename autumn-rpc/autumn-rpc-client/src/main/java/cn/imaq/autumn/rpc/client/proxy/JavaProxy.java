@@ -8,6 +8,6 @@ public class JavaProxy implements RpcProxy {
     @Override
     public <T> T create(Class<T> interfaze, InvocationHandler handler) {
         return (T) Proxy.newProxyInstance(Thread.currentThread().getContextClassLoader(),
-                new Class[]{interfaze}, handler);
+                new Class<?>[]{interfaze}, handler);
     }
 }

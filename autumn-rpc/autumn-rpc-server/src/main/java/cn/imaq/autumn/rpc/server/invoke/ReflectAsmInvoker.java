@@ -9,7 +9,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class ReflectAsmInvoker implements RpcMethodInvoker {
-    private Map<Class, MethodAccess> methodAccessCache = new ConcurrentHashMap<>();
+    private Map<Class<?>, MethodAccess> methodAccessCache = new ConcurrentHashMap<>();
     private Map<RpcMethod, Integer> methodIndexCache = new ConcurrentHashMap<>();
 
     @Override

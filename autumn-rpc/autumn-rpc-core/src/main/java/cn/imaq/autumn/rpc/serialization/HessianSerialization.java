@@ -64,7 +64,7 @@ public class HessianSerialization implements RpcSerialization {
     }
 
     @Override
-    public RpcResponse deserializeResponse(byte[] buf, Class defaultReturnType) throws RpcSerializationException {
+    public RpcResponse deserializeResponse(byte[] buf, Class<?> defaultReturnType) throws RpcSerializationException {
         try {
             return (RpcResponse) deserializeObject(buf);
         } catch (IOException | ClassCastException e) {

@@ -17,7 +17,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class JsonSerialization implements RpcSerialization {
     private ObjectMapper mapper = new ObjectMapper();
-    private Map<String, Class> classMap = new ConcurrentHashMap<>();
+    private Map<String, Class<?>> classMap = new ConcurrentHashMap<>();
 
     @Override
     public String contentType() {
@@ -45,15 +45,14 @@ public class JsonSerialization implements RpcSerialization {
         }
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public RpcRequest deserializeRequest(byte[] buf) throws RpcSerializationException {
         try {
             JsonNode root = mapper.readTree(buf);
             if (root.isArray() && root.size() >= 3) {
-                Class[] paramTypes = null;
+                Class<?>[] paramTypes = null;
                 if (root.get(1).isArray()) {
-                    paramTypes = new Class[root.get(1).size()];
+                    paramTypes = new Class<?>[root.get(1).size()];
                 }
                 JsonNode[] params = new JsonNode[root.get(2).size()];
                 for (int i = 0; i < root.get(2).size(); i++) {
@@ -91,11 +90,11 @@ public class JsonSerialization implements RpcSerialization {
 
     @SuppressWarnings("unchecked")
     @Override
-    public RpcResponse deserializeResponse(byte[] buf, Class defaultReturnType) throws RpcSerializationException {
+    public RpcResponse deserializeResponse(byte[] buf, Class<?> defaultReturnType) throws RpcSerializationException {
         try {
             JsonNode root = mapper.readTree(buf);
             if (root.isArray() && root.size() >= 2) {
-                Class returnType = defaultReturnType;
+                Class<?> returnType = defaultReturnType;
                 Object result = root.get(1);
                 if (root.size() >= 3) {
                     try {
@@ -129,8 +128,8 @@ public class JsonSerialization implements RpcSerialization {
         }
     }
 
-    private Class getClass(String className) throws ClassNotFoundException {
-        Class clazz = classMap.get(className);
+    private Class<?> getClass(String className) throws ClassNotFoundException {
+        Class<?> clazz = classMap.get(className);
         if (clazz == null) {
             clazz = PrimitiveClassUtil.get(className);
             if (clazz == null) {

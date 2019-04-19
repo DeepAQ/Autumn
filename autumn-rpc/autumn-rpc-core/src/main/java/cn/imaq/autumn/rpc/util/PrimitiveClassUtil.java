@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class PrimitiveClassUtil {
-    private static Map<String, Class> primClasses = new HashMap<>();
+    private static Map<String, Class<?>> primClasses = new HashMap<>();
 
     static {
         primClasses.put("void", void.class);
@@ -27,7 +27,7 @@ public class PrimitiveClassUtil {
         primClasses.put("java.lang.String", String.class);
     }
 
-    public static Class get(String name) {
+    public static Class<?> get(String name) {
         return primClasses.get(name);
     }
 }

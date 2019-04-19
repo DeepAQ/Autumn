@@ -54,7 +54,7 @@ public class MethodParamsResolver {
                     result.getClassesImplementing(ParamConverter.class).forEach(c -> {
                         try {
                             ParamConverter converter = (ParamConverter) c.newInstance();
-                            for (Class targetType : converter.getTargetTypes()) {
+                            for (Class<?> targetType : converter.getTargetTypes()) {
                                 typeConverters.put(targetType, converter);
                             }
                         } catch (Exception ignored) {

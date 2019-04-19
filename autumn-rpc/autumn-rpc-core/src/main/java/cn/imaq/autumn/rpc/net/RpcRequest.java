@@ -10,7 +10,7 @@ import java.io.Serializable;
 public class RpcRequest implements Serializable {
     private String methodName;
 
-    private Class[] paramTypes;
+    private Class<?>[] paramTypes;
 
     private Object[] params;
 }

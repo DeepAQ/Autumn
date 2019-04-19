@@ -18,7 +18,7 @@ public class AutumnRPCBeanScanner implements BeanScanner {
             result.getClassesWithAnnotation(AutumnRPCExpose.class).forEach(cls -> {
                 log.info("RPC Exposing: {}", cls.getName());
                 rpcContext.registerService(cls);
-                for (Class intf : cls.getInterfaces()) {
+                for (Class<?> intf : cls.getInterfaces()) {
                     rpcContext.registerService(intf.getName(), cls);
                 }
                 context.addBeanInfo(BeanInfo.builder()

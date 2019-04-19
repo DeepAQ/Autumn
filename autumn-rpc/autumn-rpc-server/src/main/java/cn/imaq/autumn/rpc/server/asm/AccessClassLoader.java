@@ -104,7 +104,7 @@ class AccessClassLoader extends ClassLoader {
             synchronized (accessClassLoaders) {
                 if (defineClassMethod == null) {
                     defineClassMethod = ClassLoader.class.getDeclaredMethod("defineClass",
-                            new Class[]{String.class, byte[].class, int.class, int.class, ProtectionDomain.class});
+                            String.class, byte[].class, int.class, int.class, ProtectionDomain.class);
                     try {
                         defineClassMethod.setAccessible(true);
                     } catch (Exception ignored) {

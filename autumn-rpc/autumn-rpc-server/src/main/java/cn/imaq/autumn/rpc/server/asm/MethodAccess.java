@@ -26,16 +26,16 @@ public abstract class MethodAccess {
     private static final String maClassNameInternal = MethodAccess.class.getName().replace('.', '/');
 
     private String[] methodNames;
-    private Class[][] parameterTypes;
+    private Class<?>[][] parameterTypes;
     private java.lang.reflect.Type[][] genericTypes;
-    private Class[] returnTypes;
+    private Class<?>[] returnTypes;
 
     abstract public Object invoke(Object object, int methodIndex, Object... args);
 
     /**
      * Invokes the method with the specified name and the specified param types.
      */
-    public Object invoke(Object object, String methodName, Class[] paramTypes, Object... args) {
+    public Object invoke(Object object, String methodName, Class<?>[] paramTypes, Object... args) {
         return invoke(object, getIndex(methodName, paramTypes), args);
     }
 
@@ -77,7 +77,7 @@ public abstract class MethodAccess {
         return methodNames;
     }
 
-    public Class[][] getParameterTypes() {
+    public Class<?>[][] getParameterTypes() {
         return parameterTypes;
     }
 
@@ -85,18 +85,18 @@ public abstract class MethodAccess {
         return genericTypes;
     }
 
-    public Class[] getReturnTypes() {
+    public Class<?>[] getReturnTypes() {
         return returnTypes;
     }
 
-    static public MethodAccess get(Class type) {
+    static public MethodAccess get(Class<?> type) {
         boolean isInterface = type.isInterface();
         if (!isInterface && type.getSuperclass() == null && type != Object.class)
             throw new IllegalArgumentException("The type must not be an interface, a primitive type, or void.");
 
         ArrayList<Method> methods = new ArrayList<>();
         if (!isInterface) {
-            Class nextClass = type;
+            Class<?> nextClass = type;
             while (nextClass != Object.class) {
                 addDeclaredMethodsToList(nextClass, methods);
                 nextClass = nextClass.getSuperclass();
@@ -107,9 +107,9 @@ public abstract class MethodAccess {
 
         int n = methods.size();
         String[] methodNames = new String[n];
-        Class[][] parameterTypes = new Class[n][];
+        Class<?>[][] parameterTypes = new Class<?>[n][];
         java.lang.reflect.Type[][] genericTypes = new java.lang.reflect.Type[n][];
-        Class[] returnTypes = new Class[n];
+        Class<?>[] returnTypes = new Class<?>[n];
         for (int i = 0; i < n; i++) {
             Method method = methods.get(i);
             methodNames[i] = method.getName();
@@ -121,7 +121,7 @@ public abstract class MethodAccess {
         String className = type.getName();
         String accessClassName = "reflectasm." + className + "_MethodAccess";
 
-        Class accessClass;
+        Class<?> accessClass;
         AccessClassLoader loader = AccessClassLoader.get(type);
         synchronized (loader) {
             accessClass = loader.loadAccessClass(accessClassName);
@@ -169,8 +169,8 @@ public abstract class MethodAccess {
                             buffer.setLength(0);
                             buffer.append('(');
 
-                            Class[] paramTypes = parameterTypes[i];
-                            Class returnType = returnTypes[i];
+                            Class<?>[] paramTypes = parameterTypes[i];
+                            Class<?> returnType = returnTypes[i];
                             for (int paramIndex = 0; paramIndex < paramTypes.length; paramIndex++) {
                                 mv.visitVarInsn(ALOAD, 3);
                                 mv.visitIntInsn(BIPUSH, paramIndex);
@@ -298,7 +298,7 @@ public abstract class MethodAccess {
         }
     }
 
-    private static void addDeclaredMethodsToList(Class type, ArrayList<Method> methods) {
+    private static void addDeclaredMethodsToList(Class<?> type, ArrayList<Method> methods) {
         Method[] declaredMethods = type.getDeclaredMethods();
         for (int i = 0, n = declaredMethods.length; i < n; i++) {
             Method method = declaredMethods[i];
@@ -309,9 +309,9 @@ public abstract class MethodAccess {
         }
     }
 
-    private static void recursiveAddInterfaceMethodsToList(Class interfaceType, ArrayList<Method> methods) {
+    private static void recursiveAddInterfaceMethodsToList(Class<?> interfaceType, ArrayList<Method> methods) {
         addDeclaredMethodsToList(interfaceType, methods);
-        for (Class nextInterface : interfaceType.getInterfaces()) {
+        for (Class<?> nextInterface : interfaceType.getInterfaces()) {
             recursiveAddInterfaceMethodsToList(nextInterface, methods);
         }
     }
