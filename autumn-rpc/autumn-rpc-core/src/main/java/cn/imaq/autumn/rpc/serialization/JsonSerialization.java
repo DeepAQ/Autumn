@@ -1,8 +1,8 @@
 package cn.imaq.autumn.rpc.serialization;
 
-import cn.imaq.autumn.rpc.exception.RPCSerializationException;
-import cn.imaq.autumn.rpc.net.AutumnRPCRequest;
-import cn.imaq.autumn.rpc.net.AutumnRPCResponse;
+import cn.imaq.autumn.rpc.exception.RpcSerializationException;
+import cn.imaq.autumn.rpc.net.RpcRequest;
+import cn.imaq.autumn.rpc.net.RpcResponse;
 import cn.imaq.autumn.rpc.util.PrimitiveClassUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -15,7 +15,7 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class JsonSerialization implements RPCSerialization {
+public class JsonSerialization implements RpcSerialization {
     private ObjectMapper mapper = new ObjectMapper();
     private Map<String, Class> classMap = new ConcurrentHashMap<>();
 
@@ -25,7 +25,7 @@ public class JsonSerialization implements RPCSerialization {
     }
 
     @Override
-    public byte[] serializeRequest(AutumnRPCRequest request) throws RPCSerializationException {
+    public byte[] serializeRequest(RpcRequest request) throws RpcSerializationException {
         ArrayNode result = mapper.createArrayNode();
         result.add(request.getMethodName());
         ArrayNode paramTypesNode = mapper.createArrayNode();
@@ -41,13 +41,13 @@ public class JsonSerialization implements RPCSerialization {
         try {
             return mapper.writeValueAsBytes(result);
         } catch (JsonProcessingException e) {
-            throw new RPCSerializationException(e);
+            throw new RpcSerializationException(e);
         }
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    public AutumnRPCRequest deserializeRequest(byte[] buf) throws RPCSerializationException {
+    public RpcRequest deserializeRequest(byte[] buf) throws RpcSerializationException {
         try {
             JsonNode root = mapper.readTree(buf);
             if (root.isArray() && root.size() >= 3) {
@@ -62,20 +62,20 @@ public class JsonSerialization implements RPCSerialization {
                     }
                     params[i] = root.get(2).get(i);
                 }
-                return AutumnRPCRequest.builder()
+                return RpcRequest.builder()
                         .methodName(root.get(0).textValue())
                         .paramTypes(paramTypes)
                         .params(params)
                         .build();
             }
         } catch (IOException | ClassNotFoundException e) {
-            throw new RPCSerializationException(e);
+            throw new RpcSerializationException(e);
         }
-        throw new RPCSerializationException("JSON format error");
+        throw new RpcSerializationException("JSON format error");
     }
 
     @Override
-    public byte[] serializeResponse(AutumnRPCResponse response) throws RPCSerializationException {
+    public byte[] serializeResponse(RpcResponse response) throws RpcSerializationException {
         ArrayNode result = mapper.createArrayNode();
         result.add(response.getStatus());
         result.add(mapper.valueToTree(response.getResult()));
@@ -85,13 +85,13 @@ public class JsonSerialization implements RPCSerialization {
         try {
             return mapper.writeValueAsBytes(result);
         } catch (JsonProcessingException e) {
-            throw new RPCSerializationException(e);
+            throw new RpcSerializationException(e);
         }
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    public AutumnRPCResponse deserializeResponse(byte[] buf, Class defaultReturnType) throws RPCSerializationException {
+    public RpcResponse deserializeResponse(byte[] buf, Class defaultReturnType) throws RpcSerializationException {
         try {
             JsonNode root = mapper.readTree(buf);
             if (root.isArray() && root.size() >= 2) {
@@ -104,20 +104,20 @@ public class JsonSerialization implements RPCSerialization {
                     } catch (ClassNotFoundException ignored) {
                     }
                 }
-                return AutumnRPCResponse.builder()
+                return RpcResponse.builder()
                         .status(root.get(0).intValue())
                         .result(result)
                         .resultType(returnType)
                         .build();
             }
         } catch (IOException e) {
-            throw new RPCSerializationException(e);
+            throw new RpcSerializationException(e);
         }
-        throw new RPCSerializationException("JSON format error");
+        throw new RpcSerializationException("JSON format error");
     }
 
     @Override
-    public Object[] convertTypes(Object[] src, Type[] types) throws RPCSerializationException {
+    public Object[] convertTypes(Object[] src, Type[] types) throws RpcSerializationException {
         try {
             Object[] result = new Object[src.length];
             for (int i = 0; i < src.length; i++) {
@@ -125,7 +125,7 @@ public class JsonSerialization implements RPCSerialization {
             }
             return result;
         } catch (Exception e) {
-            throw new RPCSerializationException(e);
+            throw new RpcSerializationException(e);
         }
     }
 

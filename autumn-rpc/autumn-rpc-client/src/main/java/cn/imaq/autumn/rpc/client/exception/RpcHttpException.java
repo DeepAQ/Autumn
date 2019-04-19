@@ -2,10 +2,10 @@ package cn.imaq.autumn.rpc.client.exception;
 
 import java.io.IOException;
 
-public class AutumnHttpException extends IOException {
+public class RpcHttpException extends IOException {
     private int httpCode;
 
-    public AutumnHttpException(int httpCode) {
+    public RpcHttpException(int httpCode) {
         this.httpCode = httpCode;
     }
 

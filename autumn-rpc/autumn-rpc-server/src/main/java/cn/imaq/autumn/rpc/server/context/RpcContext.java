@@ -7,18 +7,18 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Slf4j
-public class RPCContext {
-    public static final String ATTR = RPCContext.class.getName();
+public class RpcContext {
+    public static final String ATTR = RpcContext.class.getName();
 
     private final Map<String, Class<?>> services = new HashMap<>();
 
-    public static RPCContext getFrom(AutumnContext context) {
-        RPCContext rpcContext = (RPCContext) context.getAttribute(ATTR);
+    public static RpcContext getFrom(AutumnContext context) {
+        RpcContext rpcContext = (RpcContext) context.getAttribute(ATTR);
         if (rpcContext == null) {
             synchronized (context) {
-                rpcContext = (RPCContext) context.getAttribute(ATTR);
+                rpcContext = (RpcContext) context.getAttribute(ATTR);
                 if (rpcContext == null) {
-                    rpcContext = new RPCContext();
+                    rpcContext = new RpcContext();
                     context.setAttribute(ATTR, rpcContext);
                 }
             }

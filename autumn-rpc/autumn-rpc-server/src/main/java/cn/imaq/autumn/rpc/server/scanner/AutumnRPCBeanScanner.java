@@ -6,14 +6,14 @@ import cn.imaq.autumn.core.beans.scanner.BeanScanner;
 import cn.imaq.autumn.core.context.AutumnContext;
 import cn.imaq.autumn.cpscan.ScanResult;
 import cn.imaq.autumn.rpc.server.annotation.AutumnRPCExpose;
-import cn.imaq.autumn.rpc.server.context.RPCContext;
+import cn.imaq.autumn.rpc.server.context.RpcContext;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class AutumnRPCBeanScanner implements BeanScanner {
     @Override
     public void process(ScanResult result, AutumnContext context) {
-        RPCContext rpcContext = (RPCContext) context.getAttribute(RPCContext.ATTR);
+        RpcContext rpcContext = (RpcContext) context.getAttribute(RpcContext.ATTR);
         if (rpcContext != null) {
             result.getClassesWithAnnotation(AutumnRPCExpose.class).forEach(cls -> {
                 log.info("RPC Exposing: {}", cls.getName());

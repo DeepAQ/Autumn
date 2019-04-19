@@ -1,8 +1,8 @@
 package cn.imaq.autumn.rpc.server.invoke;
 
-import cn.imaq.autumn.rpc.exception.RPCInvokeException;
-import cn.imaq.autumn.rpc.exception.RPCSerializationException;
-import cn.imaq.autumn.rpc.serialization.RPCSerialization;
+import cn.imaq.autumn.rpc.exception.RpcSerializationException;
+import cn.imaq.autumn.rpc.serialization.RpcSerialization;
+import cn.imaq.autumn.rpc.server.exception.RpcInvocationException;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
@@ -12,12 +12,12 @@ import java.lang.reflect.Type;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class MethodHandleInvoker implements RPCMethodInvoker {
-    private Map<RPCMethod, MethodHandle> handleCache = new ConcurrentHashMap<>();
-    private Map<RPCMethod, Type[]> typeCache = new ConcurrentHashMap<>();
+public class MethodHandleInvoker implements RpcMethodInvoker {
+    private Map<RpcMethod, MethodHandle> handleCache = new ConcurrentHashMap<>();
+    private Map<RpcMethod, Type[]> typeCache = new ConcurrentHashMap<>();
 
     @Override
-    public Object invoke(Object instance, RPCMethod method, Object[] params, RPCSerialization serialization) throws RPCInvokeException, InvocationTargetException {
+    public Object invoke(Object instance, RpcMethod method, Object[] params, RpcSerialization serialization) throws RpcInvocationException, InvocationTargetException {
         try {
             MethodHandle handle = handleCache.get(method);
             Type[] paramTypes = typeCache.get(method);
@@ -46,8 +46,8 @@ public class MethodHandleInvoker implements RPCMethodInvoker {
             newParams[0] = instance;
             System.arraycopy(params, 0, newParams, 1, params.length);
             return handle.invokeWithArguments(newParams);
-        } catch (NoSuchMethodException | IllegalAccessException | RPCSerializationException e) {
-            throw new RPCInvokeException(e);
+        } catch (NoSuchMethodException | IllegalAccessException | RpcSerializationException e) {
+            throw new RpcInvocationException(e);
         } catch (Throwable t) {
             throw new InvocationTargetException(t);
         }

@@ -1,19 +1,19 @@
 package cn.imaq.autumn.rpc.server.invoke;
 
-import cn.imaq.autumn.rpc.exception.RPCInvokeException;
-import cn.imaq.autumn.rpc.exception.RPCSerializationException;
-import cn.imaq.autumn.rpc.serialization.RPCSerialization;
+import cn.imaq.autumn.rpc.exception.RpcSerializationException;
+import cn.imaq.autumn.rpc.serialization.RpcSerialization;
+import cn.imaq.autumn.rpc.server.exception.RpcInvocationException;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class ReflectionInvoker implements RPCMethodInvoker {
-    private Map<RPCMethod, Method> methodCache = new ConcurrentHashMap<>();
+public class ReflectionInvoker implements RpcMethodInvoker {
+    private Map<RpcMethod, Method> methodCache = new ConcurrentHashMap<>();
 
     @Override
-    public Object invoke(Object instance, RPCMethod method, Object[] params, RPCSerialization serialization) throws RPCInvokeException, InvocationTargetException {
+    public Object invoke(Object instance, RpcMethod method, Object[] params, RpcSerialization serialization) throws RpcInvocationException, InvocationTargetException {
         try {
             Method realMethod = methodCache.get(method);
             if (realMethod == null) {
@@ -34,8 +34,8 @@ public class ReflectionInvoker implements RPCMethodInvoker {
             }
             params = serialization.convertTypes(params, realMethod.getGenericParameterTypes());
             return realMethod.invoke(instance, params);
-        } catch (NoSuchMethodException | IllegalAccessException | RPCSerializationException e) {
-            throw new RPCInvokeException(e);
+        } catch (NoSuchMethodException | IllegalAccessException | RpcSerializationException e) {
+            throw new RpcInvocationException(e);
         }
     }
 }

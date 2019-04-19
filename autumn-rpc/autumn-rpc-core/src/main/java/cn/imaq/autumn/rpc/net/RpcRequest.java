@@ -7,7 +7,7 @@ import java.io.Serializable;
 
 @Data
 @Builder
-public class AutumnRPCRequest implements Serializable {
+public class RpcRequest implements Serializable {
     private String methodName;
 
     private Class[] paramTypes;

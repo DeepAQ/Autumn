@@ -1,11 +1,11 @@
 package cn.imaq.autumn.rpc.serialization;
 
 public class AutumnSerializationFactory {
-    private static RPCSerialization defaultSerialization() {
+    private static RpcSerialization defaultSerialization() {
         return new JsonSerialization();
     }
 
-    public static RPCSerialization getSerialization(String type) {
+    public static RpcSerialization getSerialization(String type) {
         if (type == null) {
             return defaultSerialization();
         }

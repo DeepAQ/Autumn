@@ -1,11 +1,11 @@
 package cn.imaq.autumn.rpc.client.proxy;
 
 public class AutumnProxyFactory {
-    private static AutumnProxy defaultProxy() {
+    private static RpcProxy defaultProxy() {
         return new JavaProxy();
     }
 
-    public static AutumnProxy getProxy(String type) {
+    public static RpcProxy getProxy(String type) {
         if (type == null) {
             return defaultProxy();
         }

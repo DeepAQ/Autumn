@@ -1,6 +1,6 @@
 package cn.imaq.autumn.rpc.server.net;
 
-import cn.imaq.autumn.rpc.server.exception.AutumnHttpException;
+import cn.imaq.autumn.rpc.server.handler.RpcRequestHandler;
 import com.sun.net.httpserver.HttpServer;
 import lombok.extern.slf4j.Slf4j;
 
@@ -11,10 +11,10 @@ import java.net.InetSocketAddress;
 import java.util.concurrent.Executors;
 
 @Slf4j
-public class SunHttpServer extends AbstractRPCHttpServer {
+public class SunHttpServer extends AbstractRpcHttpServer {
     private HttpServer httpServer;
 
-    public SunHttpServer(String host, int port, RPCHttpHandler handler) {
+    public SunHttpServer(String host, int port, RpcRequestHandler handler) {
         super(host, port, handler);
         try {
             httpServer = HttpServer.create(new InetSocketAddress(host, port), 0);
@@ -24,7 +24,7 @@ public class SunHttpServer extends AbstractRPCHttpServer {
                 byte[] buf = new byte[is.available()];
                 is.read(buf);
                 is.close();
-                RPCHttpResponse response = handler.handle(RPCHttpRequest.builder()
+                RpcHttpResponse response = handler.handle(RpcHttpRequest.builder()
                         .method(req.getRequestMethod())
                         .path(req.getRequestURI().getPath())
                         .body(buf)
@@ -42,7 +42,7 @@ public class SunHttpServer extends AbstractRPCHttpServer {
     }
 
     @Override
-    public synchronized void start() throws AutumnHttpException {
+    public synchronized void start() {
         httpServer.start();
     }
 

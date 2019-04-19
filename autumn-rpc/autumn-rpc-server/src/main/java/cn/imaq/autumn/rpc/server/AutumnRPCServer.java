@@ -1,9 +1,8 @@
 package cn.imaq.autumn.rpc.server;
 
 import cn.imaq.autumn.core.context.AutumnContext;
-import cn.imaq.autumn.rpc.server.exception.AutumnHttpException;
-import cn.imaq.autumn.rpc.server.net.AbstractRPCHttpServer;
-import cn.imaq.autumn.rpc.server.net.AutumnRPCHandler;
+import cn.imaq.autumn.rpc.server.handler.AutumnRpcRequestHandler;
+import cn.imaq.autumn.rpc.server.net.AbstractRpcHttpServer;
 import cn.imaq.autumn.rpc.server.net.RPCHttpServerFactory;
 import cn.imaq.autumn.rpc.util.AutumnRPCBanner;
 import cn.imaq.autumn.rpc.util.PropertiesUtil;
@@ -16,7 +15,7 @@ import java.util.Properties;
 public class AutumnRPCServer {
     private static final String DEFAULT_CONFIG = "autumn-rpc-server-default.properties";
 
-    private static AbstractRPCHttpServer httpServer;
+    private static AbstractRpcHttpServer httpServer;
 
     private static final Object mutex = new Object();
 
@@ -38,7 +37,7 @@ public class AutumnRPCServer {
             }
             // Scan services with scanners
             AutumnContext rpcContext = new AutumnContext("AutumnRPCContext");
-            AutumnRPCHandler handler = new AutumnRPCHandler(config, rpcContext);
+            AutumnRpcRequestHandler handler = new AutumnRpcRequestHandler(config, rpcContext);
             log.warn("Scanning services to expose ...");
             rpcContext.scanComponents();
             // Start HTTP server
@@ -50,7 +49,7 @@ public class AutumnRPCServer {
             try {
                 httpServer.start();
                 log.warn("Bootstrap finished");
-            } catch (AutumnHttpException e) {
+            } catch (IOException e) {
                 log.error("Error starting server: {}", String.valueOf(e));
             }
         }
@@ -59,7 +58,11 @@ public class AutumnRPCServer {
     public static void stop() {
         synchronized (mutex) {
             if (httpServer != null) {
-                httpServer.stop();
+                try {
+                    httpServer.stop();
+                } catch (IOException e) {
+                    log.error("Error stopping server: {}", String.valueOf(e));
+                }
             }
         }
     }

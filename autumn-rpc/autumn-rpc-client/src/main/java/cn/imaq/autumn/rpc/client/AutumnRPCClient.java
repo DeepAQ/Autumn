@@ -1,13 +1,13 @@
 package cn.imaq.autumn.rpc.client;
 
-import cn.imaq.autumn.rpc.client.net.RPCHttpClient;
 import cn.imaq.autumn.rpc.client.net.RPCHttpClientFactory;
-import cn.imaq.autumn.rpc.client.proxy.AutumnProxy;
+import cn.imaq.autumn.rpc.client.net.RpcHttpClient;
 import cn.imaq.autumn.rpc.client.proxy.AutumnProxyFactory;
-import cn.imaq.autumn.rpc.net.AutumnRPCRequest;
-import cn.imaq.autumn.rpc.net.AutumnRPCResponse;
+import cn.imaq.autumn.rpc.client.proxy.RpcProxy;
+import cn.imaq.autumn.rpc.net.RpcRequest;
+import cn.imaq.autumn.rpc.net.RpcResponse;
 import cn.imaq.autumn.rpc.serialization.AutumnSerializationFactory;
-import cn.imaq.autumn.rpc.serialization.RPCSerialization;
+import cn.imaq.autumn.rpc.serialization.RpcSerialization;
 import cn.imaq.autumn.rpc.util.PropertiesUtil;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -20,7 +20,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Properties;
 
-import static cn.imaq.autumn.rpc.net.AutumnRPCResponse.STATUS_OK;
+import static cn.imaq.autumn.rpc.net.RpcResponse.STATUS_OK;
 
 @Slf4j
 public class AutumnRPCClient {
@@ -30,9 +30,9 @@ public class AutumnRPCClient {
     private int port;
     private Properties config = new Properties();
 
-    private RPCHttpClient httpClient;
-    private AutumnProxy proxy;
-    private RPCSerialization serialization;
+    private RpcHttpClient httpClient;
+    private RpcProxy proxy;
+    private RpcSerialization serialization;
 
     public AutumnRPCClient(String host, int port, String configFile, boolean useAutoConfig) {
         this.host = host;
@@ -85,7 +85,7 @@ public class AutumnRPCClient {
     public <T> T getService(Class<T> interfaze, int timeout) {
         return proxy.create(interfaze, (proxy, method, args) -> {
             String url = "http://" + host + ":" + port + "/" + interfaze.getName();
-            AutumnRPCRequest request = AutumnRPCRequest.builder()
+            RpcRequest request = RpcRequest.builder()
                     .methodName(method.getName())
                     .paramTypes(method.getParameterTypes())
                     .params(args)
@@ -93,7 +93,7 @@ public class AutumnRPCClient {
             byte[] payload = serialization.serializeRequest(request);
             byte[] response = httpClient.post(url, payload, serialization.contentType(), timeout);
             Class<?> returnType = method.getReturnType();
-            AutumnRPCResponse rpcResponse = serialization.deserializeResponse(response, returnType);
+            RpcResponse rpcResponse = serialization.deserializeResponse(response, returnType);
             if (rpcResponse.getStatus() == STATUS_OK) {
                 if (returnType == void.class || returnType == Void.class) {
                     return null;

@@ -1,11 +1,11 @@
 package cn.imaq.autumn.rpc.client.net;
 
 public class RPCHttpClientFactory {
-    private static RPCHttpClient defaultHttpClient() {
+    private static RpcHttpClient defaultHttpClient() {
         return new AutumnHttpClient();
     }
 
-    public static RPCHttpClient getHttpClient(String type) {
+    public static RpcHttpClient getHttpClient(String type) {
         if (type == null) {
             return defaultHttpClient();
         }

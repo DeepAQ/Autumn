@@ -5,7 +5,7 @@ import lombok.Data;
 
 @Data
 @AllArgsConstructor
-public class RPCMethod {
+public class RpcMethod {
     private Class<?> type;
 
     private String name;

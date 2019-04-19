@@ -1,8 +1,8 @@
 package cn.imaq.autumn.rpc.serialization;
 
-import cn.imaq.autumn.rpc.exception.RPCSerializationException;
-import cn.imaq.autumn.rpc.net.AutumnRPCRequest;
-import cn.imaq.autumn.rpc.net.AutumnRPCResponse;
+import cn.imaq.autumn.rpc.exception.RpcSerializationException;
+import cn.imaq.autumn.rpc.net.RpcRequest;
+import cn.imaq.autumn.rpc.net.RpcResponse;
 import com.alibaba.com.caucho.hessian.io.Hessian2Input;
 import com.alibaba.com.caucho.hessian.io.Hessian2Output;
 
@@ -11,7 +11,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.lang.reflect.Type;
 
-public class HessianSerialization implements RPCSerialization {
+public class HessianSerialization implements RpcSerialization {
     private byte[] serializeObject(Object object) throws IOException {
         ByteArrayOutputStream os = new ByteArrayOutputStream();
         Hessian2Output hout = new Hessian2Output(os);
@@ -37,43 +37,43 @@ public class HessianSerialization implements RPCSerialization {
     }
 
     @Override
-    public byte[] serializeRequest(AutumnRPCRequest request) throws RPCSerializationException {
+    public byte[] serializeRequest(RpcRequest request) throws RpcSerializationException {
         try {
             return serializeObject(request);
         } catch (IOException e) {
-            throw new RPCSerializationException(e);
+            throw new RpcSerializationException(e);
         }
     }
 
     @Override
-    public AutumnRPCRequest deserializeRequest(byte[] buf) throws RPCSerializationException {
+    public RpcRequest deserializeRequest(byte[] buf) throws RpcSerializationException {
         try {
-            return (AutumnRPCRequest) deserializeObject(buf);
+            return (RpcRequest) deserializeObject(buf);
         } catch (IOException | ClassCastException e) {
-            throw new RPCSerializationException(e);
+            throw new RpcSerializationException(e);
         }
     }
 
     @Override
-    public byte[] serializeResponse(AutumnRPCResponse response) throws RPCSerializationException {
+    public byte[] serializeResponse(RpcResponse response) throws RpcSerializationException {
         try {
             return serializeObject(response);
         } catch (IOException e) {
-            throw new RPCSerializationException(e);
+            throw new RpcSerializationException(e);
         }
     }
 
     @Override
-    public AutumnRPCResponse deserializeResponse(byte[] buf, Class defaultReturnType) throws RPCSerializationException {
+    public RpcResponse deserializeResponse(byte[] buf, Class defaultReturnType) throws RpcSerializationException {
         try {
-            return (AutumnRPCResponse) deserializeObject(buf);
+            return (RpcResponse) deserializeObject(buf);
         } catch (IOException | ClassCastException e) {
-            throw new RPCSerializationException(e);
+            throw new RpcSerializationException(e);
         }
     }
 
     @Override
-    public Object[] convertTypes(Object[] src, Type[] types) throws RPCSerializationException {
+    public Object[] convertTypes(Object[] src, Type[] types) throws RpcSerializationException {
         return src;
     }
 }

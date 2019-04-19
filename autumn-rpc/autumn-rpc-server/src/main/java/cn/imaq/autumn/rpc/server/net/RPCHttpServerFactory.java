@@ -1,11 +1,13 @@
 package cn.imaq.autumn.rpc.server.net;
 
+import cn.imaq.autumn.rpc.server.handler.RpcRequestHandler;
+
 public class RPCHttpServerFactory {
-    private static AbstractRPCHttpServer defaultServer(String host, int port, RPCHttpHandler handler) {
+    private static AbstractRpcHttpServer defaultServer(String host, int port, RpcRequestHandler handler) {
         return new AutumnHttpServer(host, port, handler);
     }
 
-    public static AbstractRPCHttpServer create(String type, String host, int port, RPCHttpHandler handler) {
+    public static AbstractRpcHttpServer create(String type, String host, int port, RpcRequestHandler handler) {
         if (type == null) {
             return defaultServer(host, port, handler);
         }

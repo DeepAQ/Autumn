@@ -5,10 +5,10 @@ import lombok.Data;
 
 @Data
 @Builder
-public class RPCHttpResponse {
-    private int code;
+public class RpcHttpRequest {
+    private String method;
 
-    private String contentType;
+    private String path;
 
     private byte[] body;
 }

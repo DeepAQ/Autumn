@@ -1,6 +1,6 @@
 package cn.imaq.autumn.rpc.client;
 
-import cn.imaq.autumn.rpc.client.exception.AutumnHttpException;
+import cn.imaq.autumn.rpc.client.exception.RpcHttpException;
 import cn.imaq.autumn.rpc.client.net.BasicHttpClient;
 import org.junit.Test;
 
@@ -11,7 +11,7 @@ import static org.junit.Assert.assertTrue;
 
 public class BasicHttpClientTest {
     @Test
-    public void testPost() throws UnsupportedEncodingException, AutumnHttpException {
+    public void testPost() throws UnsupportedEncodingException, RpcHttpException {
         byte[] result = new BasicHttpClient().post(
                 "https://posttestserver.com/post.php",
                 "Test from Autumn".getBytes("UTF-8"),

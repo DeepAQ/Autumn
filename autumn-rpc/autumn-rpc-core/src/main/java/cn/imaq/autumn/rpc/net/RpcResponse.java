@@ -7,7 +7,7 @@ import java.io.Serializable;
 
 @Data
 @Builder
-public class AutumnRPCResponse implements Serializable {
+public class RpcResponse implements Serializable {
     public static final int STATUS_OK = 0;
     public static final int STATUS_EXCEPTION = -1;
 

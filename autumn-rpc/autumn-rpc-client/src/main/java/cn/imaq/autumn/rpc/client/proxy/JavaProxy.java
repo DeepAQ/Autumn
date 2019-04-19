@@ -3,7 +3,7 @@ package cn.imaq.autumn.rpc.client.proxy;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Proxy;
 
-public class JavaProxy implements AutumnProxy {
+public class JavaProxy implements RpcProxy {
     @SuppressWarnings("unchecked")
     @Override
     public <T> T create(Class<T> interfaze, InvocationHandler handler) {

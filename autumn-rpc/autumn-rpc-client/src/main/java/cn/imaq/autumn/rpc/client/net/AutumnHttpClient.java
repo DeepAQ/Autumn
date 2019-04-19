@@ -1,13 +1,13 @@
 package cn.imaq.autumn.rpc.client.net;
 
 import cn.imaq.autumn.http.protocol.AutumnHttpResponse;
-import cn.imaq.autumn.rpc.client.exception.AutumnHttpException;
+import cn.imaq.autumn.rpc.client.exception.RpcHttpException;
 
 import java.io.IOException;
 
-public class AutumnHttpClient implements RPCHttpClient {
+public class AutumnHttpClient implements RpcHttpClient {
     @Override
-    public byte[] post(String url, byte[] payload, String mime, int timeout) throws AutumnHttpException {
+    public byte[] post(String url, byte[] payload, String mime, int timeout) throws RpcHttpException {
         int respCode = -1;
         try {
             AutumnHttpResponse response = cn.imaq.autumn.http.client.AutumnHttpClient.post(url, mime, payload, timeout);
@@ -18,7 +18,7 @@ public class AutumnHttpClient implements RPCHttpClient {
         } catch (IOException ignored) {
         } finally {
             if (respCode != 200) {
-                throw new AutumnHttpException(respCode);
+                throw new RpcHttpException(respCode);
             }
         }
         return new byte[0];
