@@ -80,16 +80,17 @@ public class AutumnContext {
         return getBeanByInfo(info, populating);
     }
 
-    public Object getBeanByType(Class<?> type) {
+    public <T> T getBeanByType(Class<? extends T> type) {
         return getBeanByType(type, false);
     }
 
-    public Object getBeanByType(Class<?> type, boolean populating) {
+    @SuppressWarnings("unchecked")
+    public <T> T getBeanByType(Class<? extends T> type, boolean populating) {
         BeanInfo info = findBeanInfoByType(type);
         if (info == null && parent != null) {
             return parent.getBeanByType(type, populating);
         }
-        return getBeanByInfo(info, populating);
+        return (T) getBeanByInfo(info, populating);
     }
 
     private Object getBeanByInfo(BeanInfo info, boolean populating) {

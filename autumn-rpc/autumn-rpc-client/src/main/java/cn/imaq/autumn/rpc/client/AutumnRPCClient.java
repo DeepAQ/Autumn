@@ -1,81 +1,51 @@
 package cn.imaq.autumn.rpc.client;
 
-import cn.imaq.autumn.rpc.client.net.RPCHttpClientFactory;
+import cn.imaq.autumn.rpc.client.config.RpcClientConfig;
 import cn.imaq.autumn.rpc.client.net.RpcHttpClient;
-import cn.imaq.autumn.rpc.client.proxy.AutumnProxyFactory;
 import cn.imaq.autumn.rpc.client.proxy.RpcProxy;
 import cn.imaq.autumn.rpc.net.RpcRequest;
 import cn.imaq.autumn.rpc.net.RpcResponse;
-import cn.imaq.autumn.rpc.serialization.AutumnSerializationFactory;
 import cn.imaq.autumn.rpc.serialization.RpcSerialization;
-import cn.imaq.autumn.rpc.util.PropertiesUtil;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 
-import java.io.IOException;
 import java.lang.reflect.Type;
-import java.net.URL;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Properties;
 
 import static cn.imaq.autumn.rpc.net.RpcResponse.STATUS_OK;
 
 @Slf4j
 public class AutumnRPCClient {
-    private static final String DEFAULT_CONFIG = "autumn-rpc-client-default.properties";
-
     private String host;
     private int port;
-    private Properties config = new Properties();
+    private RpcClientConfig config;
 
     private RpcHttpClient httpClient;
     private RpcProxy proxy;
     private RpcSerialization serialization;
 
-    public AutumnRPCClient(String host, int port, String configFile, boolean useAutoConfig) {
+    public AutumnRPCClient(String host, int port, RpcClientConfig config, boolean useAutoConfig) {
         this.host = host;
         this.port = port;
-        // load config from file
-        try {
-            PropertiesUtil.load(this.config, DEFAULT_CONFIG, configFile);
-        } catch (IOException e) {
-            log.error("Error loading config: {}", String.valueOf(e));
-        }
+        this.config = config;
         // auto config negotiation
         if (useAutoConfig) {
             log.info("Fetching config from server ...");
-            try {
-                JsonNode configJson = new ObjectMapper().readTree(new URL("http://" + host + ":" + port));
-                log.info("Fetched {} config entries from server", configJson.size());
-                for (Iterator<Map.Entry<String, JsonNode>> it = configJson.fields(); it.hasNext(); ) {
-                    Map.Entry<String, JsonNode> entry = it.next();
-                    this.config.setProperty(entry.getKey(), entry.getValue().textValue());
-                }
-            } catch (IOException e) {
-                log.error("Auto config error: {}", String.valueOf(e));
-            }
+            // TODO new config auto negotiation protocol
         }
         // init fields
-        this.httpClient = RPCHttpClientFactory.getHttpClient(config.getProperty("autumn.httpclient"));
+        this.httpClient = config.getHttpClient();
         log.info("Using HTTP client: {}", httpClient.getClass().getSimpleName());
-        this.proxy = AutumnProxyFactory.getProxy(config.getProperty("autumn.proxy"));
+        this.proxy = config.getProxy();
         log.info("Using proxy: {}", proxy.getClass().getSimpleName());
-        this.serialization = AutumnSerializationFactory.getSerialization(config.getProperty("autumn.serialization"));
+        this.serialization = config.getSerialization();
         log.info("Using serialization: {}", serialization.getClass().getSimpleName());
     }
 
     public AutumnRPCClient(String host, int port) {
-        this(host, port, null, true);
+        this(host, port, RpcClientConfig.builder().build(), true);
     }
 
-    public AutumnRPCClient(String host, int port, String configFile) {
-        this(host, port, configFile, false);
-    }
-
-    public AutumnRPCClient(String host, int port, boolean useAutoConfig) {
-        this(host, port, null, useAutoConfig);
+    public AutumnRPCClient(String host, int port, RpcClientConfig config) {
+        this(host, port, config, false);
     }
 
     public <T> T getService(Class<T> interfaze) {

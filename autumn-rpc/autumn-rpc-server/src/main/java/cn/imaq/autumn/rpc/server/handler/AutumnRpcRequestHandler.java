@@ -4,11 +4,10 @@ import cn.imaq.autumn.core.context.AutumnContext;
 import cn.imaq.autumn.rpc.exception.RpcSerializationException;
 import cn.imaq.autumn.rpc.net.RpcRequest;
 import cn.imaq.autumn.rpc.net.RpcResponse;
-import cn.imaq.autumn.rpc.serialization.AutumnSerializationFactory;
 import cn.imaq.autumn.rpc.serialization.RpcSerialization;
+import cn.imaq.autumn.rpc.server.config.RpcServerConfig;
 import cn.imaq.autumn.rpc.server.context.RpcContext;
 import cn.imaq.autumn.rpc.server.exception.RpcInvocationException;
-import cn.imaq.autumn.rpc.server.invoke.AutumnInvokerFactory;
 import cn.imaq.autumn.rpc.server.invoke.RpcMethod;
 import cn.imaq.autumn.rpc.server.invoke.RpcMethodInvoker;
 import cn.imaq.autumn.rpc.server.net.RpcHttpRequest;
@@ -16,7 +15,6 @@ import cn.imaq.autumn.rpc.server.net.RpcHttpResponse;
 import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.Properties;
 
 import static cn.imaq.autumn.rpc.net.RpcResponse.STATUS_EXCEPTION;
 import static cn.imaq.autumn.rpc.net.RpcResponse.STATUS_OK;
@@ -28,18 +26,16 @@ public class AutumnRpcRequestHandler implements RpcRequestHandler {
 
     private final RpcContext rpcContext;
     private final AutumnContext context;
-    private final Properties config;
     private final RpcMethodInvoker invoker;
     private final RpcSerialization serialization;
 
-    public AutumnRpcRequestHandler(Properties config, AutumnContext context) {
-        this.config = config;
+    public AutumnRpcRequestHandler(RpcServerConfig config, AutumnContext context) {
         this.context = context;
         this.rpcContext = RpcContext.getFrom(context);
         // init
-        this.invoker = AutumnInvokerFactory.getInvoker(config.getProperty("autumn.invoker"));
+        this.invoker = config.getMethodInvoker();
         log.info("Using invoker: {}", this.invoker.getClass().getSimpleName());
-        this.serialization = AutumnSerializationFactory.getSerialization(config.getProperty("autumn.serialization"));
+        this.serialization = config.getSerialization();
         log.info("Using serialization {}", this.serialization.getClass().getSimpleName());
     }
 

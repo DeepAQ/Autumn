@@ -1,17 +1,17 @@
 package cn.imaq.autumn.rpc.test;
 
-import cn.imaq.autumn.rpc.server.AutumnRPCServer;
+import cn.imaq.autumn.rpc.server.AutumnRPC;
 import org.testng.annotations.AfterSuite;
 import org.testng.annotations.BeforeSuite;
 
 public class TestConfig {
     @BeforeSuite
     public void startServer() {
-        AutumnRPCServer.start();
+        AutumnRPC.start();
     }
 
     @AfterSuite
     public void stopServer() {
-        AutumnRPCServer.stop();
+        AutumnRPC.stop();
     }
 }

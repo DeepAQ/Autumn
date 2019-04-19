@@ -1,7 +1,7 @@
 package cn.imaq.autumn.rpc.test;
 
 import cn.imaq.autumn.rpc.client.AutumnRPCClient;
-import cn.imaq.autumn.rpc.server.AutumnRPCServer;
+import cn.imaq.autumn.rpc.server.AutumnRPC;
 import com.example.test.MyEnum;
 import com.example.test.MyObject;
 import com.example.test.TestService;
@@ -11,8 +11,8 @@ import java.util.Arrays;
 
 public class AutumnMain {
     public static void main(String[] args) throws RemoteException {
-        AutumnRPCServer.start("autumn-rpc-test.properties");
-        AutumnRPCClient client = new AutumnRPCClient("127.0.0.1", 8801, "autumn-rpc-test-client.properties", true);
+        AutumnRPC.start();
+        AutumnRPCClient client = new AutumnRPCClient("127.0.0.1", 8801);
         TestService testService = client.getService(TestService.class);
         // TESTS
         System.out.println(testService.echo("Hello World!"));

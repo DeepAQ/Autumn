@@ -5,13 +5,13 @@ import cn.imaq.autumn.rpc.server.handler.RpcRequestHandler;
 
 import java.io.IOException;
 
-public class AutumnHttpServer extends AbstractRpcHttpServer {
+public class AutumnHttpServer implements RpcHttpServer {
     private cn.imaq.autumn.http.server.AutumnHttpServer autumnHttpServer;
 
-    public AutumnHttpServer(String host, int port, RpcRequestHandler handler) {
-        super(host, port, handler);
+    @Override
+    public void configure(String host, int port, RpcRequestHandler requestHandler) {
         autumnHttpServer = new cn.imaq.autumn.http.server.AutumnHttpServer(port, req -> {
-            RpcHttpResponse response = handler.handle(RpcHttpRequest.builder()
+            RpcHttpResponse response = requestHandler.handle(RpcHttpRequest.builder()
                     .method(req.getMethod())
                     .path(req.getPath())
                     .body(req.getBody())

@@ -11,11 +11,11 @@ import java.net.InetSocketAddress;
 import java.util.concurrent.Executors;
 
 @Slf4j
-public class SunHttpServer extends AbstractRpcHttpServer {
+public class SunHttpServer implements RpcHttpServer {
     private HttpServer httpServer;
 
-    public SunHttpServer(String host, int port, RpcRequestHandler handler) {
-        super(host, port, handler);
+    @Override
+    public void configure(String host, int port, RpcRequestHandler requestHandler) {
         try {
             httpServer = HttpServer.create(new InetSocketAddress(host, port), 0);
             httpServer.setExecutor(Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors()));
@@ -24,7 +24,7 @@ public class SunHttpServer extends AbstractRpcHttpServer {
                 byte[] buf = new byte[is.available()];
                 is.read(buf);
                 is.close();
-                RpcHttpResponse response = handler.handle(RpcHttpRequest.builder()
+                RpcHttpResponse response = requestHandler.handle(RpcHttpRequest.builder()
                         .method(req.getRequestMethod())
                         .path(req.getRequestURI().getPath())
                         .body(buf)

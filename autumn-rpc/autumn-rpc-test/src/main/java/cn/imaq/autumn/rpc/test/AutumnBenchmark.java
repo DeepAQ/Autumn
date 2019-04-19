@@ -1,7 +1,7 @@
 package cn.imaq.autumn.rpc.test;
 
 import cn.imaq.autumn.rpc.client.AutumnRPCClient;
-import cn.imaq.autumn.rpc.server.AutumnRPCServer;
+import cn.imaq.autumn.rpc.server.AutumnRPC;
 import com.example.test.TestService;
 
 import java.rmi.RemoteException;
@@ -10,7 +10,7 @@ public class AutumnBenchmark {
     private static int NUM_THREADS = 8;
 
     public static void main(String[] args) {
-        AutumnRPCServer.start("autumn-rpc-test.properties");
+        AutumnRPC.start();
         ClientThread[] threads = new ClientThread[NUM_THREADS];
         for (int i = 0; i < NUM_THREADS; i++) {
             threads[i] = new ClientThread();
@@ -43,7 +43,7 @@ public class AutumnBenchmark {
 
         @Override
         public void run() {
-            AutumnRPCClient client = new AutumnRPCClient("127.0.0.1", 8801, "autumn-rpc-test-client.properties");
+            AutumnRPCClient client = new AutumnRPCClient("127.0.0.1", 8801);
             TestService testService = client.getService(TestService.class, 3000);
             while (true) {
                 try {

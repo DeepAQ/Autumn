@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
 public class AutumnRPCTest {
     @Test
     public void test() throws Exception {
-        AutumnRPCClient client = new AutumnRPCClient("127.0.0.1", 8801, false);
+        AutumnRPCClient client = new AutumnRPCClient("127.0.0.1", 8801);
         TestService testService = client.getService(TestService.class);
         // TESTS
         String randStr = UUID.randomUUID().toString();
