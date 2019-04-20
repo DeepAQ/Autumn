@@ -8,6 +8,7 @@ import cn.imaq.autumn.rpc.net.RpcResponse;
 import cn.imaq.autumn.rpc.serialization.RpcSerialization;
 import lombok.extern.slf4j.Slf4j;
 
+import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 
 import static cn.imaq.autumn.rpc.net.RpcResponse.STATUS_OK;
@@ -48,30 +49,36 @@ public class AutumnRPCClient {
         this(host, port, config, false);
     }
 
-    public <T> T getService(Class<T> interfaze) {
-        return getService(interfaze, 3000);
+    public Object invoke(Class<?> serviceClass, Method method, Object[] args) throws Throwable {
+        return invoke(serviceClass, method, args, config.getTimeoutMs());
     }
 
-    public <T> T getService(Class<T> interfaze, int timeout) {
-        return proxy.create(interfaze, (proxy, method, args) -> {
-            String url = "http://" + host + ":" + port + "/" + interfaze.getName();
-            RpcRequest request = RpcRequest.builder()
-                    .methodName(method.getName())
-                    .paramTypes(method.getParameterTypes())
-                    .params(args)
-                    .build();
-            byte[] payload = serialization.serializeRequest(request);
-            byte[] response = httpClient.post(url, payload, serialization.contentType(), timeout);
-            Class<?> returnType = method.getReturnType();
-            RpcResponse rpcResponse = serialization.deserializeResponse(response, returnType);
-            if (rpcResponse.getStatus() == STATUS_OK) {
-                if (returnType == void.class || returnType == Void.class) {
-                    return null;
-                }
-                return serialization.convertTypes(new Object[]{rpcResponse.getResult()}, new Type[]{method.getGenericReturnType()})[0];
-            } else {
-                throw (Throwable) rpcResponse.getResult();
+    public Object invoke(Class<?> serviceClass, Method method, Object[] args, int timeoutMs) throws Throwable {
+        String url = "http://" + host + ":" + port + "/" + serviceClass.getName();
+        RpcRequest request = RpcRequest.builder()
+                .methodName(method.getName())
+                .paramTypes(method.getParameterTypes())
+                .params(args)
+                .build();
+        byte[] payload = serialization.serializeRequest(request);
+        byte[] response = httpClient.post(url, payload, serialization.contentType(), timeoutMs);
+        Class<?> returnType = method.getReturnType();
+        RpcResponse rpcResponse = serialization.deserializeResponse(response, returnType);
+        if (rpcResponse.getStatus() == STATUS_OK) {
+            if (returnType == void.class || returnType == Void.class) {
+                return null;
             }
-        });
+            return serialization.convertTypes(new Object[]{rpcResponse.getResult()}, new Type[]{method.getGenericReturnType()})[0];
+        } else {
+            throw (Throwable) rpcResponse.getResult();
+        }
+    }
+
+    public <T> T getService(Class<T> interfaze) {
+        return getService(interfaze, config.getTimeoutMs());
+    }
+
+    public <T> T getService(Class<T> interfaze, int timeoutMs) {
+        return proxy.create(interfaze, (proxy, method, args) -> invoke(interfaze, method, args, timeoutMs));
     }
 }

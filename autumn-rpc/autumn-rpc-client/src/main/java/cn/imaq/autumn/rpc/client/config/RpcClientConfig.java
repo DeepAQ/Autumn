@@ -15,6 +15,9 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 public class RpcClientConfig extends RpcConfigBase {
     @Builder.Default
+    private int timeoutMs = 3000;
+
+    @Builder.Default
     private RpcHttpClient httpClient = new AutumnHttpClient();
 
     @Builder.Default
