@@ -24,7 +24,7 @@ public class AutumnHttpRequest {
 
     private SocketAddress remoteAddress;
 
-    public String toRequestString() {
+    public byte[] toRequestBytes() {
         StringBuilder sb = new StringBuilder();
         sb.append(method).append(' ').append(path).append(' ').append(protocol).append("\r\n");
         if (headers != null) {
@@ -38,9 +38,15 @@ public class AutumnHttpRequest {
             sb.append("Content-Length: ").append(body.length).append("\r\n");
         }
         sb.append("\r\n");
-        if (body != null) {
-            sb.append(new String(body));
+
+        byte[] head = sb.toString().getBytes();
+        if (body == null) {
+            return head;
+        } else {
+            byte[] reqBytes = new byte[head.length + body.length];
+            System.arraycopy(head, 0, reqBytes, 0, head.length);
+            System.arraycopy(body, 0, reqBytes, head.length, body.length);
+            return reqBytes;
         }
-        return sb.toString();
     }
 }
