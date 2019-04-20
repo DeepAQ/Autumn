@@ -1,6 +1,6 @@
 package cn.imaq.autumn.rpc.test;
 
-import cn.imaq.autumn.rpc.client.AutumnRPCClient;
+import cn.imaq.autumn.core.context.AutumnContext;
 import com.example.test.MyEnum;
 import com.example.test.MyObject;
 import com.example.test.TestService;
@@ -15,8 +15,12 @@ import java.util.stream.Collectors;
 public class AutumnRPCTest {
     @Test
     public void test() throws Exception {
-        AutumnRPCClient client = new AutumnRPCClient("127.0.0.1", 8801);
-        TestService testService = client.getService(TestService.class);
+        AutumnContext context = new AutumnContext("ClientTestContext");
+        context.scanComponents();
+
+        TestServiceWrapper wrapper = context.getBeanByType(TestServiceWrapper.class);
+        TestService testService = wrapper.getTestService();
+
         // TESTS
         String randStr = UUID.randomUUID().toString();
         Assert.assertEquals(testService.echo(randStr), "Echo: " + randStr);
