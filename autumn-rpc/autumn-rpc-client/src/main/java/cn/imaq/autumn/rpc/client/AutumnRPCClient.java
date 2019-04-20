@@ -3,11 +3,13 @@ package cn.imaq.autumn.rpc.client;
 import cn.imaq.autumn.rpc.client.config.RpcClientConfig;
 import cn.imaq.autumn.rpc.client.net.RpcHttpClient;
 import cn.imaq.autumn.rpc.client.proxy.RpcProxy;
+import cn.imaq.autumn.rpc.config.RpcConfigBase;
 import cn.imaq.autumn.rpc.net.RpcRequest;
 import cn.imaq.autumn.rpc.net.RpcResponse;
 import cn.imaq.autumn.rpc.serialization.RpcSerialization;
 import lombok.extern.slf4j.Slf4j;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 
@@ -27,14 +29,34 @@ public class AutumnRPCClient {
         this.host = host;
         this.port = port;
         this.config = config;
+
+        this.httpClient = config.getHttpClient();
+        log.info("Using HTTP client: {}", httpClient.getClass().getSimpleName());
+
         // auto config negotiation
         if (useAutoConfig) {
             log.info("Fetching config from server ...");
-            // TODO new config auto negotiation protocol
+            try {
+                String configStr = new String(httpClient.get("http://" + host + ":" + port, config.getTimeoutMs()));
+                String[] configEntries = configStr.split(",");
+                log.info("Fetched {} config entries from server", configEntries.length);
+                for (String entry : configEntries) {
+                    String[] kv = entry.split("=", 2);
+                    if (kv.length == 2) {
+                        try {
+                            Field field = RpcConfigBase.class.getDeclaredField(kv[0]);
+                            field.setAccessible(true);
+                            field.set(config, Class.forName(kv[1]).newInstance());
+                        } catch (Exception e) {
+                            log.warn("Cannot apply config entry: {}", entry);
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                log.error("Auto config error: {}", String.valueOf(e));
+            }
         }
-        // init fields
-        this.httpClient = config.getHttpClient();
-        log.info("Using HTTP client: {}", httpClient.getClass().getSimpleName());
+
         this.proxy = config.getProxy();
         log.info("Using proxy: {}", proxy.getClass().getSimpleName());
         this.serialization = config.getSerialization();

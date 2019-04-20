@@ -1,6 +1,7 @@
 package cn.imaq.autumn.rpc.server.handler;
 
 import cn.imaq.autumn.core.context.AutumnContext;
+import cn.imaq.autumn.rpc.config.RpcConfigBase;
 import cn.imaq.autumn.rpc.exception.RpcSerializationException;
 import cn.imaq.autumn.rpc.net.RpcRequest;
 import cn.imaq.autumn.rpc.net.RpcResponse;
@@ -15,6 +16,8 @@ import cn.imaq.autumn.rpc.server.net.RpcHttpResponse;
 import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.Arrays;
+import java.util.stream.Collectors;
 
 import static cn.imaq.autumn.rpc.net.RpcResponse.STATUS_EXCEPTION;
 import static cn.imaq.autumn.rpc.net.RpcResponse.STATUS_OK;
@@ -24,12 +27,14 @@ public class AutumnRpcRequestHandler implements RpcRequestHandler {
     private final byte[] INFO_400 = "<html><head><title>400 Bad Request</title></head><body><center><h1>400 Bad Request</h1></center><hr><center>AutumnRPC</center></body></html>".getBytes();
     private final byte[] INFO_500 = "<html><head><title>500 Internal Server Error</title></head><body><center><h1>500 Internal Server Error</h1></center><hr><center>AutumnRPC</center></body></html>".getBytes();
 
+    private final RpcServerConfig config;
     private final RpcContext rpcContext;
     private final AutumnContext context;
     private final RpcMethodInvoker invoker;
     private final RpcSerialization serialization;
 
     public AutumnRpcRequestHandler(RpcServerConfig config, AutumnContext context) {
+        this.config = config;
         this.context = context;
         this.rpcContext = RpcContext.getFrom(context);
         // init
@@ -43,7 +48,16 @@ public class AutumnRpcRequestHandler implements RpcRequestHandler {
     public RpcHttpResponse handle(RpcHttpRequest request) {
         log.debug("Received HTTP request: {} {}", request.getMethod(), request.getPath());
         if (request.getPath().equals("/")) {
-            // TODO new config auto negotiation protocol
+            String configStr = Arrays.stream(RpcConfigBase.class.getDeclaredFields()).map(f -> {
+                try {
+                    f.setAccessible(true);
+                    return f.getName() + "=" + f.get(config).getClass().getName();
+                } catch (Exception ignored) {
+                }
+                return "";
+            }).collect(Collectors.joining(","));
+
+            return ok("text/plain", configStr.getBytes());
         }
 
         String[] paths = request.getPath().split("/");
