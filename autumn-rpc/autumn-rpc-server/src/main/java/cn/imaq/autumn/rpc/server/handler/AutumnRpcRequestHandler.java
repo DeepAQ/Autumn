@@ -1,7 +1,6 @@
 package cn.imaq.autumn.rpc.server.handler;
 
 import cn.imaq.autumn.core.context.AutumnContext;
-import cn.imaq.autumn.rpc.config.RpcConfigBase;
 import cn.imaq.autumn.rpc.exception.RpcSerializationException;
 import cn.imaq.autumn.rpc.net.RpcRequest;
 import cn.imaq.autumn.rpc.net.RpcResponse;
@@ -16,8 +15,6 @@ import cn.imaq.autumn.rpc.server.net.RpcHttpResponse;
 import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.Arrays;
-import java.util.stream.Collectors;
 
 import static cn.imaq.autumn.rpc.net.RpcResponse.STATUS_EXCEPTION;
 import static cn.imaq.autumn.rpc.net.RpcResponse.STATUS_OK;
@@ -48,15 +45,7 @@ public class AutumnRpcRequestHandler implements RpcRequestHandler {
     public RpcHttpResponse handle(RpcHttpRequest request) {
         log.debug("Received HTTP request: {} {}", request.getMethod(), request.getPath());
         if (request.getPath().equals("/")) {
-            String configStr = Arrays.stream(RpcConfigBase.class.getDeclaredFields()).map(f -> {
-                try {
-                    f.setAccessible(true);
-                    return f.getName() + "=" + f.get(config).getClass().getName();
-                } catch (Exception ignored) {
-                }
-                return "";
-            }).collect(Collectors.joining(","));
-
+            String configStr = config.toConfigStr();
             return ok("text/plain", configStr.getBytes());
         }
 

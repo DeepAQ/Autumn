@@ -1,0 +1,4 @@
+dependencies {
+    api project(':autumn-rpc:autumn-rpc-core')
+    implementation 'io.etcd:jetcd-core:0.3.0'
+}

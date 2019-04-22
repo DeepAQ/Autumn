@@ -24,6 +24,7 @@ public class AutumnRPCServer {
         // Load config
         RpcServerConfig config = context.getBeanByType(RpcServerConfig.class);
         if (config == null) {
+            log.info("No RpcServerConfig beans found in Autumn context, using default config");
             config = RpcServerConfig.builder().build();
         }
         // Start server

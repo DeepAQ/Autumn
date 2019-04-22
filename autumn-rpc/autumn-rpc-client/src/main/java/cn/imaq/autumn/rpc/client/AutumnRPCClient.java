@@ -9,7 +9,6 @@ import cn.imaq.autumn.rpc.net.RpcResponse;
 import cn.imaq.autumn.rpc.serialization.RpcSerialization;
 import lombok.extern.slf4j.Slf4j;
 
-import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 
@@ -38,20 +37,7 @@ public class AutumnRPCClient {
             log.info("Fetching config from server ...");
             try {
                 String configStr = new String(httpClient.get("http://" + host + ":" + port, config.getTimeoutMs()));
-                String[] configEntries = configStr.split(",");
-                log.info("Fetched {} config entries from server", configEntries.length);
-                for (String entry : configEntries) {
-                    String[] kv = entry.split("=", 2);
-                    if (kv.length == 2) {
-                        try {
-                            Field field = RpcConfigBase.class.getDeclaredField(kv[0]);
-                            field.setAccessible(true);
-                            field.set(config, Class.forName(kv[1]).newInstance());
-                        } catch (Exception e) {
-                            log.warn("Cannot apply config entry: {}", entry);
-                        }
-                    }
-                }
+                RpcConfigBase.applyConfigStr(configStr, config);
             } catch (Exception e) {
                 log.error("Auto config error: {}", String.valueOf(e));
             }
