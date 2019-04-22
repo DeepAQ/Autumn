@@ -11,7 +11,5 @@ services:
 
 before_install:
   - echo > maven-publish.gradle
-
-script:
-  - docker run -d -p 127.0.0.1:2379:2379 gcr.io/etcd-development/etcd
-  - gradle check -i
+  - docker run -d -p 2379:2379 gcr.io/etcd-development/etcd
+  - netstat -a -n
