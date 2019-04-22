@@ -8,11 +8,13 @@ import cn.imaq.autumn.rpc.registry.exception.RpcRegistryException;
 import org.testng.Assert;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Ignore;
 import org.testng.annotations.Test;
 
 import java.util.Collection;
 import java.util.UUID;
 
+@Ignore
 public class Etcd3RegistryTest {
     private ServiceRegistry registry;
 
