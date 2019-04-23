@@ -82,11 +82,11 @@ public class AutumnRPCClient {
         }
     }
 
-    public <T> T getService(Class<T> interfaze) {
-        return getService(interfaze, config.getTimeoutMs());
+    public <T> T getService(Class<T> serviceClass) {
+        return getService(serviceClass, config.getTimeoutMs());
     }
 
-    public <T> T getService(Class<T> interfaze, int timeoutMs) {
-        return proxy.create(interfaze, (proxy, method, args) -> invoke(interfaze, method, args, timeoutMs));
+    public <T> T getService(Class<T> serviceClass, int timeoutMs) {
+        return proxy.create(serviceClass, (proxy, method, args) -> invoke(serviceClass, method, args, timeoutMs));
     }
 }

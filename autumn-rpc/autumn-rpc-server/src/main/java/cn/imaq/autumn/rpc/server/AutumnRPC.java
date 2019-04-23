@@ -5,14 +5,16 @@ import cn.imaq.autumn.core.context.AutumnContext;
 import cn.imaq.autumn.rpc.server.config.RpcServerConfig;
 import cn.imaq.autumn.rpc.util.AutumnRPCBanner;
 
+import java.io.IOException;
+
 public class AutumnRPC {
     private static AutumnRPCServer rpcServer;
 
-    public static void start() {
+    public static void start() throws IOException {
         start(null);
     }
 
-    public static void start(RpcServerConfig config) {
+    public static void start(RpcServerConfig config) throws IOException {
         AutumnRPCBanner.printBanner();
 
         // Init default context
@@ -31,7 +33,7 @@ public class AutumnRPC {
         rpcServer.start();
     }
 
-    public static void stop() {
+    public static void stop() throws IOException {
         if (rpcServer != null) {
             rpcServer.stop();
         }

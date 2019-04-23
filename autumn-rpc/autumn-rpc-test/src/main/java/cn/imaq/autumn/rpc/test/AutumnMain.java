@@ -6,11 +6,11 @@ import com.example.test.MyEnum;
 import com.example.test.MyObject;
 import com.example.test.TestService;
 
-import java.rmi.RemoteException;
+import java.io.IOException;
 import java.util.Arrays;
 
 public class AutumnMain {
-    public static void main(String[] args) throws RemoteException {
+    public static void main(String[] args) throws IOException {
         AutumnRPC.start();
         AutumnRPCClient client = new AutumnRPCClient("127.0.0.1", 8801);
         TestService testService = client.getService(TestService.class);

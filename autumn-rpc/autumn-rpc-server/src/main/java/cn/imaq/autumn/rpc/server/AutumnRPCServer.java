@@ -11,21 +11,28 @@ import java.io.IOException;
 @Slf4j
 public class AutumnRPCServer {
     private AutumnContext context;
-
+    private RpcServerConfig config;
     private RpcHttpServer httpServer;
 
     public AutumnRPCServer(AutumnContext context) {
         this.context = context;
     }
 
-    public synchronized void start() {
+    public AutumnRPCServer(AutumnContext context, RpcServerConfig config) {
+        this.context = context;
+        this.config = config;
+    }
+
+    public synchronized void start() throws IOException {
         // Stop existing server
         stop();
         // Load config
-        RpcServerConfig config = context.getBeanByType(RpcServerConfig.class);
         if (config == null) {
-            log.info("No RpcServerConfig beans found in Autumn context, using default config");
-            config = RpcServerConfig.builder().build();
+            config = context.getBeanByType(RpcServerConfig.class);
+            if (config == null) {
+                log.info("No RpcServerConfig beans found in Autumn context, using default config");
+                config = RpcServerConfig.builder().build();
+            }
         }
         // Start server
         AutumnRpcRequestHandler handler = new AutumnRpcRequestHandler(config, context);
@@ -38,15 +45,17 @@ public class AutumnRPCServer {
             log.warn("Bootstrap finished");
         } catch (IOException e) {
             log.error("Error starting server: {}", String.valueOf(e));
+            throw e;
         }
     }
 
-    public synchronized void stop() {
+    public synchronized void stop() throws IOException {
         if (httpServer != null) {
             try {
                 httpServer.stop();
             } catch (IOException e) {
                 log.error("Error stopping server: {}", String.valueOf(e));
+                throw e;
             }
         }
     }

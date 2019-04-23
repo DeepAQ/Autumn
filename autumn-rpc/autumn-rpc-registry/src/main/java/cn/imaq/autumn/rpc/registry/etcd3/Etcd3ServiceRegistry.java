@@ -42,8 +42,9 @@ public class Etcd3ServiceRegistry implements ServiceRegistry {
     @Override
     public synchronized void start() throws RpcRegistryException {
         if (running) {
-            stop();
+            return;
         }
+
         this.etcdClient = Client.builder().endpoints(config.getEndpoints()).build();
         this.kvClient = etcdClient.getKVClient();
         this.leaseClient = etcdClient.getLeaseClient();
@@ -67,7 +68,7 @@ public class Etcd3ServiceRegistry implements ServiceRegistry {
                 try {
                     Thread.sleep(config.getKeepAliveInterval() * 1000 - (endTime - startTime));
                 } catch (InterruptedException e) {
-                    log.error(String.valueOf(e));
+                    log.warn(String.valueOf(e));
                     return;
                 }
             }

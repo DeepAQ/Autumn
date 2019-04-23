@@ -1,0 +1,5 @@
+dependencies {
+    api project(':autumn-rpc:autumn-rpc-client')
+    api project(':autumn-rpc:autumn-rpc-server')
+    api project(':autumn-rpc:autumn-rpc-registry')
+}

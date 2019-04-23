@@ -2,7 +2,6 @@ package cn.imaq.autumn.rpc.registry;
 
 import cn.imaq.autumn.rpc.registry.exception.RpcRegistryException;
 
-import java.util.Collection;
 import java.util.List;
 
 public interface ServiceRegistry {
@@ -20,7 +19,7 @@ public interface ServiceRegistry {
 
     List<ServiceProviderEntry> lookup(String serviceName, boolean forceUpdate) throws RpcRegistryException;
 
-    default Collection<ServiceProviderEntry> lookup(String serviceName) throws RpcRegistryException {
+    default List<ServiceProviderEntry> lookup(String serviceName) throws RpcRegistryException {
         return lookup(serviceName, false);
     }
 }

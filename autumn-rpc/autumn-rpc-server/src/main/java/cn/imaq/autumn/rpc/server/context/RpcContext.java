@@ -3,8 +3,7 @@ package cn.imaq.autumn.rpc.server.context;
 import cn.imaq.autumn.core.context.AutumnContext;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 @Slf4j
 public class RpcContext {
@@ -31,7 +30,7 @@ public class RpcContext {
     }
 
     public void registerService(String serviceName, Class<?> serviceClass) {
-        log.info("Registering service {{} => {}}", serviceName, serviceClass.getName());
+        log.info("Registering service {} => {}", serviceName, serviceClass.getName());
         if (services.put(serviceName, serviceClass) != null) {
             log.warn("{} has multiple implementations, replacing with {}", serviceName, serviceClass.getName());
         }
@@ -39,5 +38,9 @@ public class RpcContext {
 
     public void registerService(Class<?> serviceClass) {
         registerService(serviceClass.getName(), serviceClass);
+    }
+
+    public List<String> getRegisteredServiceNames() {
+        return Collections.unmodifiableList(new ArrayList<>(services.keySet()));
     }
 }

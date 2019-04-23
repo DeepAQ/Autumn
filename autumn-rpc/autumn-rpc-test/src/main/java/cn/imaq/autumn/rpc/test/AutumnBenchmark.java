@@ -4,12 +4,13 @@ import cn.imaq.autumn.rpc.client.AutumnRPCClient;
 import cn.imaq.autumn.rpc.server.AutumnRPC;
 import com.example.test.TestService;
 
+import java.io.IOException;
 import java.rmi.RemoteException;
 
 public class AutumnBenchmark {
     private static int NUM_THREADS = 8;
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         AutumnRPC.start();
         ClientThread[] threads = new ClientThread[NUM_THREADS];
         for (int i = 0; i < NUM_THREADS; i++) {
