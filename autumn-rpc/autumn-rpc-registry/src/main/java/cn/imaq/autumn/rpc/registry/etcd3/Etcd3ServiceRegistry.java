@@ -117,7 +117,9 @@ public class Etcd3ServiceRegistry implements ServiceRegistry {
     }
 
     @Override
-    public void subscribe(String serviceName) {
+    public void subscribe(String serviceName) throws RpcRegistryException {
+        lookup(serviceName, true);
+
         byte[] key = getPathForService(serviceName).getBytes();
         ByteSequence keySeq = ByteSequence.from(key);
         Watch.Watcher watcher = watchClient.watch(keySeq, WatchOption.newBuilder().withPrefix(keySeq).build(), watchResponse -> {

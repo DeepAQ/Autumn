@@ -8,13 +8,11 @@ import cn.imaq.autumn.rpc.registry.exception.RpcRegistryException;
 import org.testng.Assert;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Ignore;
 import org.testng.annotations.Test;
 
 import java.util.Collection;
 import java.util.UUID;
 
-@Ignore
 public class Etcd3RegistryTest {
     private ServiceRegistry registry;
 
@@ -22,7 +20,6 @@ public class Etcd3RegistryTest {
     public void init() throws RpcRegistryException {
         registry = new Etcd3ServiceRegistry(Etcd3RegistryConfig.builder()
                 .endpoints(new String[]{"http://127.0.0.1:2379"})
-                .keepAliveTimeout(300)
                 .build());
         registry.start();
     }
@@ -35,8 +32,6 @@ public class Etcd3RegistryTest {
     @Test
     public void test() throws RpcRegistryException, InterruptedException {
         String randStr = UUID.randomUUID().toString();
-        registry.subscribe("test1");
-        registry.subscribe("test2");
         registry.register(ServiceProviderEntry.builder()
                 .serviceName("test1")
                 .host("host1")
@@ -56,7 +51,8 @@ public class Etcd3RegistryTest {
                 .configStr(randStr)
                 .build());
 
-        Thread.sleep(2000); // wait for replication
+        registry.subscribe("test1");
+        registry.subscribe("test2");
 
         Collection<ServiceProviderEntry> providers1 = registry.lookup("test1");
         Collection<ServiceProviderEntry> providers2 = registry.lookup("test2");

@@ -13,9 +13,9 @@ public interface ServiceRegistry {
 
     void deregister(ServiceProviderEntry provider) throws RpcRegistryException;
 
-    void subscribe(String serviceName);
+    void subscribe(String serviceName) throws RpcRegistryException;
 
-    void unsubscribe(String serviceName);
+    void unsubscribe(String serviceName) throws RpcRegistryException;
 
     Collection<ServiceProviderEntry> lookup(String serviceName, boolean forceUpdate) throws RpcRegistryException;
 
