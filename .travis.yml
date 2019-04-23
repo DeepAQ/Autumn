@@ -11,5 +11,5 @@ services:
 
 before_install:
   - echo > maven-publish.gradle
-  - docker run -d -p 2379:2379 gcr.io/etcd-development/etcd
-  - netstat -a -n
+  - docker run -d -p 127.0.0.1:2379:2379 gcr.io/etcd-development/etcd etcd --listen-client-urls 'http://0.0.0.0:2379' --advertise-client-urls 'http://localhost:2379'
+  - curl -L http://127.0.0.1:2379/version
