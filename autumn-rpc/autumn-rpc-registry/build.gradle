@@ -1,4 +1,5 @@
 dependencies {
     api project(':autumn-rpc:autumn-rpc-core')
     implementation 'io.etcd:jetcd-core:0.3.0'
+    testImplementation 'org.slf4j:slf4j-log4j12:1.7.26'
 }

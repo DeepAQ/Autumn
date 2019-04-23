@@ -12,12 +12,13 @@ import io.etcd.jetcd.watch.WatchEvent;
 import lombok.extern.slf4j.Slf4j;
 
 import java.nio.charset.StandardCharsets;
-import java.util.Collection;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 
 @Slf4j
 public class Etcd3ServiceRegistry implements ServiceRegistry {
@@ -32,7 +33,7 @@ public class Etcd3ServiceRegistry implements ServiceRegistry {
     private volatile boolean running;
 
     private Map<String, Watch.Watcher> watchers = new ConcurrentHashMap<>();
-    private Map<String, Set<ServiceProviderEntry>> providers = new ConcurrentHashMap<>();
+    private Map<String, List<ServiceProviderEntry>> providers = new ConcurrentHashMap<>();
 
     public Etcd3ServiceRegistry(Etcd3RegistryConfig config) {
         this.config = config;
@@ -101,6 +102,7 @@ public class Etcd3ServiceRegistry implements ServiceRegistry {
             byte[] key = getKeyForProvider(provider).getBytes();
             byte[] value = provider.getConfigStr().getBytes();
             kvClient.put(ByteSequence.from(key), ByteSequence.from(value), PutOption.newBuilder().withLeaseId(leaseId).build()).get();
+            log.info("Registered {}", provider);
         } catch (Exception e) {
             throw new RpcRegistryException(e);
         }
@@ -111,6 +113,7 @@ public class Etcd3ServiceRegistry implements ServiceRegistry {
         byte[] key = getKeyForProvider(provider).getBytes();
         try {
             kvClient.delete(ByteSequence.from(key)).get();
+            log.info("Deregistered {}", provider);
         } catch (Exception e) {
             throw new RpcRegistryException(e);
         }
@@ -118,24 +121,39 @@ public class Etcd3ServiceRegistry implements ServiceRegistry {
 
     @Override
     public void subscribe(String serviceName) throws RpcRegistryException {
-        lookup(serviceName, true);
-
         byte[] key = getPathForService(serviceName).getBytes();
         ByteSequence keySeq = ByteSequence.from(key);
         Watch.Watcher watcher = watchClient.watch(keySeq, WatchOption.newBuilder().withPrefix(keySeq).build(), watchResponse -> {
+            if (watchResponse.getEvents().size() <= 0) {
+                return;
+            }
+
+            List<ServiceProviderEntry> newList = providers.get(serviceName);
+            if (newList == null) {
+                newList = new ArrayList<>();
+            } else {
+                newList = new ArrayList<>(newList);
+            }
             for (WatchEvent event : watchResponse.getEvents()) {
                 ServiceProviderEntry provider = parseKV(event.getKeyValue());
                 switch (event.getEventType()) {
                     case PUT:
-                        addProvider(provider);
+                        if (newList.indexOf(provider) < 0) {
+                            newList.add(provider);
+                        }
                         break;
                     case DELETE:
-                        removeProvider(provider);
+                        newList.remove(provider);
                         break;
                 }
             }
+            providers.put(serviceName, newList);
         });
+
         watchers.put(serviceName, watcher);
+        // force update once
+        lookup(serviceName, true);
+        log.info("Subscribed {}", serviceName);
     }
 
     @Override
@@ -144,40 +162,29 @@ public class Etcd3ServiceRegistry implements ServiceRegistry {
         if (watcher != null) {
             watcher.close();
         }
+        log.info("Unsubscribed {}", serviceName);
     }
 
     @Override
-    public Collection<ServiceProviderEntry> lookup(String serviceName, boolean forceUpdate) throws RpcRegistryException {
+    public List<ServiceProviderEntry> lookup(String serviceName, boolean forceUpdate) throws RpcRegistryException {
         if (forceUpdate) {
             byte[] key = getPathForService(serviceName).getBytes();
             ByteSequence keySeq = ByteSequence.from(key);
             try {
                 GetResponse resp = kvClient.get(keySeq, GetOption.newBuilder().withPrefix(keySeq).build()).get();
-                Set<ServiceProviderEntry> providerEntrySet = Collections.newSetFromMap(new ConcurrentHashMap<>());
-                resp.getKvs().stream().map(this::parseKV).forEach(providerEntrySet::add);
-                providers.put(serviceName, providerEntrySet);
-                return Collections.unmodifiableCollection(providerEntrySet);
+                List<ServiceProviderEntry> providerEntryList = resp.getKvs().stream().map(this::parseKV).collect(Collectors.toList());
+                providers.put(serviceName, providerEntryList);
+                return providerEntryList;
             } catch (Exception e) {
                 throw new RpcRegistryException(e);
             }
         } else {
-            Set<ServiceProviderEntry> providerEntrySet = providers.get(serviceName);
-            if (providerEntrySet == null) {
-                return Collections.emptySet();
+            List<ServiceProviderEntry> providerEntryList = providers.get(serviceName);
+            if (providerEntryList == null) {
+                return Collections.emptyList();
             } else {
-                return Collections.unmodifiableCollection(providerEntrySet);
+                return providerEntryList;
             }
-        }
-    }
-
-    private void addProvider(ServiceProviderEntry provider) {
-        providers.computeIfAbsent(provider.getServiceName(), x -> Collections.newSetFromMap(new ConcurrentHashMap<>())).add(provider);
-    }
-
-    private void removeProvider(ServiceProviderEntry provider) {
-        Set<ServiceProviderEntry> providerEntrySet = providers.get(provider.getServiceName());
-        if (providerEntrySet != null) {
-            providerEntrySet.remove(provider);
         }
     }
 
