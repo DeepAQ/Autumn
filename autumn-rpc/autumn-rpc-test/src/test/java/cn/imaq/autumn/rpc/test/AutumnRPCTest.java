@@ -1,9 +1,6 @@
 package cn.imaq.autumn.rpc.test;
 
-import cn.imaq.autumn.rpc.cluster.AutumnRPCClusterClient;
-import cn.imaq.autumn.rpc.cluster.config.RpcClusterClientConfig;
-import cn.imaq.autumn.rpc.registry.etcd3.Etcd3RegistryConfig;
-import cn.imaq.autumn.rpc.registry.etcd3.Etcd3ServiceRegistry;
+import cn.imaq.autumn.core.context.AutumnContext;
 import com.example.test.MyEnum;
 import com.example.test.MyObject;
 import com.example.test.TestService;
@@ -18,12 +15,10 @@ import java.util.stream.Collectors;
 public class AutumnRPCTest {
     @Test
     public void test() throws Exception {
-        AutumnRPCClusterClient clusterClient = new AutumnRPCClusterClient(RpcClusterClientConfig.builder()
-                .registry(new Etcd3ServiceRegistry(Etcd3RegistryConfig.builder()
-                        .endpoints(new String[]{"http://127.0.0.1:2379"})
-                        .build()))
-                .build());
-        TestService testService = clusterClient.getProxy(TestService.class);
+        AutumnContext context = new AutumnContext("ClientTestContext");
+        context.scanComponents();
+        TestServiceWrapper wrapper = context.getBeanByType(TestServiceWrapper.class);
+        TestService testService = wrapper.getTestService();
 
         // TESTS
         String randStr = UUID.randomUUID().toString();

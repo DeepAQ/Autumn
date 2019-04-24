@@ -1,8 +1,11 @@
 package cn.imaq.autumn.rpc.test;
 
+import cn.imaq.autumn.core.annotation.BeanFactory;
 import cn.imaq.autumn.core.annotation.Component;
 import cn.imaq.autumn.rpc.cluster.AutumnRPCCluster;
+import cn.imaq.autumn.rpc.cluster.AutumnRPCClusterClient;
 import cn.imaq.autumn.rpc.cluster.AutumnRPCClusterServer;
+import cn.imaq.autumn.rpc.cluster.config.RpcClusterClientConfig;
 import cn.imaq.autumn.rpc.cluster.config.RpcClusterServerConfig;
 import cn.imaq.autumn.rpc.registry.etcd3.Etcd3RegistryConfig;
 import cn.imaq.autumn.rpc.registry.etcd3.Etcd3ServiceRegistry;
@@ -29,5 +32,14 @@ public class TestConfig {
     @AfterSuite
     public void stopServer() throws IOException {
         AutumnRPCCluster.stop();
+    }
+
+    @BeanFactory
+    public AutumnRPCClusterClient getClusterClient() {
+        return new AutumnRPCClusterClient(RpcClusterClientConfig.builder()
+                .registry(new Etcd3ServiceRegistry(Etcd3RegistryConfig.builder()
+                        .endpoints(new String[]{"http://127.0.0.1:2379"})
+                        .build()))
+                .build());
     }
 }

@@ -67,6 +67,10 @@ public class AutumnRPCClusterClient {
         return config.getProxy().create(serviceClass, (proxy, method, args) -> invoke(serviceClass, method, args, timeoutMs, loadBalancer));
     }
 
+    public <T> T getProxy(Class<T> serviceClass, LoadBalancer loadBalancer) {
+        return getProxy(serviceClass, config.getDefaultTimeoutMs(), loadBalancer);
+    }
+
     public <T> T getProxy(Class<T> serviceClass) {
         return getProxy(serviceClass, config.getDefaultTimeoutMs(), config.getDefaultLoadBalancer());
     }

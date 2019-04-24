@@ -1,4 +1,4 @@
 dependencies {
-    api project(":autumn-rpc:autumn-rpc-client")
     api project(":autumn-core")
+    implementation project(":autumn-rpc:autumn-rpc-cluster")
 }

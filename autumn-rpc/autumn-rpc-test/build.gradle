@@ -2,5 +2,5 @@ version '1.0-SNAPSHOT'
 
 dependencies {
     implementation project(":autumn-rpc:autumn-rpc-cluster")
-//    implementation project(":autumn-rpc:autumn-rpc-integration")
+    implementation project(":autumn-rpc:autumn-rpc-integration")
 }

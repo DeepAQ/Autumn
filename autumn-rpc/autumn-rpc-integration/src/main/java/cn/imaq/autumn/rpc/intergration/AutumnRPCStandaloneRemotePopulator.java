@@ -4,15 +4,15 @@ import cn.imaq.autumn.core.beans.populator.AnnotatedFieldPopulator;
 import cn.imaq.autumn.core.context.AutumnContext;
 import cn.imaq.autumn.core.exception.BeanPopulationException;
 import cn.imaq.autumn.rpc.client.AutumnRPCClient;
-import cn.imaq.autumn.rpc.intergration.annotation.AutumnRPCRemote;
+import cn.imaq.autumn.rpc.intergration.annotation.AutumnRPCStandaloneRemote;
 
 import java.lang.reflect.Field;
 
-public class AutumnRPCRemotePopulator extends AnnotatedFieldPopulator<AutumnRPCRemote> {
+public class AutumnRPCStandaloneRemotePopulator extends AnnotatedFieldPopulator<AutumnRPCStandaloneRemote> {
     private AutumnRPCClient rpcClient;
 
     @Override
-    protected Object populate(AutumnContext context, Field field, AutumnRPCRemote anno) throws BeanPopulationException {
+    protected Object populate(AutumnContext context, Field field, AutumnRPCStandaloneRemote anno) throws BeanPopulationException {
         if (this.rpcClient == null) {
             this.rpcClient = context.getBeanByType(AutumnRPCClient.class);
             if (this.rpcClient == null) {
