@@ -1,9 +1,12 @@
 package com.example.test;
 
+import cn.imaq.autumn.rpc.server.annotation.AutumnRPCInterface;
+
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.util.List;
 
+@AutumnRPCInterface
 public interface TestService extends Remote {
     String echo(String input) throws RemoteException;
 

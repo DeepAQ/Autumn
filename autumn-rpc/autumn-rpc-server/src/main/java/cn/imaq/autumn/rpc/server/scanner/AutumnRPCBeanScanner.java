@@ -6,6 +6,7 @@ import cn.imaq.autumn.core.beans.scanner.BeanScanner;
 import cn.imaq.autumn.core.context.AutumnContext;
 import cn.imaq.autumn.cpscan.ScanResult;
 import cn.imaq.autumn.rpc.server.annotation.AutumnRPCExpose;
+import cn.imaq.autumn.rpc.server.annotation.AutumnRPCInterface;
 import cn.imaq.autumn.rpc.server.context.RpcContext;
 import lombok.extern.slf4j.Slf4j;
 
@@ -18,7 +19,9 @@ public class AutumnRPCBeanScanner implements BeanScanner {
             log.info("RPC Exposing: {}", cls.getName());
             rpcContext.registerService(cls);
             for (Class<?> intf : cls.getInterfaces()) {
-                rpcContext.registerService(intf.getName(), cls);
+                if (intf.isAnnotationPresent(AutumnRPCInterface.class)) {
+                    rpcContext.registerService(intf.getName(), cls);
+                }
             }
             context.addBeanInfo(BeanInfo.builder()
                     .type(cls)

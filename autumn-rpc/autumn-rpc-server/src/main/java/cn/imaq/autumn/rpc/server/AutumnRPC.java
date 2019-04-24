@@ -3,7 +3,6 @@ package cn.imaq.autumn.rpc.server;
 import cn.imaq.autumn.core.beans.BeanInfo;
 import cn.imaq.autumn.core.context.AutumnContext;
 import cn.imaq.autumn.rpc.server.config.RpcServerConfig;
-import cn.imaq.autumn.rpc.util.AutumnRPCBanner;
 
 import java.io.IOException;
 
@@ -15,8 +14,6 @@ public class AutumnRPC {
     }
 
     public static void start(RpcServerConfig config) throws IOException {
-        AutumnRPCBanner.printBanner();
-
         // Init default context
         AutumnContext appContext = new AutumnContext("AutumnRPCContext");
         if (config != null) {

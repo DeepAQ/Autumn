@@ -4,6 +4,7 @@ import cn.imaq.autumn.core.context.AutumnContext;
 import cn.imaq.autumn.rpc.server.config.RpcServerConfig;
 import cn.imaq.autumn.rpc.server.handler.AutumnRpcRequestHandler;
 import cn.imaq.autumn.rpc.server.net.RpcHttpServer;
+import cn.imaq.autumn.rpc.util.AutumnRPCBanner;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
@@ -26,6 +27,7 @@ public class AutumnRPCServer {
     public synchronized void start() throws IOException {
         // Stop existing server
         stop();
+        AutumnRPCBanner.printBanner();
         // Load config
         if (config == null) {
             config = context.getBeanByType(RpcServerConfig.class);

@@ -22,6 +22,10 @@ public class AutumnRPCClusterClient {
 
     public AutumnRPCClusterClient(RpcClusterClientConfig config) {
         this.config = config;
+
+        log.info("Using HTTP client: {}", config.getHttpClient().getClass().getName());
+        log.info("Using proxy: {}", config.getProxy().getClass().getName());
+
         try {
             config.getRegistry().start();
         } catch (RpcRegistryException e) {
