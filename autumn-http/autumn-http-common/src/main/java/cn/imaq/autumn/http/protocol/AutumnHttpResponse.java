@@ -19,6 +19,34 @@ public class AutumnHttpResponse {
 
     private byte[] body;
 
+    public byte[] toHeaderBytes() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("HTTP/1.1 ").append(status).append(' ').append(ResponseCodes.get(status)).append("\r\n");
+        boolean sentContentType = false;
+        boolean sentContentLength = false;
+        if (headers != null) {
+            for (Map.Entry<String, List<String>> header : headers.entrySet()) {
+                String key = header.getKey();
+                for (String value : header.getValue()) {
+                    sb.append(key).append(": ").append(value).append("\r\n");
+                }
+                if (key.toLowerCase().equals("content-type")) {
+                    sentContentType = true;
+                } else if (key.toLowerCase().equals("content-length")) {
+                    sentContentLength = true;
+                }
+            }
+        }
+        if (!sentContentType && contentType != null) {
+            sb.append("Content-Type: ").append(contentType).append("\r\n");
+        }
+        if (!sentContentLength && body != null) {
+            sb.append("Content-Length: ").append(body.length).append("\r\n");
+        }
+        sb.append("\r\n");
+        return sb.toString().getBytes();
+    }
+
     public static class ResponseCodes {
         static final String[][] RESPONSE_CODES = {
                 {"Continue", "Switching Protocols", "Processing", "Early Hints"},

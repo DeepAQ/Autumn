@@ -9,7 +9,9 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.channels.CompletionHandler;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 @Slf4j
 public class AIOHttpServerSession extends AbstractHttpSession {
@@ -105,31 +107,7 @@ public class AIOHttpServerSession extends AbstractHttpSession {
     }
 
     private void writeResponse(AutumnHttpResponse response) throws IOException {
-        StringBuilder sb = new StringBuilder();
-        sb.append("HTTP/1.1 ").append(response.getStatus()).append(' ')
-                .append(AutumnHttpResponse.ResponseCodes.get(response.getStatus())).append("\r\n");
-        boolean sentContentType = false;
-        boolean sentContentLength = false;
-        if (response.getHeaders() != null) {
-            for (Map.Entry<String, List<String>> header : response.getHeaders().entrySet()) {
-                String key = header.getKey();
-                for (String value : header.getValue()) {
-                    sb.append(key).append(": ").append(value).append("\r\n");
-                }
-                if (key.toLowerCase().equals("content-type")) {
-                    sentContentType = true;
-                } else if (key.toLowerCase().equals("content-length")) {
-                    sentContentLength = true;
-                }
-            }
-        }
-        if (!sentContentType && response.getContentType() != null) {
-            sb.append("Content-Type: ").append(response.getContentType()).append("\r\n");
-        }
-        if (!sentContentLength && response.getBody() != null) {
-            sb.append("Content-Length: ").append(response.getBody().length).append("\r\n");
-        }
-        cChannel.write(ByteBuffer.wrap(sb.append("\r\n").toString().getBytes()), null, new CompletionHandler<Integer, Object>() {
+        cChannel.write(ByteBuffer.wrap(response.toHeaderBytes()), null, new CompletionHandler<Integer, Object>() {
             @Override
             public void completed(Integer result, Object attachment) {
                 if (response.getBody() != null) {

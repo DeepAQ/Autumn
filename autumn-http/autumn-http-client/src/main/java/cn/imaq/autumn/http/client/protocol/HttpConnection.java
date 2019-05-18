@@ -27,10 +27,11 @@ public class HttpConnection {
         return channel.isConnected();
     }
 
-    public AutumnHttpResponse writeThenRead(byte[] data, int timeoutMillis) throws IOException {
-        // write data
+    public void writeBytes(byte[] data) throws IOException {
         channel.write(ByteBuffer.wrap(data));
-        // read response
+    }
+
+    public AutumnHttpResponse readResponse(int timeoutMillis) throws IOException {
         HttpClientSession session = new HttpClientSession();
         while (true) {
             int count = selector.select(timeoutMillis);

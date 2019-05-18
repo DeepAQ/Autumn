@@ -7,7 +7,9 @@ import cn.imaq.autumn.http.protocol.AutumnHttpResponse;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 public class HttpServerSession extends AbstractHttpSession {
     private static final Set<String> VALID_METHODS = new HashSet<>();
@@ -71,31 +73,7 @@ public class HttpServerSession extends AbstractHttpSession {
     }
 
     private void writeResponse(AutumnHttpResponse response) throws IOException {
-        StringBuilder sb = new StringBuilder();
-        sb.append("HTTP/1.1 ").append(response.getStatus()).append(' ')
-                .append(AutumnHttpResponse.ResponseCodes.get(response.getStatus())).append("\r\n");
-        boolean sentContentType = false;
-        boolean sentContentLength = false;
-        if (response.getHeaders() != null) {
-            for (Map.Entry<String, List<String>> header : response.getHeaders().entrySet()) {
-                String key = header.getKey();
-                for (String value : header.getValue()) {
-                    sb.append(key).append(": ").append(value).append("\r\n");
-                }
-                if (key.toLowerCase().equals("content-type")) {
-                    sentContentType = true;
-                } else if (key.toLowerCase().equals("content-length")) {
-                    sentContentLength = true;
-                }
-            }
-        }
-        if (!sentContentType && response.getContentType() != null) {
-            sb.append("Content-Type: ").append(response.getContentType()).append("\r\n");
-        }
-        if (!sentContentLength && response.getBody() != null) {
-            sb.append("Content-Length: ").append(response.getBody().length).append("\r\n");
-        }
-        cChannel.write(ByteBuffer.wrap(sb.append("\r\n").toString().getBytes()));
+        cChannel.write(ByteBuffer.wrap(response.toHeaderBytes()));
         if (response.getBody() != null) {
             cChannel.write(ByteBuffer.wrap(response.getBody()));
         }

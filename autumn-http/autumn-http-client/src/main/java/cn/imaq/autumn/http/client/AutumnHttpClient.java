@@ -37,7 +37,11 @@ public class AutumnHttpClient {
 
     public static AutumnHttpResponse request(AutumnHttpRequest request, InetSocketAddress dest, int timeoutMillis) throws IOException {
         HttpConnection connection = getConnection(dest);
-        return connection.writeThenRead(request.toRequestBytes(), timeoutMillis);
+        connection.writeBytes(request.toHeaderBytes());
+        if (request.getBody() != null) {
+            connection.writeBytes(request.getBody());
+        }
+        return connection.readResponse(timeoutMillis);
     }
 
     public static AutumnHttpResponse request(String method, String urlStr, String contentType, byte[] body, int timeoutMillis) throws IOException {
