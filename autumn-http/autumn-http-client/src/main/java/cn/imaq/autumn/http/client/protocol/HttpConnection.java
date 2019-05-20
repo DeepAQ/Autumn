@@ -11,34 +11,60 @@ import java.nio.channels.SocketChannel;
 import java.util.Iterator;
 
 public class HttpConnection {
+    private InetSocketAddress remote;
     private Selector selector;
     private SocketChannel channel;
     private ByteBuffer buf;
 
     public HttpConnection(InetSocketAddress remote) throws IOException {
+        this.remote = remote;
         selector = Selector.open();
-        channel = SocketChannel.open(remote);
+        channel = SocketChannel.open();
         channel.configureBlocking(false);
-        channel.register(selector, SelectionKey.OP_READ);
         buf = ByteBuffer.allocateDirect(1024);
     }
 
-    public boolean isAvailable() {
-        return channel.isConnected();
+    public void checkConnected(long deadline) throws IOException {
+        if (!channel.isConnected()) {
+            channel.register(selector, SelectionKey.OP_CONNECT);
+            channel.connect(remote);
+            while (true) {
+                int count = selector.select(deadline - System.currentTimeMillis());
+                if (count <= 0) {
+                    channel.close();
+                    throw new IOException("Connect timed out: " + remote);
+                }
+                Iterator<SelectionKey> keyIter = selector.selectedKeys().iterator();
+                while (keyIter.hasNext()) {
+                    SelectionKey key = keyIter.next();
+                    keyIter.remove();
+                    if (!key.isValid()) {
+                        continue;
+                    }
+                    if (key.isConnectable()) {
+                        if (!channel.finishConnect()) {
+                            throw new IOException("Failed to connect: " + remote);
+                        }
+                        channel.register(selector, SelectionKey.OP_READ);
+                        return;
+                    }
+                }
+            }
+        }
     }
 
     public void writeBytes(byte[] data) throws IOException {
         channel.write(ByteBuffer.wrap(data));
     }
 
-    public AutumnHttpResponse readResponse(int timeoutMillis) throws IOException {
+    public AutumnHttpResponse readResponse(long deadline) throws IOException {
         HttpClientSession session = new HttpClientSession();
         while (true) {
-            int count = selector.select(timeoutMillis);
+            int count = selector.select(deadline - System.currentTimeMillis());
             if (count <= 0) {
                 channel.close();
                 selector.close();
-                throw new IOException("Read timed out: " + channel.getRemoteAddress());
+                throw new IOException("Read timed out: " + remote);
             }
             Iterator<SelectionKey> keyIter = selector.selectedKeys().iterator();
             while (keyIter.hasNext()) {

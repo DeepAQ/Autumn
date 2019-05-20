@@ -25,23 +25,23 @@ public class AutumnHttpClient {
             localConnections.set(connectionMap);
         }
         HttpConnection conn = connectionMap.get(address);
-        // reuse existing connections
-        if (conn != null && conn.isAvailable()) {
-            return conn;
+        if (conn == null) {
+            // open new connection
+            conn = new HttpConnection(address);
+            connectionMap.put(address, conn);
         }
-        // open new connection
-        conn = new HttpConnection(address);
-        connectionMap.put(address, conn);
         return conn;
     }
 
     public static AutumnHttpResponse request(AutumnHttpRequest request, InetSocketAddress dest, int timeoutMillis) throws IOException {
         HttpConnection connection = getConnection(dest);
+        long deadline = System.currentTimeMillis() + timeoutMillis;
+        connection.checkConnected(deadline);
         connection.writeBytes(request.toHeaderBytes());
         if (request.getBody() != null) {
             connection.writeBytes(request.getBody());
         }
-        return connection.readResponse(timeoutMillis);
+        return connection.readResponse(deadline);
     }
 
     public static AutumnHttpResponse request(String method, String urlStr, String contentType, byte[] body, int timeoutMillis) throws IOException {
@@ -59,10 +59,15 @@ public class AutumnHttpClient {
         }
 
         Map<String, List<String>> headers = new HashMap<>();
-        headers.put("Host", Collections.singletonList(url.getHost()));
+        String host = url.getHost();
+        if (url.getPort() > 0 && url.getPort() != url.getDefaultPort()) {
+            host += ":" + url.getPort();
+        }
+        headers.put("Host", Collections.singletonList(host));
         if (contentType != null) {
             headers.put("Content-Type", Collections.singletonList(contentType));
         }
+
         AutumnHttpRequest request = AutumnHttpRequest.builder()
                 .method(method)
                 .path(path)
@@ -70,7 +75,8 @@ public class AutumnHttpClient {
                 .headers(headers)
                 .body(body)
                 .build();
-        int port = url.getPort() > 0 ? url.getPort() : 80;
+
+        int port = url.getPort() > 0 ? url.getPort() : url.getDefaultPort();
         InetSocketAddress socketAddress = new InetSocketAddress(url.getHost(), port);
         return request(request, socketAddress, timeoutMillis);
     }
