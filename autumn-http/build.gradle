@@ -1,5 +1,4 @@
 subprojects {
-    version '1.0-SNAPSHOT'
     description 'Lightweight HTTP components'
 
     apply from: '../../maven-publish.gradle'

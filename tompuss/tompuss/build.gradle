@@ -1,4 +1,3 @@
-version '1.0-SNAPSHOT'
 description 'Java EE Web Server and Servlet container'
 
 dependencies {

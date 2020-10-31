@@ -1,4 +1,3 @@
-version '1.0-SNAPSHOT'
 description 'TomPuss starter pack for Spring Boot'
 
 configurations {

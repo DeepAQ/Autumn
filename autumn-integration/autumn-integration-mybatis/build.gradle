@@ -1,4 +1,3 @@
-version '1.0-SNAPSHOT'
 description 'MyBatis integration for Autumn'
 
 dependencies {

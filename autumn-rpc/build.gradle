@@ -1,5 +1,4 @@
 subprojects {
-    version '1.0-SNAPSHOT'
     description 'Lightweight cross-language HTTP RPC framework'
 
     apply from: '../../maven-publish.gradle'

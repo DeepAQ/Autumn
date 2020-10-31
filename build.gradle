@@ -1,5 +1,6 @@
 allprojects {
     group 'cn.imaq'
+    version '2020.10'
 }
 
 subprojects {

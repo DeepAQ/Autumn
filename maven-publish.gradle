@@ -1,5 +1,5 @@
-apply plugin: 'signing'
 apply plugin: 'maven'
+apply plugin: 'signing'
 
 task javadocJar(type: Jar) {
     classifier = 'javadoc'
@@ -39,8 +39,8 @@ uploadArchives {
                 url 'https://github.com/DeepAQ/Autumn'
 
                 scm {
-                    connection 'scm:git:git://github.com/DeepAQ/Autumn.git'
-                    developerConnection 'scm:git:ssh://github.com:DeepAQ/Autumn.git'
+                    connection 'scm:git:https://github.com/DeepAQ/Autumn.git'
+                    developerConnection 'scm:git:https://github.com:DeepAQ/Autumn.git'
                     url 'https://github.com/DeepAQ/Autumn'
                 }
 
@@ -54,8 +54,8 @@ uploadArchives {
                 developers {
                     developer {
                         id 'DeepAQ'
-                        name 'Monkey Liang'
-                        email 'i@aq741.com'
+                        name 'DeepAQ'
+                        email 'noreply@aq741.com'
                     }
                 }
             }
