@@ -10,6 +10,10 @@ public class HttpClientSession extends AbstractHttpSession {
     private String protocol;
     private boolean finished = false;
 
+    public HttpClientSession() {
+        super(1024 * 1024);
+    }
+
     public boolean isFinished() {
         return finished;
     }
@@ -42,12 +46,17 @@ public class HttpClientSession extends AbstractHttpSession {
     }
 
     @Override
-    protected void finish() throws IOException {
+    protected void finish() {
         finished = true;
     }
 
     @Override
-    protected void error() throws IOException {
+    protected void error() {
         System.err.println("Error parsing HTTP response");
+    }
+
+    @Override
+    protected void close() throws IOException {
+        // TODO
     }
 }

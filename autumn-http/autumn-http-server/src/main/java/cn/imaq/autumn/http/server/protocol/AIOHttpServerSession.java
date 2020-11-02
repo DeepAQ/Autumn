@@ -27,6 +27,7 @@ public class AIOHttpServerSession extends AbstractHttpSession {
     private String method, path, protocol;
 
     public AIOHttpServerSession(AutumnHttpHandler handler, AsynchronousSocketChannel cChannel) {
+        super(1024 * 1024);
         this.handler = handler;
         this.cChannel = cChannel;
         this.buf = ByteBuffer.allocate(1024);
@@ -102,7 +103,8 @@ public class AIOHttpServerSession extends AbstractHttpSession {
         );
     }
 
-    private void timeout() throws IOException {
+    @Override
+    protected void close() throws IOException {
         cChannel.close();
     }
 

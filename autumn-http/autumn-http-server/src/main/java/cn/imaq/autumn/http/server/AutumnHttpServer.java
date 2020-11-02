@@ -2,6 +2,7 @@ package cn.imaq.autumn.http.server;
 
 import cn.imaq.autumn.http.server.protocol.AutumnHttpHandler;
 import cn.imaq.autumn.http.server.protocol.HttpServerSession;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
@@ -19,23 +20,25 @@ import java.util.concurrent.locks.ReentrantLock;
 
 @Slf4j
 public class AutumnHttpServer {
-    private final int NUM_WORKERS = Runtime.getRuntime().availableProcessors();
-    private final int IDLE_TIMEOUT = 60;
+    @Setter
+    private HttpServerOptions options;
 
-    private int port;
-    private AutumnHttpHandler handler;
-
-    private Thread boss;
+    private Thread listener;
     private Thread cleaner;
-    private final EventLoop[] workers = new Worker[NUM_WORKERS];
+    private final EventLoop[] workers;
     private final AtomicInteger currentWorker = new AtomicInteger(0);
     private final Collection<WeakReference<HttpServerSession>> sessions = new ConcurrentLinkedQueue<>();
 
     private volatile boolean running = false;
 
+    @Deprecated
     public AutumnHttpServer(int port, AutumnHttpHandler handler) {
-        this.port = port;
-        this.handler = handler;
+        this(HttpServerOptions.builder().port(port).handler(handler).build());
+    }
+
+    public AutumnHttpServer(HttpServerOptions options) {
+        this.options = options;
+        this.workers = new EventLoop[options.getWorkerCount()];
     }
 
     public void start() throws IOException {
@@ -44,18 +47,18 @@ public class AutumnHttpServer {
                 // Open channel
                 ServerSocketChannel sChannel = ServerSocketChannel.open();
                 sChannel.configureBlocking(false);
-                sChannel.bind(new InetSocketAddress(port));
+                sChannel.bind(new InetSocketAddress(options.getHost(), options.getPort()));
                 // Start threads
                 running = true;
-                for (int i = 0; i < NUM_WORKERS; i++) {
+                for (int i = 0; i < options.getWorkerCount(); i++) {
                     workers[i] = new Worker(i);
                     workers[i].start();
                 }
-                boss = new Boss(sChannel);
-                boss.start();
+                listener = new Listener(sChannel);
+                listener.start();
                 cleaner = new IdleCleaner();
                 cleaner.start();
-                log.info("Started HTTP server on port {} with {} workers", port, NUM_WORKERS);
+                log.info("Started HTTP server with options {}", options.getWorkerCount());
             }
         }
     }
@@ -64,10 +67,10 @@ public class AutumnHttpServer {
         synchronized (this) {
             if (running) {
                 running = false;
-                for (int i = 0; i < NUM_WORKERS; i++) {
+                for (int i = 0; i < options.getWorkerCount(); i++) {
                     workers[i].interrupt();
                 }
-                boss.interrupt();
+                listener.interrupt();
                 cleaner.interrupt();
                 sessions.clear();
                 log.info("HTTP server stopped");
@@ -123,9 +126,9 @@ public class AutumnHttpServer {
         }
     }
 
-    class Boss extends EventLoop {
-        Boss(ServerSocketChannel sChannel) throws IOException {
-            super("AutumnHTTP-" + port + "-Boss");
+    class Listener extends EventLoop {
+        Listener(ServerSocketChannel sChannel) throws IOException {
+            super("AutumnHTTP-" + options.getPort() + "-Listener");
             setPriority(MAX_PRIORITY);
             register(sChannel, SelectionKey.OP_ACCEPT, null);
         }
@@ -137,8 +140,8 @@ public class AutumnHttpServer {
                 try {
                     SocketChannel cChannel = sChannel.accept();
                     cChannel.configureBlocking(false);
-                    int workerIndex = currentWorker.getAndIncrement() % NUM_WORKERS;
-                    HttpServerSession session = new HttpServerSession(handler, cChannel);
+                    int workerIndex = currentWorker.getAndIncrement() % options.getWorkerCount();
+                    HttpServerSession session = new HttpServerSession(cChannel, options);
                     workers[workerIndex].register(cChannel, SelectionKey.OP_READ, session);
                     sessions.add(new WeakReference<>(session));
                 } catch (Exception e) {
@@ -152,7 +155,7 @@ public class AutumnHttpServer {
         private ByteBuffer buf = ByteBuffer.allocateDirect(1024);
 
         Worker(int index) throws IOException {
-            super("AutumnHTTP-" + port + "-Worker-" + index);
+            super("AutumnHTTP-" + options.getPort() + "-Worker-" + index);
         }
 
         @Override
@@ -169,7 +172,7 @@ public class AutumnHttpServer {
                         buf.flip();
                         session.processByteBuffer(buf);
                     }
-                } catch (IOException e) {
+                } catch (Exception e) {
                     log.error("Got exception while processing request: {}", e.getClass().getName());
                     try {
                         cChannel.close();
@@ -183,12 +186,12 @@ public class AutumnHttpServer {
 
     class IdleCleaner extends Thread {
         public IdleCleaner() {
-            super("AutumnHTTP-" + port + "-IdleCleaner");
+            super("AutumnHTTP-" + options.getPort() + "-IdleCleaner");
         }
 
         @Override
         public void run() {
-            while (true) {
+            while (!this.isInterrupted()) {
                 Iterator<WeakReference<HttpServerSession>> it = sessions.iterator();
                 while (it.hasNext()) {
                     HttpServerSession session = it.next().get();
@@ -196,14 +199,16 @@ public class AutumnHttpServer {
                         it.remove();
                     } else {
                         try {
-                            session.checkIdle(IDLE_TIMEOUT);
+                            if (session.checkIdle(options.getIdleTimeoutSeconds())) {
+                                it.remove();
+                            }
                         } catch (IOException e) {
                             log.error("Error checking idle", e);
                         }
                     }
                 }
                 try {
-                    Thread.sleep(IDLE_TIMEOUT * 500);
+                    Thread.sleep(options.getIdleTimeoutSeconds() * 500);
                 } catch (InterruptedException e) {
                     break;
                 }

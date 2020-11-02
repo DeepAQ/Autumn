@@ -2,23 +2,29 @@ package cn.imaq.autumn.http.protocol;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
 public abstract class AbstractHttpSession {
-    private static final int MAX_BODY_LENGTH = 1024 * 1024 * 10;
-
+    // Per-session variables
+    private final int maxBodyLength;
+    private final byte[] buf = new byte[2048];
+    private int bufLimit;
     private State state = State.START;
     protected long lastActive = System.currentTimeMillis();
+
+    // Per-request variables
     protected Map<String, List<String>> headersMap = new HashMap<>();
     private int contentLength = -1;
-
-    private byte[] buf = new byte[2048];
-    private int bufLimit = 0;
+    protected boolean closeConnection = false;
     protected byte[] body;
-    private int bodyLimit = 0;
+    private int bodyLimit;
+
+    protected AbstractHttpSession(int maxBodyLength) {
+        this.maxBodyLength = maxBodyLength;
+    }
 
     public void processByteBuffer(ByteBuffer byteBuf) throws IOException {
         if (bufLimit + byteBuf.limit() > buf.length) {
@@ -35,6 +41,23 @@ public abstract class AbstractHttpSession {
 
     protected abstract void error() throws IOException;
 
+    protected abstract void close() throws IOException;
+
+    private void finishAndReset() throws IOException {
+        finish();
+
+        this.state = State.START;
+        this.bufLimit = 0;
+        this.headersMap.clear();
+        this.contentLength = -1;
+        this.body = null;
+        this.bodyLimit = 0;
+    }
+
+    private void refreshLastActiveTime() {
+        this.lastActive = System.currentTimeMillis();
+    }
+
     private void processBuf() throws IOException {
         int readBytes = 0;
         if (state == State.START || state == State.HEADERS) {
@@ -43,17 +66,39 @@ public abstract class AbstractHttpSession {
             while ((line = reader.nextLine()) != null) {
                 if (state == State.START) {
                     if (checkStart(line)) {
-                        lastActive = System.currentTimeMillis();
+                        refreshLastActiveTime();
                         state = State.HEADERS;
-                        headersMap.clear();
+                    } else if (!line.isEmpty()) {
+                        error();
+                        close();
+                        return;
                     }
                 } else if (state == State.HEADERS) {
                     if (line.isEmpty()) {
-                        if (contentLength < 0) {
-                            lastActive = System.currentTimeMillis();
-                            finish();
-                            state = State.START;
+                        refreshLastActiveTime();
+
+                        List<String> contentLengthHeaders = headersMap.get("content-length");
+                        if (contentLengthHeaders != null) {
+                            contentLength = Integer.parseInt(contentLengthHeaders.get(0));
+                            if (contentLength > maxBodyLength) {
+                                error();
+                                close();
+                                return;
+                            }
+                        }
+
+                        List<String> connectionHeaders = headersMap.get("connection");
+                        if (connectionHeaders != null) {
+                            if (connectionHeaders.get(0).toLowerCase().equals("close")) {
+                                closeConnection = true;
+                            }
+                        }
+
+                        if (contentLength <= 0) {
+                            finishAndReset();
+                            return;
                         } else {
+                            body = new byte[contentLength];
                             state = State.BODY;
                         }
                         break;
@@ -61,31 +106,23 @@ public abstract class AbstractHttpSession {
                         // expect: "Header-Key: Header-Value"
                         String[] kv = line.split(":", 2);
                         if (kv.length == 2) {
-                            lastActive = System.currentTimeMillis();
+                            refreshLastActiveTime();
                             String key = kv[0].trim().toLowerCase();
                             String value = kv[1].trim();
-                            headersMap.computeIfAbsent(key, k -> new ArrayList<>()).add(value);
-                            if (key.equals("content-length")) {
-                                contentLength = Integer.valueOf(value);
-                                if (contentLength > MAX_BODY_LENGTH) {
-                                    error();
-                                    state = State.START;
-                                } else {
-                                    body = new byte[contentLength];
-                                    bodyLimit = 0;
-                                }
-                            }
+                            headersMap.computeIfAbsent(key, k -> new LinkedList<>()).add(value);
                         } else {
                             error();
-                            state = State.START;
+                            close();
+                            return;
                         }
                     }
                 }
             }
             readBytes += reader.getReadBytes();
         }
+
         if (state == State.BODY) {
-            lastActive = System.currentTimeMillis();
+            refreshLastActiveTime();
             int canRead = bufLimit - readBytes;
             if (canRead >= contentLength - bodyLimit) {
                 canRead = contentLength - bodyLimit;
@@ -94,11 +131,11 @@ public abstract class AbstractHttpSession {
             readBytes += canRead;
             bodyLimit += canRead;
             if (bodyLimit >= contentLength) {
-                readBytes = bufLimit;
-                finish();
-                state = State.START;
+                finishAndReset();
+                return;
             }
         }
+
         if (readBytes < bufLimit && readBytes > 0) {
             System.arraycopy(buf, readBytes, buf, 0, bufLimit - readBytes);
         }
