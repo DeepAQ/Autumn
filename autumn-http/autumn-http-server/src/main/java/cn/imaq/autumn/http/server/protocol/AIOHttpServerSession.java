@@ -3,6 +3,7 @@ package cn.imaq.autumn.http.server.protocol;
 import cn.imaq.autumn.http.protocol.AbstractHttpSession;
 import cn.imaq.autumn.http.protocol.AutumnHttpRequest;
 import cn.imaq.autumn.http.protocol.AutumnHttpResponse;
+import cn.imaq.autumn.http.server.HttpServerOptions;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
@@ -12,59 +13,67 @@ import java.nio.channels.CompletionHandler;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 @Slf4j
 public class AIOHttpServerSession extends AbstractHttpSession {
     private static final Set<String> VALID_METHODS = new HashSet<>();
 
     static {
-        Collections.addAll(VALID_METHODS, "GET", "POST", "PUT", "DELETE");
+        Collections.addAll(VALID_METHODS, "GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "TRACE");
     }
 
-    private AutumnHttpHandler handler;
-    private AsynchronousSocketChannel cChannel;
-    private ByteBuffer buf;
+    private final AsynchronousSocketChannel cChannel;
+    private final HttpServerOptions options;
+    private final ByteBuffer buf;
     private String method, path, protocol;
+    private final AtomicBoolean readPending = new AtomicBoolean(false);
+    private final AtomicBoolean writePending = new AtomicBoolean(false);
 
-    public AIOHttpServerSession(AutumnHttpHandler handler, AsynchronousSocketChannel cChannel) {
-        super(1024 * 1024);
-        this.handler = handler;
+    public AIOHttpServerSession(AsynchronousSocketChannel cChannel, HttpServerOptions options) {
+        super(options.getMaxBodyBytes());
         this.cChannel = cChannel;
+        this.options = options;
         this.buf = ByteBuffer.allocate(1024);
     }
 
     public void tryRead() {
-        cChannel.read(buf, null, new CompletionHandler<Integer, Object>() {
+        if (!readPending.compareAndSet(false, true)) {
+            return;
+        }
+
+        buf.clear();
+        cChannel.read(buf, options.getIdleTimeoutSeconds() * 1000L - (System.currentTimeMillis() - this.lastActive), TimeUnit.MILLISECONDS, null, new CompletionHandler<Integer, Object>() {
             @Override
             public void completed(Integer result, Object attachment) {
+                readPending.set(false);
+                writePending.set(false);
+                boolean success = false;
                 if (result > 0) {
                     buf.flip();
                     try {
                         processByteBuffer(buf);
+                        success = true;
                     } catch (IOException e) {
                         log.warn("Failed to process buffer: {}", String.valueOf(e));
-                        tryClose();
                     }
-                    buf.clear();
-                } else {
+                }
+
+                if (!success) {
                     tryClose();
+                } else if (!writePending.get()) {
+                    tryRead();
                 }
             }
 
             @Override
             public void failed(Throwable exc, Object attachment) {
+                readPending.set(false);
                 log.warn("Failed to read: {}", String.valueOf(exc));
                 tryClose();
             }
         });
-    }
-
-    public void tryClose() {
-        try {
-            cChannel.close();
-        } catch (IOException e) {
-            log.warn("Failed to close channel: {}", String.valueOf(e));
-        }
     }
 
     @Override
@@ -91,16 +100,14 @@ public class AIOHttpServerSession extends AbstractHttpSession {
                 .localAddress(cChannel.getLocalAddress())
                 .remoteAddress(cChannel.getRemoteAddress())
                 .build();
-        AutumnHttpResponse response = handler.handle(request);
-        writeResponse(response);
+        writePending.set(true);
+        options.getExecutor().submit(() -> writeResponse(options.getHandler().handle(request)));
     }
 
     @Override
-    protected void error() throws IOException {
-        writeResponse(AutumnHttpResponse.builder()
-                .status(400)
-                .build()
-        );
+    protected void error() {
+        writePending.set(true);
+        writeResponse(AutumnHttpResponse.builder().status(400).build());
     }
 
     @Override
@@ -108,7 +115,7 @@ public class AIOHttpServerSession extends AbstractHttpSession {
         cChannel.close();
     }
 
-    private void writeResponse(AutumnHttpResponse response) throws IOException {
+    private void writeResponse(AutumnHttpResponse response) {
         cChannel.write(ByteBuffer.wrap(response.toHeaderBytes()), null, new CompletionHandler<Integer, Object>() {
             @Override
             public void completed(Integer result, Object attachment) {
@@ -116,7 +123,7 @@ public class AIOHttpServerSession extends AbstractHttpSession {
                     cChannel.write(ByteBuffer.wrap(response.getBody()), null, new CompletionHandler<Integer, Object>() {
                         @Override
                         public void completed(Integer result, Object attachment) {
-                            tryRead();
+                            finishWriteResponse();
                         }
 
                         @Override
@@ -126,7 +133,7 @@ public class AIOHttpServerSession extends AbstractHttpSession {
                         }
                     });
                 } else {
-                    tryRead();
+                    finishWriteResponse();
                 }
             }
 
@@ -136,5 +143,14 @@ public class AIOHttpServerSession extends AbstractHttpSession {
                 tryClose();
             }
         });
+    }
+
+    private void finishWriteResponse() {
+        if (closeConnection) {
+            tryClose();
+        } else {
+            refreshLastActiveTime();
+            tryRead();
+        }
     }
 }

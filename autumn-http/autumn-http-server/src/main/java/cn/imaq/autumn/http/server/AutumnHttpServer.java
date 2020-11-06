@@ -58,7 +58,7 @@ public class AutumnHttpServer {
                 listener.start();
                 cleaner = new IdleCleaner();
                 cleaner.start();
-                log.info("Started HTTP server with options {}", options.getWorkerCount());
+                log.info("Started HTTP server with options {}", options);
             }
         }
     }
@@ -195,16 +195,8 @@ public class AutumnHttpServer {
                 Iterator<WeakReference<HttpServerSession>> it = sessions.iterator();
                 while (it.hasNext()) {
                     HttpServerSession session = it.next().get();
-                    if (session == null) {
+                    if (session == null || session.checkIdle(options.getIdleTimeoutSeconds())) {
                         it.remove();
-                    } else {
-                        try {
-                            if (session.checkIdle(options.getIdleTimeoutSeconds())) {
-                                it.remove();
-                            }
-                        } catch (IOException e) {
-                            log.error("Error checking idle", e);
-                        }
                     }
                 }
                 try {

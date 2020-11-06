@@ -1,5 +1,7 @@
 package cn.imaq.autumn.http.protocol;
 
+import lombok.extern.slf4j.Slf4j;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
@@ -7,6 +9,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 public abstract class AbstractHttpSession {
     // Per-session variables
     private final int maxBodyLength;
@@ -54,7 +57,15 @@ public abstract class AbstractHttpSession {
         this.bodyLimit = 0;
     }
 
-    private void refreshLastActiveTime() {
+    protected void tryClose() {
+        try {
+            close();
+        } catch (IOException e) {
+            log.warn("Failed to close connection: {}", String.valueOf(e));
+        }
+    }
+
+    protected void refreshLastActiveTime() {
         this.lastActive = System.currentTimeMillis();
     }
 

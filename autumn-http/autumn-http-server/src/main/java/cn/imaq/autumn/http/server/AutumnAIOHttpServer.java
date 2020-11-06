@@ -2,6 +2,7 @@ package cn.imaq.autumn.http.server;
 
 import cn.imaq.autumn.http.server.protocol.AIOHttpServerSession;
 import cn.imaq.autumn.http.server.protocol.AutumnHttpHandler;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
@@ -13,29 +14,30 @@ import java.nio.channels.CompletionHandler;
 
 @Slf4j
 public class AutumnAIOHttpServer {
-    private final int NUM_WORKERS = Runtime.getRuntime().availableProcessors();
-    private final int IDLE_TIMEOUT = 60;
-
-    private int port;
-    private AutumnHttpHandler handler;
+    @Setter
+    private HttpServerOptions options;
 
     private final Object running = new Object();
 
+    @Deprecated
     public AutumnAIOHttpServer(int port, AutumnHttpHandler handler) {
-        this.port = port;
-        this.handler = handler;
+        this(HttpServerOptions.builder().port(port).handler(handler).build());
+    }
+
+    public AutumnAIOHttpServer(HttpServerOptions options) {
+        this.options = options;
     }
 
     public void start() throws IOException {
         synchronized (running) {
-            AsynchronousChannelGroup channelGroup = AsynchronousChannelGroup.withFixedThreadPool(NUM_WORKERS, Thread::new);
+            AsynchronousChannelGroup channelGroup = AsynchronousChannelGroup.withFixedThreadPool(options.getWorkerCount(), Thread::new);
             // Open channel
             AsynchronousServerSocketChannel sChannel = AsynchronousServerSocketChannel.open(channelGroup);
-            sChannel.bind(new InetSocketAddress(port));
+            sChannel.bind(new InetSocketAddress(options.getHost(), options.getPort()));
             sChannel.accept(null, new CompletionHandler<AsynchronousSocketChannel, Object>() {
                 @Override
                 public void completed(AsynchronousSocketChannel result, Object attachment) {
-                    AIOHttpServerSession session = new AIOHttpServerSession(handler, result);
+                    AIOHttpServerSession session = new AIOHttpServerSession(result, options);
                     session.tryRead();
                     sChannel.accept(null, this);
                 }
@@ -46,18 +48,18 @@ public class AutumnAIOHttpServer {
                     sChannel.accept(null, this);
                 }
             });
-            log.info("Started HTTP server on port {} with {} threads", port, NUM_WORKERS);
+            log.info("Started HTTP server with options {}", options);
             try {
                 running.wait();
             } catch (InterruptedException ignored) {
             }
             sChannel.close();
+            log.info("HTTP server stopped");
         }
     }
 
     public void stop() {
         synchronized (running) {
-            log.info("HTTP server stopped");
             running.notify();
         }
     }

@@ -6,7 +6,14 @@ import java.io.IOException;
 
 public class AIOHttpMain {
     public static void main(String[] args) throws IOException {
-        AutumnAIOHttpServer server = new AutumnAIOHttpServer(8802, new TeapotEchoHandler());
+        AutumnAIOHttpServer server = new AutumnAIOHttpServer(
+                HttpServerOptions.builder()
+                        .handler(new TeapotEchoHandler())
+                        .host("0.0.0.0")
+                        .port(8802)
+                        .idleTimeoutSeconds(60)
+                        .build()
+        );
         server.start();
         System.out.println("test");
 //        server.stop();

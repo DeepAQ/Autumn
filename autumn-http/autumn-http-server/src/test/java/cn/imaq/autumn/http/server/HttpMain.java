@@ -11,7 +11,7 @@ public class HttpMain {
                         .handler(new TeapotEchoHandler())
                         .host("0.0.0.0")
                         .port(8802)
-                        .idleTimeoutSeconds(3600)
+                        .idleTimeoutSeconds(60)
                         .build()
         );
         server.start();

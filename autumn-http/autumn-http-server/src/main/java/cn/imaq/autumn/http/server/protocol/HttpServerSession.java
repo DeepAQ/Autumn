@@ -32,9 +32,9 @@ public class HttpServerSession extends AbstractHttpSession {
         this.executor = options.getExecutor();
     }
 
-    public boolean checkIdle(int timeoutSec) throws IOException {
+    public boolean checkIdle(int timeoutSec) {
         if (System.currentTimeMillis() - lastActive > timeoutSec * 1000) {
-            close();
+            tryClose();
             return true;
         }
         return false;
@@ -69,13 +69,12 @@ public class HttpServerSession extends AbstractHttpSession {
                 try {
                     writeResponse(handler.handle(request));
                     if (closeConnection) {
-                        close();
+                        tryClose();
+                    } else {
+                        refreshLastActiveTime();
                     }
                 } catch (IOException e) {
-                    try {
-                        close();
-                    } catch (IOException ignored) {
-                    }
+                    tryClose();
                 }
             });
         } catch (Exception e) {
